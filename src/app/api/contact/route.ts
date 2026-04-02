@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
   try {
     await resend.emails.send({
       from: "DevisFlow <onboarding@resend.dev>",
-      to: "nathan.makambo23@gmail.com",
+      to: "curt.mkb23@gmail.com",
       replyTo: email,
       subject: `🎯 Nouvelle démo demandée — ${companyName} (${clientCount} artisans)`,
       html: emailHtml,
