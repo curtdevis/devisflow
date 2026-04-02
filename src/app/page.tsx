@@ -57,22 +57,25 @@ const PLANS = [
       "Support par chat",
     ],
     cta: "Démarrer l'essai gratuit",
+    href: "/devis",
     highlighted: false,
   },
   {
-    name: "Agence / Groupement",
-    price: "500",
+    name: "Agences & Groupements",
+    price: "299",
+    pricePrefix: "À partir de ",
     period: "/mois",
-    description: "Pour les cabinets comptables et fédérations d'artisans",
+    description: "Cabinets comptables, fédérations d'artisans, groupements BTP",
     features: [
-      "Tout du plan Artisan",
+      "Jusqu'à 500 artisans gérés",
       "Multi-utilisateurs illimités",
       "Tableau de bord centralisé",
       "Marque blanche disponible",
       "Intégration logiciels comptables",
       "Support dédié prioritaire",
     ],
-    cta: "Contactez-nous",
+    cta: "Demander une démo",
+    href: "/contact",
     highlighted: true,
   },
 ];
@@ -391,22 +394,29 @@ export default function HomePage() {
                   >
                     {plan.description}
                   </p>
-                  <div className="flex items-end gap-1 mb-8">
-                    <span
-                      className={`text-5xl font-extrabold ${
-                        plan.highlighted ? "" : "text-white"
-                      }`}
-                      style={plan.highlighted ? { color: "var(--navy)" } : {}}
-                    >
-                      {plan.price}€
-                    </span>
-                    <span
-                      className={`text-lg mb-1 ${
-                        plan.highlighted ? "text-gray-400" : "text-blue-200"
-                      }`}
-                    >
-                      {plan.period}
-                    </span>
+                  <div className="mb-8">
+                    {"pricePrefix" in plan && (
+                      <p className={`text-sm mb-1 ${plan.highlighted ? "text-gray-400" : "text-blue-200"}`}>
+                        {plan.pricePrefix}
+                      </p>
+                    )}
+                    <div className="flex items-end gap-1">
+                      <span
+                        className={`text-5xl font-extrabold ${
+                          plan.highlighted ? "" : "text-white"
+                        }`}
+                        style={plan.highlighted ? { color: "var(--navy)" } : {}}
+                      >
+                        {plan.price}€
+                      </span>
+                      <span
+                        className={`text-lg mb-1 ${
+                          plan.highlighted ? "text-gray-400" : "text-blue-200"
+                        }`}
+                      >
+                        {plan.period}
+                      </span>
+                    </div>
                   </div>
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((f) => (
@@ -422,7 +432,7 @@ export default function HomePage() {
                     ))}
                   </ul>
                   <Link
-                    href="/devis"
+                    href={plan.href}
                     className={`block w-full text-center font-bold py-3 rounded-xl transition-colors ${
                       plan.highlighted
                         ? "text-white hover:opacity-90"
