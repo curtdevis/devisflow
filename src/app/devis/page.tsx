@@ -22,6 +22,9 @@ interface FormData {
   validityDays: string;
   artisanName: string;
   artisanSiret: string;
+  artisanAddress: string;
+  artisanPhone: string;
+  artisanEmail: string;
   customNotes: string;
 }
 
@@ -29,7 +32,14 @@ interface DevisResult {
   devisNumber: string;
   date: string;
   validUntil: string;
-  artisan: { name: string; siret: string };
+  artisan: {
+    name: string;
+    siret: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    logoBase64?: string;
+  };
   client: { name: string; address: string; phone: string; email: string };
   lines: { description: string; quantity: number; unitPrice: number; total: number }[];
   subtotalHT: number;
@@ -61,9 +71,14 @@ export default function DevisPage() {
     validityDays: "30",
     artisanName: "",
     artisanSiret: "",
+    artisanAddress: "",
+    artisanPhone: "",
+    artisanEmail: "",
     customNotes: "",
   });
 
+  const [logoBase64, setLogoBase64] = useState<string>("");
+  const [logoError, setLogoError] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DevisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +109,24 @@ export default function DevisPage() {
     }));
   }
 
+  function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/svg+xml"];
+    if (!allowed.includes(file.type)) {
+      setLogoError("Format non supporté. Utilisez JPG, PNG ou SVG.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError("Fichier trop volumineux (max 2 MB).");
+      return;
+    }
+    setLogoError("");
+    const reader = new FileReader();
+    reader.onload = (ev) => setLogoBase64(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -104,7 +137,7 @@ export default function DevisPage() {
       const res = await fetch("/api/generate-devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, logoBase64 }),
       });
 
       if (!res.ok) {
@@ -160,7 +193,7 @@ export default function DevisPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Votre nom / raison sociale *
+                  Raison sociale / Nom *
                 </label>
                 <input
                   type="text"
@@ -172,7 +205,7 @@ export default function DevisPage() {
                   style={focusStyle}
                 />
               </div>
-              <div className="sm:col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   SIRET *
                 </label>
@@ -185,6 +218,74 @@ export default function DevisPage() {
                   className={inputClass}
                   style={focusStyle}
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Téléphone
+                </label>
+                <input
+                  type="tel"
+                  placeholder="06 12 34 56 78"
+                  value={form.artisanPhone}
+                  onChange={(e) => updateField("artisanPhone", e.target.value)}
+                  className={inputClass}
+                  style={focusStyle}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adresse
+                </label>
+                <input
+                  type="text"
+                  placeholder="12 rue des Artisans, 75011 Paris"
+                  value={form.artisanAddress}
+                  onChange={(e) => updateField("artisanAddress", e.target.value)}
+                  className={inputClass}
+                  style={focusStyle}
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email professionnel
+                </label>
+                <input
+                  type="email"
+                  placeholder="contact@jean-dupont-plomberie.fr"
+                  value={form.artisanEmail}
+                  onChange={(e) => updateField("artisanEmail", e.target.value)}
+                  className={inputClass}
+                  style={focusStyle}
+                />
+              </div>
+
+              {/* Logo upload */}
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Logo <span className="text-gray-400 font-normal">(optionnel — JPG, PNG ou SVG, max 2 MB)</span>
+                </label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/svg+xml"
+                  onChange={handleLogoUpload}
+                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:text-white cursor-pointer"
+                  style={{ ["--file-bg" as string]: "var(--navy)" }}
+                />
+                <style>{`input[type="file"]::file-selector-button { background-color: var(--navy); color: white; }`}</style>
+                {logoError && (
+                  <p className="text-red-500 text-xs mt-1">{logoError}</p>
+                )}
+                {logoBase64 && !logoError && (
+                  <div className="mt-3 p-3 border border-gray-100 rounded-xl bg-gray-50 inline-block">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoBase64}
+                      alt="Aperçu logo"
+                      style={{ maxHeight: 80, maxWidth: 240 }}
+                      className="object-contain"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -678,9 +779,6 @@ function DevisPreview({
               <p className="text-gray-500 text-sm">Émis le {result.date}</p>
               <p className="text-gray-500 text-sm">Valable jusqu&apos;au {result.validUntil}</p>
             </div>
-            <div className="text-right text-2xl font-extrabold" style={{ color: "var(--orange)" }}>
-              Devis<span style={{ color: "var(--navy)" }}>Flow</span>
-            </div>
           </div>
 
           {/* Parties */}
@@ -689,8 +787,26 @@ function DevisPreview({
               <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--orange)" }}>
                 Prestataire
               </p>
+              {result.artisan.logoBase64 && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={result.artisan.logoBase64}
+                  alt={result.artisan.name}
+                  style={{ maxHeight: 80, maxWidth: 200 }}
+                  className="object-contain mb-2"
+                />
+              )}
               <p className="font-bold text-gray-900">{result.artisan.name}</p>
               <p className="text-gray-500 text-sm">SIRET : {result.artisan.siret}</p>
+              {result.artisan.address && (
+                <p className="text-gray-500 text-sm">{result.artisan.address}</p>
+              )}
+              {result.artisan.phone && (
+                <p className="text-gray-500 text-sm">{result.artisan.phone}</p>
+              )}
+              {result.artisan.email && (
+                <p className="text-gray-500 text-sm">{result.artisan.email}</p>
+              )}
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "var(--orange)" }}>
@@ -783,6 +899,11 @@ function DevisPreview({
           {/* Legal mentions */}
           <p className="mt-8 text-xs text-gray-400 leading-relaxed border-t border-gray-100 pt-6">
             {result.legalMentions}
+          </p>
+
+          {/* DevisFlow credit */}
+          <p className="mt-4 text-xs text-gray-300 text-right">
+            Propulsé par DevisFlow
           </p>
         </div>
 

@@ -12,6 +12,10 @@ interface Material {
 interface DevisRequest {
   artisanName: string;
   artisanSiret: string;
+  artisanAddress?: string;
+  artisanPhone?: string;
+  artisanEmail?: string;
+  logoBase64?: string;
   clientName: string;
   clientAddress: string;
   clientPhone: string;
@@ -36,7 +40,14 @@ interface DevisResult {
   devisNumber: string;
   date: string;
   validUntil: string;
-  artisan: { name: string; siret: string };
+  artisan: {
+    name: string;
+    siret: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    logoBase64?: string;
+  };
   client: { name: string; address: string; phone: string; email: string };
   lines: DevisLine[];
   subtotalHT: number;
@@ -84,6 +95,10 @@ export async function POST(req: NextRequest) {
   const {
     artisanName,
     artisanSiret,
+    artisanAddress,
+    artisanPhone,
+    artisanEmail,
+    logoBase64,
     clientName,
     clientAddress,
     clientPhone,
@@ -209,6 +224,10 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
     artisan: {
       name: artisanName,
       siret: artisanSiret || "À compléter",
+      address: artisanAddress || undefined,
+      phone: artisanPhone || undefined,
+      email: artisanEmail || undefined,
+      logoBase64: logoBase64 || undefined,
     },
     client: {
       name: clientName,
