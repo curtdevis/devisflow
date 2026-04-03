@@ -13,16 +13,29 @@ interface ContactRequest {
 }
 
 export async function POST(req: NextRequest) {
+  console.log("[contact] Route called —", new Date().toISOString());
+
   let body: ContactRequest;
   try {
     body = await req.json();
   } catch {
+    console.error("[contact] Failed to parse request body");
     return NextResponse.json({ error: "Corps de requête invalide." }, { status: 400 });
   }
 
   const { companyName, contactName, email, phone, clientCount, message } = body;
 
+  console.log("[contact] Form data received:", {
+    companyName,
+    contactName,
+    email,
+    phone,
+    clientCount,
+    message: message ? `${message.slice(0, 80)}…` : "(empty)",
+  });
+
   if (!companyName || !contactName || !email || !phone || !clientCount) {
+    console.warn("[contact] Validation failed — missing required fields");
     return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
   }
 
@@ -84,17 +97,19 @@ export async function POST(req: NextRequest) {
   `;
 
   try {
-    await resend.emails.send({
-      from: "DevisFlow <onboarding@resend.dev>",
+    console.log("[contact] Sending email via Resend to curt.mkb23@gmail.com…");
+    const resendResponse = await resend.emails.send({
+      from: "DevisFlow <noreply@devis-flow.fr>",
       to: "curt.mkb23@gmail.com",
       replyTo: email,
       subject: `🎯 Nouvelle démo demandée — ${companyName} (${clientCount} artisans)`,
       html: emailHtml,
     });
 
+    console.log("[contact] Resend success:", resendResponse);
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("Resend error:", err);
+    console.error("[contact] Resend error:", err);
     return NextResponse.json(
       { error: "Erreur lors de l'envoi de l'email. Veuillez réessayer." },
       { status: 500 }

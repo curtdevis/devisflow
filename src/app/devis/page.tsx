@@ -505,29 +505,146 @@ function DevisPreview({
   result: DevisResult;
   onReset: () => void;
 }) {
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [modalEmail, setModalEmail] = useState(result.client.email ?? "");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
+  async function sendEmail() {
+    if (!modalEmail) return;
+    setEmailSending(true);
+    setEmailError("");
+    try {
+      const res = await fetch("/api/send-devis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientEmail: modalEmail, devis: result }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Erreur lors de l'envoi.");
+      }
+      setEmailSent(true);
+    } catch (err) {
+      setEmailError(err instanceof Error ? err.message : "Erreur inconnue.");
+    } finally {
+      setEmailSending(false);
+    }
+  }
+
+  function openWhatsApp() {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const text = encodeURIComponent(
+      `Bonjour ${result.client.name}, veuillez trouver votre devis DevisFlow ci-joint : ${url}`
+    );
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  }
+
   return (
     <div className="min-h-screen bg-white">
+      {/* ── Email modal ── */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8">
+            {emailSent ? (
+              <div className="text-center">
+                <div className="text-4xl mb-3">✅</div>
+                <h3 className="text-lg font-bold mb-2" style={{ color: "var(--navy)" }}>
+                  Email envoyé !
+                </h3>
+                <p className="text-gray-500 text-sm mb-6">
+                  Le devis a été envoyé à <strong>{modalEmail}</strong>.
+                </p>
+                <button
+                  onClick={() => { setShowEmailModal(false); setEmailSent(false); }}
+                  className="font-semibold px-6 py-2 rounded-xl text-white"
+                  style={{ backgroundColor: "var(--navy)" }}
+                >
+                  Fermer
+                </button>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-lg font-bold mb-1" style={{ color: "var(--navy)" }}>
+                  Envoyer le devis par email
+                </h3>
+                <p className="text-sm text-gray-400 mb-5">
+                  Le devis complet sera envoyé en HTML professionnel.
+                </p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adresse email du destinataire
+                </label>
+                <input
+                  type="email"
+                  autoFocus
+                  value={modalEmail}
+                  onChange={(e) => setModalEmail(e.target.value)}
+                  placeholder="client@email.com"
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent mb-4"
+                  onKeyDown={(e) => e.key === "Enter" && sendEmail()}
+                />
+                {emailError && (
+                  <p className="text-red-500 text-sm mb-4">{emailError}</p>
+                )}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowEmailModal(false)}
+                    className="flex-1 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={sendEmail}
+                    disabled={emailSending || !modalEmail}
+                    className="flex-1 py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-60 disabled:cursor-not-allowed transition-opacity"
+                    style={{ backgroundColor: "var(--orange)" }}
+                  >
+                    {emailSending ? "Envoi…" : "Envoyer →"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Screen-only chrome (hidden when printing) ── */}
-      <header className="print-hidden sticky top-0 z-50 border-b border-white/10"
+      <header className="print-hidden sticky top-0 z-40 border-b border-white/10"
         style={{ backgroundColor: "var(--navy)" }}
       >
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-white">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <Link href="/" className="text-xl font-bold text-white shrink-0">
             Devis<span style={{ color: "var(--orange)" }}>Flow</span>
           </Link>
-          <div className="flex gap-3 items-center">
+          <div className="flex gap-2 items-center flex-wrap justify-end">
             <button
               onClick={onReset}
-              className="text-sm text-blue-200 hover:text-white transition-colors"
+              className="text-sm text-blue-200 hover:text-white transition-colors shrink-0"
             >
-              ← Nouveau devis
+              ← Nouveau
             </button>
             <button
               onClick={() => window.print()}
-              className="text-sm font-semibold text-white px-4 py-2 rounded-lg"
+              className="text-sm font-semibold text-white px-3 py-2 rounded-lg shrink-0"
               style={{ backgroundColor: "var(--orange)" }}
             >
-              🖨️ Imprimer / PDF
+              🖨️ <span className="hidden sm:inline">Imprimer / PDF</span>
+            </button>
+            <button
+              onClick={() => { setShowEmailModal(true); setEmailSent(false); setEmailError(""); }}
+              className="text-sm font-semibold px-3 py-2 rounded-lg border border-white/30 text-white hover:bg-white/10 transition-colors shrink-0"
+            >
+              ✉️ <span className="hidden sm:inline">Email</span>
+            </button>
+            <button
+              onClick={openWhatsApp}
+              className="text-sm font-semibold px-3 py-2 rounded-lg text-white shrink-0"
+              style={{ backgroundColor: "#25d366" }}
+            >
+              💬 <span className="hidden sm:inline">WhatsApp</span>
             </button>
           </div>
         </div>
@@ -679,25 +796,14 @@ function DevisPreview({
             🖨️ Imprimer / Télécharger PDF
           </button>
           <button
-            onClick={() => {
-              const subject = encodeURIComponent(`Devis N°${result.devisNumber}`);
-              const body = encodeURIComponent(
-                `Bonjour ${result.client.name},\n\nVeuillez trouver ci-joint votre devis N°${result.devisNumber} d'un montant de ${result.totalTTC.toFixed(2)} € TTC.\n\nCordialement,\n${result.artisan.name}`
-              );
-              window.open(`mailto:${result.client.email}?subject=${subject}&body=${body}`);
-            }}
+            onClick={() => { setShowEmailModal(true); setEmailSent(false); setEmailError(""); }}
             className="flex items-center gap-2 font-semibold px-6 py-3 rounded-xl border-2 transition-colors"
             style={{ borderColor: "var(--navy)", color: "var(--navy)" }}
           >
             ✉️ Envoyer par email
           </button>
           <button
-            onClick={() => {
-              const text = encodeURIComponent(
-                `Bonjour ${result.client.name}, voici votre devis DevisFlow N°${result.devisNumber} — Total TTC : ${result.totalTTC.toFixed(2)} €`
-              );
-              window.open(`https://wa.me/?text=${text}`);
-            }}
+            onClick={openWhatsApp}
             className="flex items-center gap-2 font-semibold px-6 py-3 rounded-xl text-white"
             style={{ backgroundColor: "#25d366" }}
           >
