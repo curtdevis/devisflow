@@ -91,8 +91,8 @@ const PLANS = [
 
 const FAQS = [
   {
-    q: "Est-ce que j'ai besoin d'une carte bancaire pour l'essai ?",
-    a: "Non. L'essai gratuit de 14 jours ne nécessite aucune carte bancaire. Vous renseignez vos informations de paiement uniquement si vous souhaitez continuer après l'essai.",
+    q: "Comment fonctionne l'essai gratuit ?",
+    a: "L'essai gratuit de 14 jours vous donne accès à toutes les fonctionnalités de DevisFlow. Vous pouvez annuler à tout moment, sans engagement.",
   },
   {
     q: "Mes devis sont-ils vraiment conformes à la réglementation e-facture ?",
@@ -196,7 +196,7 @@ export default function HomePage() {
               Paiement sécurisé par Lemon Squeezy
             </p>
             <p className="mt-2 text-sm text-blue-200">
-              Sans carte bancaire · Sans engagement · Annulation en 1 clic
+              Essai gratuit 14 jours · Sans engagement · Annulation à tout moment
             </p>
           </div>
         </section>
@@ -381,7 +381,7 @@ export default function HomePage() {
                 Des tarifs simples et transparents
               </h2>
               <p className="text-blue-200 text-lg">
-                14 jours d&apos;essai gratuit — sans carte bancaire
+                Essai gratuit 14 jours — annulation à tout moment
               </p>
             </div>
             <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -525,7 +525,7 @@ export default function HomePage() {
               Prêt à gagner du temps sur vos devis ?
             </h2>
             <p className="text-blue-200 text-lg mb-8">
-              Essayez DevisFlow gratuitement — sans carte bancaire requise.
+              Essayez DevisFlow gratuitement — annulation à tout moment.
             </p>
             <a
               href={LS_CHECKOUT}
@@ -541,7 +541,7 @@ export default function HomePage() {
               Paiement sécurisé par Lemon Squeezy
             </p>
             <p className="mt-2 text-sm text-blue-300">
-              14 jours gratuits · Sans CB · Résiliable à tout moment
+              Essai gratuit 14 jours · Annulation à tout moment
             </p>
           </div>
         </section>
