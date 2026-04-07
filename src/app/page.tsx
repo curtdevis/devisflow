@@ -547,6 +547,46 @@ export default function HomePage() {
         </section>
       </main>
 
+      {/* ── JSON-LD ── */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "DevisFlow",
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            url: "https://devis-flow.fr",
+            description:
+              "Générateur de devis professionnels par IA pour artisans et TPE françaises. Conforme e-facture Factur-X 2026.",
+            offers: {
+              "@type": "Offer",
+              price: "29",
+              priceCurrency: "EUR",
+              priceSpecification: {
+                "@type": "UnitPriceSpecification",
+                price: "29",
+                priceCurrency: "EUR",
+                unitText: "MONTH",
+              },
+            },
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: "5",
+              bestRating: "5",
+              worstRating: "1",
+              ratingCount: "3",
+            },
+            publisher: {
+              "@type": "Organization",
+              name: "DevisFlow",
+              url: "https://devis-flow.fr",
+            },
+          }),
+        }}
+      />
+
       {/* ── Footer ── */}
       <footer
         className="py-10 px-4 text-center text-sm text-blue-200"
