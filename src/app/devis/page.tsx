@@ -590,6 +590,19 @@ export default function DevisPage() {
             <p className="text-xs text-gray-400">
               Votre devis sera généré en moins de 30 secondes
             </p>
+            <a
+              href="https://nathanmk.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs font-semibold transition-colors"
+              style={{ color: "var(--orange)" }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Essai gratuit 14 jours — Paiement sécurisé par Lemon Squeezy
+            </a>
           </div>
         </form>
       </main>

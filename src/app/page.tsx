@@ -1,5 +1,14 @@
 import Link from "next/link";
 
+const LS_CHECKOUT = "https://nathanmk.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5";
+
+const LOCK_ICON = (
+  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
+
 const BENEFITS = [
   {
     icon: "⚡",
@@ -57,7 +66,7 @@ const PLANS = [
       "Support par chat",
     ],
     cta: "Démarrer l'essai gratuit",
-    href: "/devis",
+    href: LS_CHECKOUT,
     highlighted: false,
   },
   {
@@ -119,13 +128,15 @@ export default function HomePage() {
               FAQ
             </a>
           </div>
-          <Link
-            href="/devis"
+          <a
+            href={LS_CHECKOUT}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors"
             style={{ backgroundColor: "var(--orange)" }}
           >
             Essai gratuit
-          </Link>
+          </a>
         </div>
       </nav>
 
@@ -164,13 +175,15 @@ export default function HomePage() {
               sans effort.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/devis"
+              <a
+                href={LS_CHECKOUT}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95"
                 style={{ backgroundColor: "var(--orange)" }}
               >
                 Essai gratuit 14 jours →
-              </Link>
+              </a>
               <a
                 href="#avantages"
                 className="inline-block text-white font-semibold text-lg px-8 py-4 rounded-xl border border-white/30 hover:bg-white/10 transition-colors"
@@ -178,7 +191,11 @@ export default function HomePage() {
                 Voir comment ça marche
               </a>
             </div>
-            <p className="mt-4 text-sm text-blue-200">
+            <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-blue-300">
+              {LOCK_ICON}
+              Paiement sécurisé par Lemon Squeezy
+            </p>
+            <p className="mt-2 text-sm text-blue-200">
               Sans carte bancaire · Sans engagement · Annulation en 1 clic
             </p>
           </div>
@@ -297,14 +314,20 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <div className="mt-12">
-              <Link
-                href="/devis"
+            <div className="mt-12 flex flex-col items-center gap-2">
+              <a
+                href={LS_CHECKOUT}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block text-white font-bold px-8 py-4 rounded-xl transition-transform hover:scale-105"
                 style={{ backgroundColor: "var(--navy)" }}
               >
                 Essayer maintenant — c&apos;est gratuit
-              </Link>
+              </a>
+              <p className="flex items-center gap-1.5 text-xs text-gray-400">
+                {LOCK_ICON}
+                Paiement sécurisé par Lemon Squeezy
+              </p>
             </div>
           </div>
         </section>
@@ -431,8 +454,10 @@ export default function HomePage() {
                       </li>
                     ))}
                   </ul>
-                  <Link
+                  <a
                     href={plan.href}
+                    target={!plan.highlighted ? "_blank" : undefined}
+                    rel={!plan.highlighted ? "noopener noreferrer" : undefined}
                     className={`block w-full text-center font-bold py-3 rounded-xl transition-colors ${
                       plan.highlighted
                         ? "text-white hover:opacity-90"
@@ -445,7 +470,13 @@ export default function HomePage() {
                     }
                   >
                     {plan.cta}
-                  </Link>
+                  </a>
+                  {!plan.highlighted && (
+                    <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-blue-300">
+                      {LOCK_ICON}
+                      Paiement sécurisé par Lemon Squeezy
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -496,14 +527,20 @@ export default function HomePage() {
             <p className="text-blue-200 text-lg mb-8">
               Essayez DevisFlow gratuitement — sans carte bancaire requise.
             </p>
-            <Link
-              href="/devis"
+            <a
+              href={LS_CHECKOUT}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-block text-white font-bold text-lg px-10 py-4 rounded-xl shadow-xl transition-transform hover:scale-105"
               style={{ backgroundColor: "var(--orange)" }}
             >
               Commencer mon essai gratuit →
-            </Link>
-            <p className="mt-4 text-sm text-blue-300">
+            </a>
+            <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-blue-400">
+              {LOCK_ICON}
+              Paiement sécurisé par Lemon Squeezy
+            </p>
+            <p className="mt-2 text-sm text-blue-300">
               14 jours gratuits · Sans CB · Résiliable à tout moment
             </p>
           </div>
