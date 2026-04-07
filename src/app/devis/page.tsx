@@ -591,7 +591,7 @@ export default function DevisPage() {
               Votre devis sera généré en moins de 30 secondes
             </p>
             <a
-              href="https://nathanmk.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5"
+              href="https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-semibold transition-colors"

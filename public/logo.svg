@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#ffffff"/>
+
+  <!-- Document body -->
+  <rect x="130" y="60" width="140" height="175" rx="10" ry="10" fill="#1e3a5f"/>
+
+  <!-- Folded corner -->
+  <polygon points="230,60 270,60 270,100" fill="#ffffff" opacity="0.15"/>
+  <polygon points="230,60 270,100 230,100" fill="#0f2340"/>
+
+  <!-- Document lines -->
+  <rect x="150" y="115" width="75" height="8" rx="4" fill="#ffffff" opacity="0.35"/>
+  <rect x="150" y="133" width="90" height="8" rx="4" fill="#ffffff" opacity="0.35"/>
+  <rect x="150" y="151" width="65" height="8" rx="4" fill="#ffffff" opacity="0.35"/>
+  <rect x="150" y="169" width="80" height="8" rx="4" fill="#ffffff" opacity="0.35"/>
+  <rect x="150" y="187" width="55" height="8" rx="4" fill="#ffffff" opacity="0.2"/>
+
+  <!-- Lightning bolt -->
+  <polygon points="208,88 193,128 205,128 192,168 219,118 205,118 222,88" fill="#f97316"/>
+
+  <!-- Wordmark -->
+  <text x="200" y="285" font-family="'Segoe UI', Arial, sans-serif" font-size="52" font-weight="800" text-anchor="middle" letter-spacing="-1">
+    <tspan fill="#1e3a5f">Devis</tspan><tspan fill="#f97316">Flow</tspan>
+  </text>
+
+  <!-- Tagline -->
+  <text x="200" y="318" font-family="'Segoe UI', Arial, sans-serif" font-size="13" font-weight="500" fill="#94a3b8" text-anchor="middle" letter-spacing="3">DEVIS PROFESSIONNEL PAR IA</text>
+</svg>
