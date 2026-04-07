@@ -82,6 +82,11 @@ export default function DevisPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DevisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+
+  const LS_CHECKOUT = "https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5";
+  const FREE_LIMIT = 3;
+  const STORAGE_KEY = "devisflow_count";
 
   function updateField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -129,6 +134,13 @@ export default function DevisPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const count = parseInt(localStorage.getItem(STORAGE_KEY) ?? "0", 10);
+    if (count >= FREE_LIMIT) {
+      setShowLimitModal(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -146,6 +158,7 @@ export default function DevisPage() {
       }
 
       const data = await res.json();
+      localStorage.setItem(STORAGE_KEY, String(count + 1));
       setResult(data);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -153,6 +166,11 @@ export default function DevisPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleCheckoutRedirect() {
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.href = LS_CHECKOUT;
   }
 
   if (result) {
@@ -606,6 +624,56 @@ export default function DevisPage() {
           </div>
         </form>
       </main>
+
+      {/* ── Limit modal ── */}
+      {showLimitModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.55)" }}
+          onClick={() => setShowLimitModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+              style={{ backgroundColor: "rgba(249,115,22,0.12)" }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <h2 className="text-xl font-extrabold mb-3" style={{ color: "var(--navy)" }}>
+              Vous avez utilisé vos 3 devis gratuits
+            </h2>
+            <p className="text-gray-500 text-sm leading-relaxed mb-6">
+              Commencez votre essai gratuit 14 jours sans engagement pour continuer à générer des devis professionnels illimités.
+            </p>
+            <button
+              onClick={handleCheckoutRedirect}
+              className="w-full text-white font-bold text-base px-6 py-4 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95 mb-3"
+              style={{ backgroundColor: "var(--orange)" }}
+            >
+              Démarrer mon essai gratuit →
+            </button>
+            <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Paiement sécurisé par Lemon Squeezy · Annulation à tout moment
+            </p>
+            <button
+              onClick={() => setShowLimitModal(false)}
+              className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
