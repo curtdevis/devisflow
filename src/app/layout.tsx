@@ -8,15 +8,15 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "DevisFlow — Générateur de devis IA pour artisans | Conforme e-facture 2026",
+  title: "DevisFlow — Générateur de devis IA pour artisans",
   description:
-    "Créez des devis professionnels en 30 secondes avec l'IA. Conforme e-facture 2026. Essai gratuit 14 jours. Pour plombiers, électriciens, peintres et tous artisans.",
+    "Créez des devis professionnels en 30 secondes avec l'IA. Format PDF professionnel. Essai gratuit 7 jours. Pour plombiers, électriciens, peintres et tous artisans.",
   keywords: [
     "devis artisan",
     "générateur devis IA",
     "logiciel devis plombier",
     "devis électricien",
-    "e-facture 2026",
+    "devis professionnel PDF",
     "devis professionnel",
   ],
   metadataBase: new URL("https://devis-flow.fr"),
@@ -24,9 +24,9 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "DevisFlow — Générateur de devis IA pour artisans | Conforme e-facture 2026",
+    title: "DevisFlow — Générateur de devis IA pour artisans",
     description:
-      "Créez des devis professionnels en 30 secondes avec l'IA. Conforme e-facture 2026. Essai gratuit 14 jours.",
+      "Créez des devis professionnels en 30 secondes avec l'IA. Format PDF professionnel. Essai gratuit 7 jours.",
     url: "https://devis-flow.fr",
     siteName: "DevisFlow",
     images: [
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "DevisFlow — Générateur de devis IA pour artisans",
     description:
-      "Créez des devis professionnels en 30 secondes avec l'IA. Conforme e-facture 2026. Essai gratuit 14 jours.",
+      "Créez des devis professionnels en 30 secondes avec l'IA. Format PDF professionnel. Essai gratuit 7 jours.",
     images: ["/logo-512.png"],
   },
   robots: {

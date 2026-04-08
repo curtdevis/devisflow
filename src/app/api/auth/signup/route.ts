@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0">
         <p style="color:#9ca3af;font-size:11px;">
-          DevisFlow · Générateur de devis IA conforme e-facture 2026<br>
+          DevisFlow · Générateur de devis IA pour artisans<br>
           <a href="https://devis-flow.fr" style="color:#9ca3af">devis-flow.fr</a>
         </p>
       </div>

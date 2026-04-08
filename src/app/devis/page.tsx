@@ -638,7 +638,7 @@ export default function DevisPage() {
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
-              Essai gratuit 14 jours — Paiement sécurisé par Lemon Squeezy
+              Essai gratuit 7 jours — Paiement sécurisé par Lemon Squeezy
             </a>
           </div>
         </form>

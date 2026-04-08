@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         </p>
         <h1 style="font-size:20px;color:#1e3a5f;margin:24px 0 12px">Vous avez été invité !</h1>
         <p style="color:#6b7280;font-size:15px;line-height:1.6">
-          <strong>${agenceName}</strong> vous invite à rejoindre DevisFlow — le générateur de devis IA pour artisans, conforme e-facture 2026.
+          <strong>${agenceName}</strong> vous invite à rejoindre DevisFlow — le générateur de devis IA pour artisans.
         </p>
         <a href="${registerUrl}"
            style="display:inline-block;margin:24px 0;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 28px;border-radius:12px;text-decoration:none;">

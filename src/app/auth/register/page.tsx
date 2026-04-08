@@ -122,7 +122,7 @@ function RegisterForm() {
             Devis<span style={{ color: "var(--orange)" }}>Flow</span>
           </Link>
           <p className="mt-2 text-blue-200 text-sm">
-            Créez votre compte — essai gratuit 14 jours
+            Créez votre compte — essai gratuit 7 jours
           </p>
         </div>
 

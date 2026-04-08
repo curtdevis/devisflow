@@ -93,7 +93,7 @@ const PLANS = [
 const FAQS = [
   {
     q: "Comment fonctionne l'essai gratuit ?",
-    a: "L'essai gratuit de 14 jours vous donne accès à toutes les fonctionnalités de DevisFlow. Vous pouvez annuler à tout moment, sans engagement.",
+    a: "L'essai gratuit de 7 jours vous donne accès à toutes les fonctionnalités de DevisFlow. Vous pouvez annuler à tout moment, sans engagement.",
   },
   {
     q: "Mes devis sont-ils vraiment prêts pour la réglementation 2026 ?",
@@ -165,7 +165,7 @@ export default function HomePage() {
                 color: "var(--orange)",
               }}
             >
-              Nouveau — Prêt pour la réglementation 2026
+              Nouveau — Devis IA en 30 secondes
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
               Créez votre devis en{" "}
@@ -186,7 +186,7 @@ export default function HomePage() {
                 className="inline-block text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95"
                 style={{ backgroundColor: "var(--orange)" }}
               >
-                Essai gratuit 14 jours →
+                Essai gratuit 7 jours →
               </a>
               <a
                 href="#avantages"
@@ -200,7 +200,7 @@ export default function HomePage() {
               Paiement sécurisé par Lemon Squeezy
             </p>
             <p className="mt-2 text-sm text-blue-200">
-              Essai gratuit 14 jours · Sans engagement · Annulation à tout moment
+              Essai gratuit 7 jours · Sans engagement · Annulation à tout moment
             </p>
           </div>
         </section>
@@ -216,7 +216,7 @@ export default function HomePage() {
               <div className="hidden sm:block w-px bg-gray-200" />
               <div>
                 <p className="text-2xl font-extrabold" style={{ color: "var(--navy)" }}>0 €</p>
-                <p className="text-sm text-gray-500">pendant 14 jours</p>
+                <p className="text-sm text-gray-500">pendant 7 jours</p>
               </div>
               <div className="hidden sm:block w-px bg-gray-200" />
               <div>
@@ -385,7 +385,7 @@ export default function HomePage() {
                 Des tarifs simples et transparents
               </h2>
               <p className="text-blue-200 text-lg">
-                Essai gratuit 14 jours — annulation à tout moment
+                Essai gratuit 7 jours — annulation à tout moment
               </p>
             </div>
             <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -545,7 +545,7 @@ export default function HomePage() {
               Paiement sécurisé par Lemon Squeezy
             </p>
             <p className="mt-2 text-sm text-blue-300">
-              Essai gratuit 14 jours · Annulation à tout moment
+              Essai gratuit 7 jours · Annulation à tout moment
             </p>
           </div>
         </section>
