@@ -31,7 +31,11 @@
       "Bash(echo \"PID=$!\")",
       "Bash(taskkill /F /IM python.exe /T)",
       "Bash(taskkill /F /IM py.exe /T)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(node -e \"const p = require\\('./node_modules/next/package.json'\\); console.log\\('Next.js:', p.version\\)\")",
+      "Bash(xargs grep:*)",
+      "Bash(node -e \"require\\('@supabase/ssr'\\)\")",
+      "Bash(npm install:*)"
     ]
   }
 }

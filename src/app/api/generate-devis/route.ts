@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase";
 
 const client = new Anthropic();
 
@@ -245,10 +245,20 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
     legalMentions,
   };
 
-  // Save to Supabase (non-blocking — don't fail the request if this errors)
-  supabase
+  // Get authenticated user (non-blocking — don't fail generation if auth errors)
+  let userId: string | null = null;
+  try {
+    const supabaseServer = await createSupabaseServer();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+    userId = user?.id ?? null;
+  } catch { /* continue without user_id */ }
+
+  // Save to Supabase via admin client (bypasses RLS, works with or without auth)
+  createSupabaseAdmin()
     .from("devis")
     .insert({
+      user_id: userId,
+      devis_number: result.devisNumber,
       artisan_name: artisanName,
       artisan_email: artisanEmail || null,
       artisan_phone: artisanPhone || null,

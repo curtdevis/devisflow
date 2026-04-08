@@ -24,9 +24,9 @@ const BENEFITS = [
   },
   {
     icon: "✅",
-    title: "Conforme e-facture 2026",
+    title: "Format professionnel PDF",
     description:
-      "Tous vos devis sont conformes à la réglementation Factur-X qui entre en vigueur en septembre 2026. Anticipez sereinement.",
+      "Tous vos devis sont au format professionnel PDF, prêts pour la réglementation 2026. Anticipez sereinement.",
   },
 ];
 
@@ -62,7 +62,7 @@ const PLANS = [
       "Génération IA en 30 secondes",
       "Envoi par email et WhatsApp",
       "Relances automatiques J+3 et J+7",
-      "Conformité Factur-X",
+      "Format professionnel PDF",
       "Support par chat",
     ],
     cta: "Démarrer l'essai gratuit",
@@ -95,8 +95,8 @@ const FAQS = [
     a: "L'essai gratuit de 14 jours vous donne accès à toutes les fonctionnalités de DevisFlow. Vous pouvez annuler à tout moment, sans engagement.",
   },
   {
-    q: "Mes devis sont-ils vraiment conformes à la réglementation e-facture ?",
-    a: "Oui. Tous les devis générés par DevisFlow sont au format Factur-X, le standard européen qui deviendra obligatoire pour les artisans en septembre 2026.",
+    q: "Mes devis sont-ils vraiment prêts pour la réglementation 2026 ?",
+    a: "Oui. Tous les devis générés par DevisFlow sont au format professionnel PDF, prêts pour la réglementation 2026.",
   },
   {
     q: "Comment fonctionne la relance automatique ?",
@@ -161,7 +161,7 @@ export default function HomePage() {
                 color: "var(--orange)",
               }}
             >
-              Nouveau — Conforme e-facture 2026
+              Nouveau — Prêt pour la réglementation 2026
             </span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6">
               Créez votre devis en{" "}
@@ -217,7 +217,7 @@ export default function HomePage() {
               <div className="hidden sm:block w-px bg-gray-200" />
               <div>
                 <p className="text-2xl font-extrabold" style={{ color: "var(--navy)" }}>100%</p>
-                <p className="text-sm text-gray-500">conforme Factur-X 2026</p>
+                <p className="text-sm text-gray-500">format professionnel PDF 2026</p>
               </div>
             </div>
           </div>
@@ -559,7 +559,7 @@ export default function HomePage() {
             operatingSystem: "Web",
             url: "https://devis-flow.fr",
             description:
-              "Générateur de devis professionnels par IA pour artisans et TPE françaises. Conforme e-facture Factur-X 2026.",
+              "Générateur de devis professionnels par IA pour artisans et TPE françaises. Format professionnel PDF, prêt pour la réglementation 2026.",
             offers: {
               "@type": "Offer",
               price: "29",
