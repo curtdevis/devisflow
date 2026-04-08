@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { createSupabaseBrowser } from "@/lib/supabase";
+
+const supabase = createSupabaseBrowser();
 
 interface DevisRow {
   id: string;
