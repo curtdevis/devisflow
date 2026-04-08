@@ -36,7 +36,8 @@
       "Bash(xargs grep:*)",
       "Bash(node -e \"require\\('@supabase/ssr'\\)\")",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
