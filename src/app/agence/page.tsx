@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseServer } from "@/lib/supabase";
-import type { Profile } from "@/lib/supabase";
+import { createSupabaseServer } from "@/lib/supabase-server";
+import type { Profile } from "@/lib/supabase-server";
 import LogoutButton from "../dashboard/LogoutButton";
 import InviteForm from "./InviteForm";
 

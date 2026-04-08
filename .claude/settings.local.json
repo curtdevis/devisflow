@@ -35,7 +35,8 @@
       "Bash(node -e \"const p = require\\('./node_modules/next/package.json'\\); console.log\\('Next.js:', p.version\\)\")",
       "Bash(xargs grep:*)",
       "Bash(node -e \"require\\('@supabase/ssr'\\)\")",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

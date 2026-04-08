@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase";
+import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 
 const client = new Anthropic();
 
