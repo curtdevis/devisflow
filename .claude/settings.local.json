@@ -2,7 +2,36 @@
   "permissions": {
     "allow": [
       "Bash(node -e \"require\\('sharp'\\)\")",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "mcp__claude_ai_Gmail__gmail_create_draft",
+      "WebSearch",
+      "Bash(where python:*)",
+      "Bash(where py:*)",
+      "Bash(py --version)",
+      "Bash(py -m pip install requests beautifulsoup4 lxml)",
+      "Bash(py scraper.py)",
+      "Bash(py -m pip install playwright)",
+      "Bash(py -m playwright install chromium)",
+      "Bash(py -c ':*)",
+      "Bash(taskkill /F /IM python.exe)",
+      "Bash(taskkill /F /IM py.exe)",
+      "Bash(taskkill /IM python.exe /F)",
+      "Bash(taskkill /IM pythonw.exe /F)",
+      "Bash(py email_scraper.py)",
+      "Bash(tasklist)",
+      "Bash(findstr /i python)",
+      "Bash(taskkill /IM python.exe)",
+      "Bash(py -m pip install duckduckgo-search)",
+      "Bash(py:*)",
+      "Bash(del \"C:\\\\Users\\\\Natha\\\\Desktop\\\\prospects_email.csv\")",
+      "Bash(echo \"Scraper launched in background. PID: $!\")",
+      "Bash(echo \"PID: $!\")",
+      "Bash(echo \"Launched. PID=$!\")",
+      "Bash(taskkill /IM py.exe)",
+      "Bash(echo \"PID=$!\")",
+      "Bash(taskkill /F /IM python.exe /T)",
+      "Bash(taskkill /F /IM py.exe /T)",
+      "Bash(powershell:*)"
     ]
   }
 }

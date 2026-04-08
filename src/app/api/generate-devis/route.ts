@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 const client = new Anthropic();
 
@@ -243,6 +244,23 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
     notes,
     legalMentions,
   };
+
+  // Save to Supabase (non-blocking — don't fail the request if this errors)
+  supabase
+    .from("devis")
+    .insert({
+      artisan_name: artisanName,
+      artisan_email: artisanEmail || null,
+      artisan_phone: artisanPhone || null,
+      artisan_siret: artisanSiret || null,
+      client_name: clientName,
+      client_email: clientEmail || null,
+      total_ttc: totalTTC,
+      profession: workDescription.slice(0, 100),
+    })
+    .then(({ error }) => {
+      if (error) console.error("Supabase insert error:", error.message);
+    });
 
   return NextResponse.json(result);
 }
