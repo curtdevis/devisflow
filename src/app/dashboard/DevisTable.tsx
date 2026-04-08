@@ -58,6 +58,12 @@ function h(s: string | number | null | undefined): string {
     .replace(/"/g, "&quot;");
 }
 
+function pdfTitle(devisNumber: string | null | undefined, clientName: string): string {
+  const num = devisNumber ?? "DEVIS";
+  const client = clientName.replace(/\s+/g, "_");
+  return `Devis_${num}_${client}`;
+}
+
 function buildDevisHtml(result: DevisResult): string {
   const logoTag = result.artisan.logoBase64
     ? `<img src="${result.artisan.logoBase64}" alt="${h(result.artisan.name)}"
@@ -87,7 +93,7 @@ function buildDevisHtml(result: DevisResult): string {
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Devis ${h(result.devisNumber)}</title>
+<title>${pdfTitle(result.devisNumber, result.client.name)}</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; padding: 0; font-family: Arial, sans-serif; color: #111827; background: #fff; }
@@ -191,7 +197,7 @@ function buildSummaryHtml(row: DevisRow): string {
   const date = new Date(row.created_at).toLocaleDateString("fr-FR", {
     day: "2-digit", month: "long", year: "numeric",
   });
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Devis ${h(row.devis_number)}</title>
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${pdfTitle(row.devis_number, row.client_name)}</title>
   <style>*{box-sizing:border-box;}body{margin:0;padding:0;font-family:Arial,sans-serif;background:#fff;color:#111;}</style>
   </head><body>
   <div style="max-width:860px;margin:0 auto;padding:48px 40px;">
@@ -262,7 +268,11 @@ function printMultiple(rows: DevisRow[]) {
     })
     .join("\n");
 
-  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+  const bulkTitle = rows.length === 1
+    ? pdfTitle(rows[0].devis_number, rows[0].client_name)
+    : `Devis_selection_${rows.length}`;
+
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${bulkTitle}</title>
 <style>*{box-sizing:border-box;}body{margin:0;padding:0;font-family:Arial,sans-serif;background:#fff;}
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style>
 </head><body>${pages}</body></html>`;
