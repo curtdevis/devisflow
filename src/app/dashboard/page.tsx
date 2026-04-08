@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   const { data: devis, error: devisError } = await createSupabaseAdmin()
     .from("devis")
     .select(
-      "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession"
+      "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, result_json"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })

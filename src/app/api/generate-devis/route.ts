@@ -270,6 +270,7 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
       client_email: clientEmail || null,
       total_ttc: totalTTC,
       profession: workDescription.slice(0, 100),
+      result_json: result,
     });
 
   if (insertError) {
