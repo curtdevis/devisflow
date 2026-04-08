@@ -20,8 +20,11 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single<Profile>();
 
+  console.log("[dashboard] fetching devis for user_id:", user.id);
+
   // Use admin client to bypass RLS — server-side only, user already verified above
-  const { data: devis, error: devisError } = await createSupabaseAdmin()
+  // Try full query with result_json first; fall back without it if the column doesn't exist yet
+  let { data: devis, error: devisError } = await createSupabaseAdmin()
     .from("devis")
     .select(
       "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, result_json"
@@ -30,7 +33,28 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false })
     .limit(50);
 
-  if (devisError) console.error("[dashboard] devis query error:", devisError.message);
+  if (devisError) {
+    console.error("[dashboard] full query error:", devisError.message);
+    // Fallback: query without result_json (column may not exist yet — run the SQL migration)
+    const fallback = await createSupabaseAdmin()
+      .from("devis")
+      .select(
+        "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession"
+      )
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    devis = fallback.data as typeof devis;
+    devisError = fallback.error;
+
+    if (devisError) {
+      console.error("[dashboard] fallback query error:", devisError.message);
+    } else {
+      console.log("[dashboard] fallback query OK — result_json column missing, run: ALTER TABLE devis ADD COLUMN IF NOT EXISTS result_json JSONB;");
+    }
+  }
+
+  console.log("[dashboard] rows returned:", devis?.length ?? 0);
 
   const devisList = (devis ?? []) as DevisRow[];
   const totalTTC = devisList.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
