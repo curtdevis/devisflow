@@ -3,7 +3,6 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
 function RegisterForm() {
   const router = useRouter();
@@ -45,26 +44,15 @@ function RegisterForm() {
       return;
     }
 
-    const supabase = createSupabaseBrowser();
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          account_type: accountType,
-          invite_token: inviteToken ?? null,
-        },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, fullName, accountType, inviteToken: inviteToken ?? null }),
     });
 
-    if (signUpError) {
-      setError(
-        signUpError.message.includes("already registered")
-          ? "Cet email est déjà utilisé. Connectez-vous."
-          : signUpError.message
-      );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setError(data.error ?? "Erreur lors de la création du compte.");
       setLoading(false);
       return;
     }

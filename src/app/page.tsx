@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NavAuth from "./_components/NavAuth";
 
 const LS_CHECKOUT = "https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5";
 
@@ -114,9 +115,9 @@ export default function HomePage() {
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
-          <span className="text-xl font-bold" style={{ color: "var(--navy)" }}>
+          <Link href="/" className="text-xl font-bold" style={{ color: "var(--navy)" }}>
             Devis<span style={{ color: "var(--orange)" }}>Flow</span>
-          </span>
+          </Link>
           <div className="hidden sm:flex items-center gap-6 text-sm text-gray-600">
             <a href="#avantages" className="hover:text-gray-900 transition-colors">
               Avantages
@@ -128,15 +129,18 @@ export default function HomePage() {
               FAQ
             </a>
           </div>
-          <a
-            href={LS_CHECKOUT}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors"
-            style={{ backgroundColor: "var(--orange)" }}
-          >
-            Essai gratuit
-          </a>
+          <div className="flex items-center gap-3">
+            <NavAuth />
+            <a
+              href={LS_CHECKOUT}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors"
+              style={{ backgroundColor: "var(--orange)" }}
+            >
+              Essai gratuit
+            </a>
+          </div>
         </div>
       </nav>
 

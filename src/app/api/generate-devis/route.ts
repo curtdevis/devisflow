@@ -253,8 +253,8 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
     userId = user?.id ?? null;
   } catch { /* continue without user_id */ }
 
-  // Save to Supabase via admin client (bypasses RLS, works with or without auth)
-  createSupabaseAdmin()
+  // Save to Supabase via admin client (bypasses RLS)
+  const { error: insertError } = await createSupabaseAdmin()
     .from("devis")
     .insert({
       user_id: userId,
@@ -267,10 +267,9 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
       client_email: clientEmail || null,
       total_ttc: totalTTC,
       profession: workDescription.slice(0, 100),
-    })
-    .then(({ error }) => {
-      if (error) console.error("Supabase insert error:", error.message);
     });
+
+  if (insertError) console.error("Supabase insert error:", insertError.message);
 
   return NextResponse.json(result);
 }
