@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseServer } from "@/lib/supabase-server";
+import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
 import LogoutButton from "./LogoutButton";
 
@@ -29,12 +29,15 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single<Profile>();
 
-  const { data: devis } = await supabase
+  // Use admin client to bypass RLS — page is server-side only, user already verified above
+  const { data: devis, error: devisError } = await createSupabaseAdmin()
     .from("devis")
     .select("id, created_at, devis_number, client_name, client_email, total_ttc, profession")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(50);
+
+  if (devisError) console.error("[dashboard] devis query error:", devisError.message);
 
   const devisList = (devis ?? []) as Devis[];
   const totalTTC = devisList.reduce((s, d) => s + (d.total_ttc ?? 0), 0);

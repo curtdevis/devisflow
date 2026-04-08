@@ -245,13 +245,16 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
     legalMentions,
   };
 
-  // Get authenticated user (non-blocking — don't fail generation if auth errors)
+  // Get authenticated user
   let userId: string | null = null;
   try {
     const supabaseServer = await createSupabaseServer();
     const { data: { user } } = await supabaseServer.auth.getUser();
     userId = user?.id ?? null;
-  } catch { /* continue without user_id */ }
+  } catch (err) {
+    console.error("[generate-devis] session error:", err);
+  }
+  console.log("[generate-devis] userId:", userId ?? "null (not logged in)");
 
   // Save to Supabase via admin client (bypasses RLS)
   const { error: insertError } = await createSupabaseAdmin()
@@ -269,7 +272,11 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
       profession: workDescription.slice(0, 100),
     });
 
-  if (insertError) console.error("Supabase insert error:", insertError.message);
+  if (insertError) {
+    console.error("[generate-devis] insert error:", insertError.message);
+  } else {
+    console.log("[generate-devis] devis saved OK for user_id:", userId);
+  }
 
   return NextResponse.json(result);
 }
