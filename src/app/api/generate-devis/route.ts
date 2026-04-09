@@ -28,6 +28,10 @@ interface DevisRequest {
   tvaRate: "10" | "20";
   validityDays: string;
   customNotes?: string;
+  reminderEnabled?: boolean;
+  reminderFrequencyDays?: number;
+  reminderMaxCount?: number;
+  reminderTone?: string;
 }
 
 interface DevisLine {
@@ -111,6 +115,10 @@ export async function POST(req: NextRequest) {
     tvaRate,
     validityDays,
     customNotes,
+    reminderEnabled,
+    reminderFrequencyDays,
+    reminderMaxCount,
+    reminderTone,
   } = body;
 
   // Basic validation
@@ -271,6 +279,15 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
       total_ttc: totalTTC,
       profession: workDescription.slice(0, 100),
       result_json: result,
+      reminder_enabled: reminderEnabled ?? false,
+      reminder_frequency_days: reminderFrequencyDays ?? 3,
+      reminder_max_count: reminderMaxCount ?? 2,
+      reminder_tone: reminderTone ?? "professionnel",
+      reminder_count: 0,
+      reminder_next_date:
+        reminderEnabled && clientEmail
+          ? new Date(Date.now() + (reminderFrequencyDays ?? 3) * 24 * 60 * 60 * 1000).toISOString()
+          : null,
     });
 
   if (insertError) {

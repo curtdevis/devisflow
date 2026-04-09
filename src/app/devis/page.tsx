@@ -86,6 +86,12 @@ export default function DevisPage() {
   const [result, setResult] = useState<DevisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dashboardHref, setDashboardHref] = useState("/dashboard");
+  const [reminders, setReminders] = useState({
+    enabled: true,
+    frequencyDays: "3",
+    maxCount: "2",
+    tone: "professionnel",
+  });
 
   // Pre-fill artisan info from Supabase profile
   useEffect(() => {
@@ -169,7 +175,14 @@ export default function DevisPage() {
       const res = await fetch("/api/generate-devis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, logoBase64 }),
+        body: JSON.stringify({
+          ...form,
+          logoBase64,
+          reminderEnabled: reminders.enabled && !!form.clientEmail,
+          reminderFrequencyDays: parseInt(reminders.frequencyDays),
+          reminderMaxCount: parseInt(reminders.maxCount),
+          reminderTone: reminders.tone,
+        }),
       });
 
       if (!res.ok) {
@@ -587,6 +600,98 @@ export default function DevisPage() {
               className={`${inputClass} resize-none`}
               style={focusStyle}
             />
+          </section>
+
+          {/* ── Relances automatiques ── */}
+          <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold" style={{ color: "var(--navy)" }}>
+                  Relances automatiques
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Rappelle automatiquement votre client par email si le devis est sans réponse
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReminders((prev) => ({ ...prev, enabled: !prev.enabled }))}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  reminders.enabled ? "bg-orange-500" : "bg-gray-200"
+                }`}
+                aria-label="Activer les relances automatiques"
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                    reminders.enabled ? "translate-x-5" : "translate-x-0.5"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {reminders.enabled && (
+              <div className="space-y-4">
+                {!form.clientEmail && (
+                  <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
+                    ⚠ Renseignez l&apos;email du client (section ci-dessus) pour activer les relances.
+                  </p>
+                )}
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Relancer tous les
+                    </label>
+                    <select
+                      value={reminders.frequencyDays}
+                      onChange={(e) =>
+                        setReminders((prev) => ({ ...prev, frequencyDays: e.target.value }))
+                      }
+                      className={inputClass}
+                      style={focusStyle}
+                    >
+                      <option value="2">2 jours</option>
+                      <option value="3">3 jours</option>
+                      <option value="5">5 jours</option>
+                      <option value="7">7 jours</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nombre de relances
+                    </label>
+                    <select
+                      value={reminders.maxCount}
+                      onChange={(e) =>
+                        setReminders((prev) => ({ ...prev, maxCount: e.target.value }))
+                      }
+                      className={inputClass}
+                      style={focusStyle}
+                    >
+                      <option value="1">1 relance</option>
+                      <option value="2">2 relances</option>
+                      <option value="3">3 relances</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ton de la relance
+                    </label>
+                    <select
+                      value={reminders.tone}
+                      onChange={(e) =>
+                        setReminders((prev) => ({ ...prev, tone: e.target.value }))
+                      }
+                      className={inputClass}
+                      style={focusStyle}
+                    >
+                      <option value="professionnel">Professionnel</option>
+                      <option value="amical">Amical</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* ── Submit ── */}

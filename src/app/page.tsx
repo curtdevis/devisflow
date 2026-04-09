@@ -54,39 +54,42 @@ const TESTIMONIALS = [
 
 const PLANS = [
   {
-    name: "Artisan",
-    price: "29",
+    name: "Artisan Solo",
+    priceLabel: "29€",
     period: "/mois",
     description: "Pour les artisans indépendants et auto-entrepreneurs",
     features: [
-      "Devis illimités",
-      "Génération IA en 30 secondes",
+      "Devis IA en 30 secondes",
+      "Logo et branding à votre nom",
+      "Relances automatiques personnalisables",
       "Envoi par email et WhatsApp",
-      "Relances automatiques J+3 et J+7",
-      "Format professionnel PDF",
-      "Support par chat",
+      "Historique de vos devis",
+      "Export PDF",
     ],
-    cta: "Démarrer l'essai gratuit",
+    cta: "Commencer l'essai gratuit 7 jours",
     href: LS_CHECKOUT,
-    highlighted: false,
+    highlighted: true,
+    badge: "Le plus populaire",
+    showLsNote: true,
   },
   {
-    name: "Agences & Groupements",
-    price: "299",
-    pricePrefix: "À partir de ",
-    period: "/mois",
+    name: "Cabinet & Groupement",
+    priceLabel: "Sur devis",
+    period: "",
     description: "Cabinets comptables, fédérations d'artisans, groupements BTP",
     features: [
-      "Jusqu'à 500 artisans gérés",
-      "Multi-utilisateurs illimités",
-      "Tableau de bord centralisé",
-      "Marque blanche disponible",
-      "Intégration logiciels comptables",
-      "Support dédié prioritaire",
+      "Tout le plan Artisan Solo",
+      "Gestion multi-artisans",
+      "Dashboard centralisé",
+      "Onboarding dédié",
+      "Support prioritaire",
+      "Facturation groupée",
     ],
     cta: "Demander une démo",
     href: "/contact",
-    highlighted: true,
+    highlighted: false,
+    badge: "Bientôt disponible",
+    showLsNote: false,
   },
 ];
 
@@ -398,12 +401,12 @@ export default function HomePage() {
                       : "bg-white/10 border border-white/20"
                   }`}
                 >
-                  {plan.highlighted && (
+                  {"badge" in plan && plan.badge && (
                     <span
                       className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-white"
-                      style={{ backgroundColor: "var(--orange)" }}
+                      style={{ backgroundColor: plan.highlighted ? "var(--orange)" : "rgba(255,255,255,0.2)" }}
                     >
-                      Populaire
+                      {plan.badge}
                     </span>
                   )}
                   <h3
@@ -422,11 +425,6 @@ export default function HomePage() {
                     {plan.description}
                   </p>
                   <div className="mb-8">
-                    {"pricePrefix" in plan && (
-                      <p className={`text-sm mb-1 ${plan.highlighted ? "text-gray-400" : "text-blue-200"}`}>
-                        {plan.pricePrefix}
-                      </p>
-                    )}
                     <div className="flex items-end gap-1">
                       <span
                         className={`text-5xl font-extrabold ${
@@ -434,15 +432,17 @@ export default function HomePage() {
                         }`}
                         style={plan.highlighted ? { color: "var(--navy)" } : {}}
                       >
-                        {plan.price}€
+                        {plan.priceLabel}
                       </span>
-                      <span
-                        className={`text-lg mb-1 ${
-                          plan.highlighted ? "text-gray-400" : "text-blue-200"
-                        }`}
-                      >
-                        {plan.period}
-                      </span>
+                      {plan.period && (
+                        <span
+                          className={`text-lg mb-1 ${
+                            plan.highlighted ? "text-gray-400" : "text-blue-200"
+                          }`}
+                        >
+                          {plan.period}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <ul className="space-y-3 mb-8">
@@ -460,8 +460,8 @@ export default function HomePage() {
                   </ul>
                   <a
                     href={plan.href}
-                    target={!plan.highlighted ? "_blank" : undefined}
-                    rel={!plan.highlighted ? "noopener noreferrer" : undefined}
+                    target={plan.href.startsWith("http") ? "_blank" : undefined}
+                    rel={plan.href.startsWith("http") ? "noopener noreferrer" : undefined}
                     className={`block w-full text-center font-bold py-3 rounded-xl transition-colors ${
                       plan.highlighted
                         ? "text-white hover:opacity-90"
@@ -475,8 +475,8 @@ export default function HomePage() {
                   >
                     {plan.cta}
                   </a>
-                  {!plan.highlighted && (
-                    <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-blue-300">
+                  {"showLsNote" in plan && plan.showLsNote && (
+                    <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-400">
                       {LOCK_ICON}
                       Paiement sécurisé par Lemon Squeezy
                     </p>
