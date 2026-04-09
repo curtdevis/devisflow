@@ -32,8 +32,6 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const PROTECTED = ["/devis", "/dashboard", "/agence", "/account"];
-  const AGENCE_ONLY = "/agence";
-  const ARTISAN_ONLY = "/dashboard";
 
   // Unauthenticated → redirect to login
   if (PROTECTED.some((p) => pathname.startsWith(p)) && !user) {
@@ -45,16 +43,6 @@ export async function proxy(request: NextRequest) {
 
   if (user) {
     const accountType = user.user_metadata?.account_type as string | undefined;
-
-    // Artisans trying to access agence dashboard → redirect to artisan dashboard
-    if (pathname.startsWith(AGENCE_ONLY) && accountType !== "agence") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    // Agences trying to access artisan dashboard → redirect to agence dashboard
-    if (pathname.startsWith(ARTISAN_ONLY) && accountType === "agence") {
-      return NextResponse.redirect(new URL("/agence", request.url));
-    }
 
     // Already logged in → skip auth pages (except /auth/callback)
     if (
