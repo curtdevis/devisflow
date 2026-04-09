@@ -9,13 +9,14 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Corps invalide" }, { status: 400 });
 
-  const { email, password, fullName, accountType, inviteToken, redirectAfter } = body as {
+  const { email, password, fullName, accountType, inviteToken, redirectAfter, artisanCount } = body as {
     email: string;
     password: string;
     fullName: string;
     accountType: "artisan" | "agence";
     inviteToken: string | null;
     redirectAfter: string | null;
+    artisanCount: string | null;
   };
 
   if (!email || !password || !fullName) {
@@ -34,7 +35,8 @@ export async function POST(request: NextRequest) {
         full_name: fullName,
         account_type: accountType,
         invite_token: inviteToken ?? null,
-          redirect_after: redirectAfter ?? null,
+        redirect_after: redirectAfter ?? null,
+        artisan_count: artisanCount ?? null,
       },
       redirectTo: `${SITE_URL}/auth/callback`,
     },

@@ -9,11 +9,15 @@ function RegisterForm() {
   const params = useSearchParams();
   const inviteToken = params.get("invite");
   const redirectAfter = params.get("redirect");
+  const typeParam = params.get("type");
 
-  const [accountType, setAccountType] = useState<"artisan" | "agence">("artisan");
+  const [accountType, setAccountType] = useState<"artisan" | "agence">(
+    typeParam === "agence" ? "agence" : "artisan"
+  );
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [artisanCount, setArtisanCount] = useState("1-5");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -48,7 +52,7 @@ function RegisterForm() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, fullName, accountType, inviteToken: inviteToken ?? null, redirectAfter: redirectAfter ?? null }),
+      body: JSON.stringify({ email, password, fullName, accountType, inviteToken: inviteToken ?? null, redirectAfter: redirectAfter ?? null, artisanCount: accountType === "agence" ? artisanCount : null }),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -182,7 +186,7 @@ function RegisterForm() {
 
             <div>
               <label className="block text-sm text-blue-200 mb-1">
-                {accountType === "agence" ? "Nom de l'agence" : "Votre nom"}
+                {accountType === "agence" ? "Nom du cabinet / groupement" : "Votre nom"}
               </label>
               <input
                 type="text"
@@ -195,6 +199,25 @@ function RegisterForm() {
                 className={inputClass}
               />
             </div>
+
+            {accountType === "agence" && (
+              <div>
+                <label className="block text-sm text-blue-200 mb-1">
+                  Nombre d&apos;artisans à gérer
+                </label>
+                <select
+                  value={artisanCount}
+                  onChange={(e) => setArtisanCount(e.target.value)}
+                  className={inputClass}
+                  style={{ appearance: "none" }}
+                >
+                  <option value="1-5">1 à 5 artisans</option>
+                  <option value="6-20">6 à 20 artisans</option>
+                  <option value="21-50">21 à 50 artisans</option>
+                  <option value="50+">Plus de 50 artisans</option>
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm text-blue-200 mb-1">Email</label>
