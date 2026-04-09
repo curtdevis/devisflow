@@ -45,11 +45,13 @@ export async function GET(request: NextRequest) {
   }
 
   // Upsert profile (safe to re-run on repeated confirmations)
+  // For agence accounts, store the agency name in both full_name and company_name
   await admin.from("profiles").upsert(
     {
       id: user.id,
       email: user.email!,
       full_name: meta.full_name ?? null,
+      company_name: accountType === "agence" ? (meta.full_name ?? null) : null,
       account_type: accountType,
       agence_id: agenceId,
     },

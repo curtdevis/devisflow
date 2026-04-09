@@ -176,8 +176,8 @@ function RegisterForm() {
                       }
                     >
                       {type === "artisan"
-                        ? "🔨 Artisan — 29€/mois"
-                        : "🏢 Agence — 299€/mois"}
+                        ? "🔨 Artisan / TPE — 29€/mois"
+                        : "🏢 Cabinet ou groupement — 299€/mois"}
                     </button>
                   ))}
                 </div>
