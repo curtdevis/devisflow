@@ -130,6 +130,9 @@ export default function HomePage() {
             <a href="#faq" className="hover:text-gray-900 transition-colors">
               FAQ
             </a>
+            <Link href="/contact" className="hover:text-gray-900 transition-colors">
+              Agences
+            </Link>
           </div>
           <div className="flex items-center gap-3">
             <NavAuth />
@@ -220,6 +223,45 @@ export default function HomePage() {
                 <p className="text-sm text-gray-500">format professionnel PDF 2026</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* ── Social proof strip ── */}
+        <section className="py-6 px-4 bg-white border-b border-gray-100">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-10 text-center">
+            <div className="flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {["M", "S", "J", "A", "P"].map((initial) => (
+                  <div
+                    key={initial}
+                    className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
+                    style={{ backgroundColor: "var(--navy)" }}
+                  >
+                    {initial}
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-gray-600">
+                <strong className="text-gray-900">500+ artisans</strong> testent DevisFlow
+              </p>
+            </div>
+            <div className="hidden sm:block w-px h-8 bg-gray-200" />
+            <div className="flex items-center gap-2">
+              <div className="flex gap-0.5">
+                {[1,2,3,4,5].map((i) => (
+                  <svg key={i} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#f97316" stroke="none">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                ))}
+              </div>
+              <p className="text-sm text-gray-600">
+                <strong className="text-gray-900">4,9/5</strong> note moyenne
+              </p>
+            </div>
+            <div className="hidden sm:block w-px h-8 bg-gray-200" />
+            <p className="text-sm text-gray-600">
+              <strong className="text-gray-900">10 000+</strong> devis générés
+            </p>
           </div>
         </section>
 
@@ -709,10 +751,10 @@ export default function HomePage() {
         </p>
         <p className="mb-4">Le générateur de devis IA pour les artisans français</p>
         <div className="flex flex-wrap justify-center gap-4 text-xs text-blue-300">
-          <a href="#" className="hover:text-white transition-colors">Mentions légales</a>
-          <a href="#" className="hover:text-white transition-colors">CGV</a>
-          <a href="#" className="hover:text-white transition-colors">Politique de confidentialité</a>
-          <a href="#" className="hover:text-white transition-colors">Contact</a>
+          <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
+          <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
+          <Link href="/confidentialite" className="hover:text-white transition-colors">Politique de confidentialité</Link>
+          <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
         </div>
         <p className="mt-6 text-xs text-blue-400">
           © {new Date().getFullYear()} DevisFlow — Tous droits réservés

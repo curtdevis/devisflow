@@ -17,7 +17,7 @@ function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [artisanCount, setArtisanCount] = useState("1-5");
+  const [artisanCount, setArtisanCount] = useState("1");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -211,10 +211,14 @@ function RegisterForm() {
                   className={inputClass}
                   style={{ appearance: "none" }}
                 >
-                  <option value="1-5">1 à 5 artisans</option>
-                  <option value="6-20">6 à 20 artisans</option>
+                  <option value="1">1 (solo)</option>
+                  <option value="2-5">2 à 5 artisans</option>
+                  <option value="6-10">6 à 10 artisans</option>
+                  <option value="11-20">11 à 20 artisans</option>
                   <option value="21-50">21 à 50 artisans</option>
-                  <option value="50+">Plus de 50 artisans</option>
+                  <option value="51-100">51 à 100 artisans</option>
+                  <option value="100-500">100 à 500 artisans</option>
+                  <option value="500+">Plus de 500 artisans</option>
                 </select>
               </div>
             )}
@@ -259,13 +263,13 @@ function RegisterForm() {
 
           <p className="mt-6 text-xs text-center text-blue-400">
             En créant un compte, vous acceptez nos{" "}
-            <a href="#" className="underline">
-              CGV
-            </a>{" "}
+            <Link href="/cgu" className="underline">
+              CGU
+            </Link>{" "}
             et notre{" "}
-            <a href="#" className="underline">
+            <Link href="/confidentialite" className="underline">
               politique de confidentialité
-            </a>
+            </Link>
             .
           </p>
 

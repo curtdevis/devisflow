@@ -388,15 +388,44 @@ function PreviewModal({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
+type SortKey = "date" | "amount" | "client";
+
 export default function DevisTable({ devis }: { devis: DevisRow[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [preview, setPreview] = useState<DevisRow | null>(null);
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("date");
+  const [sortAsc, setSortAsc] = useState(false);
 
-  const allSelected = devis.length > 0 && selected.size === devis.length;
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) setSortAsc((v) => !v);
+    else { setSortKey(key); setSortAsc(false); }
+  }
+
+  const filtered = devis
+    .filter((d) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        d.client_name.toLowerCase().includes(q) ||
+        (d.client_email ?? "").toLowerCase().includes(q) ||
+        (d.devis_number ?? "").toLowerCase().includes(q) ||
+        (d.profession ?? "").toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      let cmp = 0;
+      if (sortKey === "date") cmp = a.created_at.localeCompare(b.created_at);
+      else if (sortKey === "amount") cmp = (a.total_ttc ?? 0) - (b.total_ttc ?? 0);
+      else if (sortKey === "client") cmp = a.client_name.localeCompare(b.client_name);
+      return sortAsc ? cmp : -cmp;
+    });
+
+  const allSelected = filtered.length > 0 && selected.size === filtered.length && filtered.every((d) => selected.has(d.id));
   const someSelected = selected.size > 0;
 
   function toggleAll() {
-    setSelected(allSelected ? new Set() : new Set(devis.map((d) => d.id)));
+    setSelected(allSelected ? new Set() : new Set(filtered.map((d) => d.id)));
   }
 
   function toggleOne(id: string) {
@@ -407,7 +436,7 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
     });
   }
 
-  const selectedRows = devis.filter((d) => selected.has(d.id));
+  const selectedRows = filtered.filter((d) => selected.has(d.id));
 
   if (devis.length === 0) {
     return (
@@ -426,8 +455,27 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
     );
   }
 
+  function SortIcon({ k }: { k: SortKey }) {
+    if (sortKey !== k) return <span className="text-gray-300 ml-0.5">↕</span>;
+    return <span className="ml-0.5" style={{ color: "var(--orange)" }}>{sortAsc ? "↑" : "↓"}</span>;
+  }
+
   return (
     <>
+      {/* ── Search bar ── */}
+      <div className="px-6 py-3 border-b border-gray-100">
+        <input
+          type="search"
+          placeholder="Rechercher par client, n° devis, travaux…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full max-w-sm rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+        />
+        {search && filtered.length === 0 && (
+          <p className="mt-2 text-sm text-gray-400">Aucun résultat pour &quot;{search}&quot;</p>
+        )}
+      </div>
+
       {/* ── Action bar (visible when ≥1 selected) ── */}
       {someSelected && (
         <div
@@ -479,15 +527,27 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                 />
               </th>
               <th className="text-left px-3 py-3">N°</th>
-              <th className="text-left px-3 py-3">Date</th>
-              <th className="text-left px-3 py-3">Client</th>
+              <th className="text-left px-3 py-3">
+                <button onClick={() => toggleSort("date")} className="flex items-center hover:text-gray-600 transition-colors">
+                  Date <SortIcon k="date" />
+                </button>
+              </th>
+              <th className="text-left px-3 py-3">
+                <button onClick={() => toggleSort("client")} className="flex items-center hover:text-gray-600 transition-colors">
+                  Client <SortIcon k="client" />
+                </button>
+              </th>
               <th className="text-left px-3 py-3 hidden sm:table-cell">Travaux</th>
-              <th className="text-right px-3 py-3">Total TTC</th>
+              <th className="text-right px-3 py-3">
+                <button onClick={() => toggleSort("amount")} className="flex items-center ml-auto hover:text-gray-600 transition-colors">
+                  Total TTC <SortIcon k="amount" />
+                </button>
+              </th>
               <th className="text-right px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {devis.map((d, i) => {
+            {filtered.map((d, i) => {
               const isSelected = selected.has(d.id);
               return (
                 <tr

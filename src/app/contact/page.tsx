@@ -248,11 +248,13 @@ export default function ContactPage() {
                     className={inputClass}
                   >
                     <option value="">Sélectionnez une fourchette</option>
-                    <option value="1-10">1 à 10</option>
-                    <option value="11-50">11 à 50</option>
+                    <option value="1">1 (solo)</option>
+                    <option value="2-5">2 à 5</option>
+                    <option value="6-10">6 à 10</option>
+                    <option value="11-20">11 à 20</option>
+                    <option value="21-50">21 à 50</option>
                     <option value="51-100">51 à 100</option>
-                    <option value="101-250">101 à 250</option>
-                    <option value="251-500">251 à 500</option>
+                    <option value="100-500">100 à 500</option>
                     <option value="500+">Plus de 500</option>
                   </select>
                 </div>
