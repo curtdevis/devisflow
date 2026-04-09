@@ -33,8 +33,14 @@ function LoginForm() {
     }
 
     const accountType = data.user?.user_metadata?.account_type;
-    const dest = redirect || (accountType === "agence" ? "/agence" : "/dashboard");
-    router.push(dest);
+    if (redirect === "checkout" && data.user) {
+      const checkoutUrl = `https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${data.user.id}`;
+      window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+      router.push(accountType === "agence" ? "/agence" : "/dashboard");
+    } else {
+      const dest = redirect || (accountType === "agence" ? "/agence" : "/dashboard");
+      router.push(dest);
+    }
     router.refresh();
   }
 

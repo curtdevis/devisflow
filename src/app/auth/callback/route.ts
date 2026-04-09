@@ -56,6 +56,12 @@ export async function GET(request: NextRequest) {
     { onConflict: "id" }
   );
 
+  const redirectAfter = meta.redirect_after as string | null | undefined;
+  if (redirectAfter === "checkout") {
+    const checkoutUrl = `https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`;
+    return NextResponse.redirect(checkoutUrl);
+  }
+
   const dest = accountType === "agence" ? "/agence" : "/dashboard";
   return NextResponse.redirect(`${origin}${dest}`);
 }

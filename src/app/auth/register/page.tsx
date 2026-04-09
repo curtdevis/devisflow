@@ -8,6 +8,7 @@ function RegisterForm() {
   const router = useRouter();
   const params = useSearchParams();
   const inviteToken = params.get("invite");
+  const redirectAfter = params.get("redirect");
 
   const [accountType, setAccountType] = useState<"artisan" | "agence">("artisan");
   const [fullName, setFullName] = useState("");
@@ -47,7 +48,7 @@ function RegisterForm() {
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, fullName, accountType, inviteToken: inviteToken ?? null }),
+      body: JSON.stringify({ email, password, fullName, accountType, inviteToken: inviteToken ?? null, redirectAfter: redirectAfter ?? null }),
     });
 
     const data = await res.json().catch(() => ({}));
@@ -97,7 +98,10 @@ function RegisterForm() {
           <p className="text-blue-200 mb-6">
             Un lien de confirmation a été envoyé à{" "}
             <strong className="text-white">{email}</strong>.<br />
-            Cliquez sur le lien pour activer votre compte.
+            Cliquez sur le lien pour activer votre compte
+            {redirectAfter === "checkout" && (
+              <span> et accéder au paiement</span>
+            )}.
           </p>
           <Link
             href="/auth/login"

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import NavAuth from "./_components/NavAuth";
-
-const LS_CHECKOUT = "https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5";
+import CheckoutButton, { LS_CHECKOUT } from "./_components/CheckoutButton";
 
 const LOCK_ICON = (
   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -134,15 +133,12 @@ export default function HomePage() {
           </div>
           <div className="flex items-center gap-3">
             <NavAuth />
-            <a
-              href={LS_CHECKOUT}
-              target="_blank"
-              rel="noopener noreferrer"
+            <CheckoutButton
               className="text-sm font-semibold text-white px-4 py-2 rounded-lg transition-colors"
               style={{ backgroundColor: "var(--orange)" }}
             >
               Essai gratuit
-            </a>
+            </CheckoutButton>
           </div>
         </div>
       </nav>
@@ -182,15 +178,12 @@ export default function HomePage() {
               sans effort.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href={LS_CHECKOUT}
-                target="_blank"
-                rel="noopener noreferrer"
+              <CheckoutButton
                 className="inline-block text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transition-transform hover:scale-105 active:scale-95"
                 style={{ backgroundColor: "var(--orange)" }}
               >
                 Essai gratuit 7 jours →
-              </a>
+              </CheckoutButton>
               <a
                 href="#avantages"
                 className="inline-block text-white font-semibold text-lg px-8 py-4 rounded-xl border border-white/30 hover:bg-white/10 transition-colors"
@@ -322,15 +315,12 @@ export default function HomePage() {
               ))}
             </div>
             <div className="mt-12 flex flex-col items-center gap-2">
-              <a
-                href={LS_CHECKOUT}
-                target="_blank"
-                rel="noopener noreferrer"
+              <CheckoutButton
                 className="inline-block text-white font-bold px-8 py-4 rounded-xl transition-transform hover:scale-105"
                 style={{ backgroundColor: "var(--navy)" }}
               >
                 Essayer maintenant — c&apos;est gratuit
-              </a>
+              </CheckoutButton>
               <p className="flex items-center gap-1.5 text-xs text-gray-400">
                 {LOCK_ICON}
                 Paiement sécurisé par Lemon Squeezy
@@ -458,23 +448,30 @@ export default function HomePage() {
                       </li>
                     ))}
                   </ul>
-                  <a
-                    href={plan.href}
-                    target={plan.href.startsWith("http") ? "_blank" : undefined}
-                    rel={plan.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                    className={`block w-full text-center font-bold py-3 rounded-xl transition-colors ${
-                      plan.highlighted
-                        ? "text-white hover:opacity-90"
-                        : "text-white border border-white/30 hover:bg-white/10"
-                    }`}
-                    style={
-                      plan.highlighted
-                        ? { backgroundColor: "var(--orange)" }
-                        : {}
-                    }
-                  >
-                    {plan.cta}
-                  </a>
+                  {plan.href === LS_CHECKOUT ? (
+                    <CheckoutButton
+                      className={`block w-full text-center font-bold py-3 rounded-xl transition-colors ${
+                        plan.highlighted
+                          ? "text-white hover:opacity-90"
+                          : "text-white border border-white/30 hover:bg-white/10"
+                      }`}
+                      style={plan.highlighted ? { backgroundColor: "var(--orange)" } : {}}
+                    >
+                      {plan.cta}
+                    </CheckoutButton>
+                  ) : (
+                    <Link
+                      href={plan.href}
+                      className={`block w-full text-center font-bold py-3 rounded-xl transition-colors ${
+                        plan.highlighted
+                          ? "text-white hover:opacity-90"
+                          : "text-white border border-white/30 hover:bg-white/10"
+                      }`}
+                      style={plan.highlighted ? { backgroundColor: "var(--orange)" } : {}}
+                    >
+                      {plan.cta}
+                    </Link>
+                  )}
                   {"showLsNote" in plan && plan.showLsNote && (
                     <p className="mt-2 flex items-center justify-center gap-1.5 text-xs text-gray-400">
                       {LOCK_ICON}
@@ -517,6 +514,67 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── SEO Blog / Guides ── */}
+        <section className="py-20 px-4 bg-gray-50 border-y border-gray-100">
+          <div className="max-w-4xl mx-auto">
+            <h2
+              className="text-3xl sm:text-4xl font-extrabold text-center mb-4"
+              style={{ color: "var(--navy)" }}
+            >
+              Guide du devis professionnel
+            </h2>
+            <p className="text-center text-gray-500 mb-14 max-w-xl mx-auto">
+              Tout ce que vous devez savoir pour créer, envoyer et relancer vos devis artisan efficacement.
+            </p>
+            <div className="grid sm:grid-cols-3 gap-8">
+              <article className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <h3 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>
+                  Comment créer un devis professionnel rapidement ?
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  Un bon devis artisan doit inclure vos coordonnées, celles du client, le détail des travaux,
+                  le coût de la main d&apos;œuvre et des matériaux, ainsi que les délais d&apos;exécution.
+                  Avec un logiciel de devis artisan comme DevisFlow, vous renseignez simplement la description
+                  du chantier — plomberie, électricité, peinture — et l&apos;IA génère un devis complet au
+                  format PDF professionnel en moins de 30 secondes. Fini les modèles Word ou Excel : vous
+                  envoyez directement par email ou WhatsApp, et DevisFlow vous prévient dès que le client
+                  ouvre le document. Idéal pour les plombiers, électriciens, peintres et tous les artisans
+                  du bâtiment qui veulent gagner du temps et soigner leur image.
+                </p>
+              </article>
+              <article className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <h3 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>
+                  Qu&apos;est-ce que la facturation électronique 2026 ?
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  À partir de septembre 2026, la réglementation française impose progressivement la
+                  facturation électronique à toutes les entreprises, y compris les artisans et TPE du
+                  bâtiment. Concrètement, vos factures et devis devront respecter un format structuré
+                  lisible par les systèmes de l&apos;administration. Préparer votre activité maintenant,
+                  c&apos;est éviter la précipitation à la dernière minute. DevisFlow génère des devis au
+                  format PDF professionnel structuré, prêts pour cette évolution réglementaire. En utilisant
+                  dès aujourd&apos;hui un logiciel de devis artisan adapté, vous anticipez sereinement
+                  l&apos;obligation 2026 sans changer vos habitudes : l&apos;outil s&apos;adapte pour vous.
+                </p>
+              </article>
+              <article className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+                <h3 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>
+                  Comment relancer un client après un devis ?
+                </h3>
+                <p className="text-gray-500 text-sm leading-relaxed">
+                  La majorité des devis artisan non signés ne le sont pas par désintérêt, mais parce que
+                  le client a oublié de répondre. Une relance à J+3 puis à J+7 suffit souvent à décrocher
+                  la signature. Le problème : peu d&apos;artisans ont le temps de suivre chaque devis
+                  manuellement. DevisFlow envoie automatiquement ces relances par email en votre nom, avec
+                  un message professionnel personnalisable. Vous restez concentré sur votre chantier pendant
+                  que l&apos;application devis bâtiment s&apos;occupe du suivi commercial. Résultat : plus
+                  de devis transformés, moins de temps perdu, et une image sérieuse auprès de vos clients.
+                </p>
+              </article>
+            </div>
+          </div>
+        </section>
+
         {/* ── Final CTA ── */}
         <section
           className="py-20 px-4 text-center"
@@ -531,15 +589,12 @@ export default function HomePage() {
             <p className="text-blue-200 text-lg mb-8">
               Essayez DevisFlow gratuitement — annulation à tout moment.
             </p>
-            <a
-              href={LS_CHECKOUT}
-              target="_blank"
-              rel="noopener noreferrer"
+            <CheckoutButton
               className="inline-block text-white font-bold text-lg px-10 py-4 rounded-xl shadow-xl transition-transform hover:scale-105"
               style={{ backgroundColor: "var(--orange)" }}
             >
               Commencer mon essai gratuit →
-            </a>
+            </CheckoutButton>
             <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-blue-400">
               {LOCK_ICON}
               Paiement sécurisé par Lemon Squeezy
@@ -551,7 +606,60 @@ export default function HomePage() {
         </section>
       </main>
 
-      {/* ── JSON-LD ── */}
+      {/* ── JSON-LD: FAQ ── */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "Comment créer un devis professionnel rapidement ?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Avec DevisFlow, renseignez la description du chantier et l'IA génère un devis complet au format PDF professionnel en moins de 30 secondes. Envoi direct par email ou WhatsApp. Idéal pour les plombiers, électriciens, peintres et tous les artisans du bâtiment.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Qu'est-ce que la facturation électronique 2026 ?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "À partir de septembre 2026, la réglementation française impose la facturation électronique à toutes les entreprises, y compris les artisans et TPE. DevisFlow génère des devis au format PDF professionnel structuré, prêts pour cette évolution réglementaire.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Comment relancer un client après un devis ?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "DevisFlow envoie automatiquement des relances par email à J+3 puis J+7 en votre nom. Vous restez concentré sur votre chantier pendant que l'application s'occupe du suivi commercial.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Comment fonctionne l'essai gratuit ?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "L'essai gratuit de 7 jours vous donne accès à toutes les fonctionnalités de DevisFlow. Vous pouvez annuler à tout moment, sans engagement.",
+                },
+              },
+              {
+                "@type": "Question",
+                name: "Comment fonctionne la relance automatique ?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Si votre client n'a pas répondu à votre devis, DevisFlow lui envoie automatiquement un email de relance à J+3 puis à J+7. Vous pouvez personnaliser ou désactiver ces relances à tout moment.",
+                },
+              },
+            ],
+          }),
+        }}
+      />
+
+      {/* ── JSON-LD: SoftwareApplication ── */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

@@ -47,7 +47,9 @@
       "mcp__claude_ai_Gmail__gmail_read_thread",
       "Bash(schtasks:*)",
       "Bash(cmd.exe:*)",
-      "Bash(npm i:*)"
+      "Bash(npm i:*)",
+      "Bash(node -e \"require\\('sharp'\\) && console.log\\('sharp ok'\\)\")",
+      "Bash(node:*)"
     ]
   }
 }

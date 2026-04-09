@@ -31,7 +31,7 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const PROTECTED = ["/devis", "/dashboard", "/agence"];
+  const PROTECTED = ["/devis", "/dashboard", "/agence", "/account"];
   const AGENCE_ONLY = "/agence";
   const ARTISAN_ONLY = "/dashboard";
 
