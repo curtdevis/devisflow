@@ -265,7 +265,7 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
   console.log("[generate-devis] userId:", userId ?? "null (not logged in)");
 
   // Save to Supabase via admin client (bypasses RLS)
-  const { error: insertError } = await createSupabaseAdmin()
+  const { data: inserted, error: insertError } = await createSupabaseAdmin()
     .from("devis")
     .insert({
       user_id: userId,
@@ -288,13 +288,16 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
         reminderEnabled && clientEmail
           ? new Date(Date.now() + (reminderFrequencyDays ?? 3) * 24 * 60 * 60 * 1000).toISOString()
           : null,
-    });
+    })
+    .select("id")
+    .single();
 
   if (insertError) {
     console.error("[generate-devis] insert error:", insertError.message);
   } else {
-    console.log("[generate-devis] devis saved OK for user_id:", userId);
+    console.log("[generate-devis] devis saved OK, id:", inserted?.id, "user_id:", userId);
   }
 
-  return NextResponse.json(result);
+  // Return result enriched with the DB row id so client can convert to invoice
+  return NextResponse.json({ ...result, id: inserted?.id ?? null });
 }

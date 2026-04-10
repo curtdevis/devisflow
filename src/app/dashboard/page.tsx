@@ -77,6 +77,21 @@ export default async function DashboardPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 py-10">
+        {/* Nav tabs */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {[
+            { href: "/dashboard", label: "Devis", active: true },
+            { href: "/dashboard/factures", label: "Factures" },
+            { href: "/dashboard/clients", label: "Clients" },
+          ].map(n => (
+            <Link key={n.href} href={n.href}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${n.active ? "text-white" : "text-gray-600 bg-white border border-gray-200 hover:bg-gray-50"}`}
+              style={n.active ? { backgroundColor: "var(--navy)" } : {}}>
+              {n.label}
+            </Link>
+          ))}
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-extrabold" style={{ color: "var(--navy)" }}>

@@ -386,6 +386,45 @@ function PreviewModal({
   );
 }
 
+// ── Invoice conversion ────────────────────────────────────────────────────────
+
+function ConvertInvoiceButton({ devisId }: { devisId: string }) {
+  const [loading, setLoading] = useState(false);
+  const [invoiceNumber, setInvoiceNumber] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  async function convert() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/create-invoice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ devisId }),
+      });
+      const data = await res.json();
+      if (res.ok) setInvoiceNumber(data.invoiceNumber);
+      else setError(true);
+    } catch { setError(true); }
+    finally { setLoading(false); }
+  }
+
+  if (invoiceNumber) {
+    return (
+      <a href="/dashboard/factures" className="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg text-purple-700 bg-purple-50 border border-purple-200 whitespace-nowrap hover:bg-purple-100 transition-colors">
+        🧾 {invoiceNumber}
+      </a>
+    );
+  }
+
+  return (
+    <button onClick={convert} disabled={loading}
+      title="Convertir en facture"
+      className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors whitespace-nowrap ${error ? "border-red-200 text-red-500" : "border-purple-200 text-purple-600 hover:bg-purple-50"} disabled:opacity-50`}>
+      {loading ? "…" : error ? "Erreur" : "🧾 Facture"}
+    </button>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 type SortKey = "date" | "amount" | "client";
@@ -589,7 +628,7 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                     {d.total_ttc.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
                   </td>
                   <td className="px-4 py-4">
-                    <div className="flex items-center justify-end gap-1.5">
+                    <div className="flex items-center justify-end gap-1.5 flex-wrap">
                       {/* Visualiser */}
                       <button
                         onClick={() => setPreview(d)}
@@ -615,6 +654,8 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                           <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                       </button>
+                      {/* Convert to invoice */}
+                      <ConvertInvoiceButton devisId={d.id} />
                     </div>
                   </td>
                 </tr>
