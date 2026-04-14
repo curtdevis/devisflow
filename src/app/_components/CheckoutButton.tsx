@@ -25,11 +25,12 @@ export default function CheckoutButton({ className, style, children }: Props) {
 
   function handleClick() {
     if (userId) {
-      // Pass user_id as custom data so the webhook can link the payment to the account
+      // Logged-in user: go to Lemon Squeezy to upgrade/pay
       const url = `${LS_CHECKOUT}?checkout[custom][user_id]=${userId}`;
       window.open(url, "_blank", "noopener,noreferrer");
     } else {
-      router.push("/auth/register?redirect=checkout");
+      // Not logged in: free registration — no card required for trial
+      router.push("/auth/register");
     }
   }
 

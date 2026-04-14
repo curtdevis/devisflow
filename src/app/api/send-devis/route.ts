@@ -13,10 +13,11 @@ interface DevisLine {
 interface SendDevisRequest {
   recipientEmail: string;
   devis: {
+    id?: string | null;
     devisNumber: string;
     date: string;
     validUntil: string;
-    artisan: { name: string; siret: string };
+    artisan: { name: string; siret: string; email?: string };
     client: { name: string; address: string; phone: string; email: string };
     lines: DevisLine[];
     subtotalHT: number;
@@ -140,9 +141,10 @@ export async function POST(req: NextRequest) {
     </div>
 
     <!-- Signature -->
-    <div style="padding: 24px 36px; margin: 0 36px 28px; border: 1px dashed #d1d5db; border-radius: 8px; background: #fafafa;">
-      <p style="margin: 0 0 8px; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Bon pour accord — Signature client</p>
-      <p style="margin: 0; font-size: 13px; color: #6b7280;">Pour accepter ce devis, veuillez répondre à cet email avec la mention <strong>« Bon pour accord »</strong> ou signer et retourner ce document.</p>
+    <div style="padding: 24px 36px; margin: 0 36px 28px; border: 2px solid #f97316; border-radius: 12px; background: #fff7ed; text-align: center;">
+      <p style="margin: 0 0 12px; font-size: 13px; color: #374151;">Pour accepter ce devis, cliquez sur le bouton ci-dessous :</p>
+      ${devis.id ? `<a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}" style="display:inline-block;background:#f97316;color:#ffffff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">✍️ Signer le devis en ligne →</a>` : `<p style="margin:0;font-size:13px;color:#6b7280;">Répondez à cet email avec la mention <strong>« Bon pour accord »</strong>.</p>`}
+      ${devis.id ? `<p style="margin: 12px 0 0; font-size: 11px; color: #9ca3af;">Ou copiez ce lien : ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}</p>` : ""}
     </div>
 
     <!-- Legal -->
@@ -166,9 +168,7 @@ export async function POST(req: NextRequest) {
     const response = await resend.emails.send({
       from: "DevisFlow <noreply@devis-flow.fr>",
       to: recipientEmail,
-      replyTo: devis.artisan.name
-        ? undefined
-        : undefined,
+      replyTo: devis.artisan.email ?? undefined,
       subject: `Votre devis N° ${devis.devisNumber} — ${devis.totalTTC.toFixed(2)} € TTC`,
       html: emailHtml,
     });

@@ -59,9 +59,9 @@ const PLANS = [
 ];
 
 const FAQS = [
-  { q: "Comment fonctionne l'essai gratuit ?", a: "L'essai gratuit de 7 jours vous donne accès à toutes les fonctionnalités de DevisFlow. Aucune carte bancaire requise. Vous pouvez annuler à tout moment, sans engagement." },
+  { q: "Comment fonctionne l'essai gratuit ?", a: "Créez votre compte gratuitement en 30 secondes — sans carte bancaire. Vous accédez à toutes les fonctionnalités pendant 7 jours. À l'issue de l'essai, un abonnement à 29 €/mois est proposé pour continuer. Vous choisissez librement, sans engagement." },
   { q: "Mes devis sont-ils conformes à la réglementation 2026 ?", a: "Oui. Tous les devis générés par DevisFlow sont au format professionnel PDF structuré, prêts pour la réglementation de facturation électronique 2026." },
-  { q: "Comment fonctionne la relance automatique ?", a: "Si votre client n'a pas répondu à votre devis, DevisFlow lui envoie automatiquement un email de relance à J+3 puis à J+7. Personnalisable ou désactivable à tout moment." },
+  { q: "Comment fonctionne la relance automatique ?", a: "Si votre client n'a pas répondu, DevisFlow lui envoie automatiquement des emails de relance selon la fréquence que vous choisissez (tous les 2, 3, 5 ou 7 jours). Nombre de relances et ton (professionnel, amical, urgent) configurables. Désactivable à tout moment." },
   { q: "Puis-je utiliser DevisFlow depuis mon téléphone ?", a: "Absolument. DevisFlow est conçu mobile-first. Créez un devis depuis le chantier en 30 secondes, envoyez-le par WhatsApp directement." },
   { q: "L'IA comprend-elle mon métier ?", a: "Oui. DevisFlow est formé sur les métiers du BTP : plomberie, électricité, peinture, maçonnerie, menuiserie, chauffage, carrelage. Il connaît les prix du marché et les mentions légales spécifiques." },
   { q: "Puis-je convertir un devis en facture ?", a: "Oui. En un clic depuis votre tableau de bord, transformez n'importe quel devis accepté en facture professionnelle, avec numérotation automatique." },
@@ -364,7 +364,7 @@ export default function HomePage() {
               {[
                 { step: "1", title: "Sélectionnez votre métier", desc: "Choisissez parmi 8 corps de métier. DevisFlow affiche immédiatement les prestations types de votre profession, prêtes à cliquer.", time: "< 30 secondes" },
                 { step: "2", title: "Renseignez le client", desc: "Nom, adresse, email. Si c'est un client existant, l'autocomplétation le retrouve en une lettre. Saisie unique, retrouvé partout.", time: "< 1 minute" },
-                { step: "3", title: "Envoyez et signez", desc: "PDF généré, envoyé par email ou WhatsApp. Le client signe électroniquement depuis son téléphone. Retrouvez tout dans votre tableau de bord.", time: "Instantané" },
+                { step: "3", title: "Envoyez et signez", desc: "PDF généré, envoyé par email ou WhatsApp. L'email contient un lien de signature en ligne — le client signe depuis son téléphone en 10 secondes. Retrouvez tout dans votre tableau de bord.", time: "Instantané" },
               ].map(s => (
                 <div key={s.step} className="relative">
                   {/* Step connector */}
@@ -447,11 +447,13 @@ export default function HomePage() {
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>Voir DevisFlow en action</h2>
             <p className="text-gray-500 mb-10 max-w-lg mx-auto">De la description des travaux au PDF envoyé — regardez le flux complet en moins de 2 minutes.</p>
 
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 aspect-video max-w-3xl mx-auto cursor-pointer group">
+            <Link href="/devis" className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 aspect-video max-w-3xl mx-auto cursor-pointer group block">
               {/* Fake thumbnail with gradient */}
               <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%)" }} />
               {/* Grid pattern */}
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-200" />
 
               {/* Play button */}
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
@@ -460,13 +462,13 @@ export default function HomePage() {
                     <polygon points="5 3 19 12 5 21 5 3"/>
                   </svg>
                 </div>
-                <p className="text-white font-semibold text-lg">Voir la démo complète</p>
-                <p className="text-blue-300 text-sm">1 min 47 sec — Devis plombier de A à Z</p>
+                <p className="text-white font-semibold text-lg">Essayer la démo en direct →</p>
+                <p className="text-blue-300 text-sm">Créez un vrai devis en 30 secondes — gratuitement</p>
               </div>
 
-              {/* Duration badge */}
-              <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs font-mono px-2 py-1 rounded">1:47</div>
-            </div>
+              {/* Badge */}
+              <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs font-mono px-2 py-1 rounded">LIVE</div>
+            </Link>
           </div>
         </section>
 

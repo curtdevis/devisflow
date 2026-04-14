@@ -105,6 +105,9 @@ function RegisterForm() {
             Cliquez sur le lien pour activer votre compte
             {redirectAfter === "checkout" && (
               <span> et accéder au paiement</span>
+            )}
+            {redirectAfter === "devis" && (
+              <span> et créer votre premier devis</span>
             )}.
           </p>
           <Link

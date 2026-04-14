@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(200);
 
   if (devisError) {
     console.error("[dashboard] full query error:", devisError.message);
@@ -43,7 +43,7 @@ export default async function DashboardPage() {
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(200);
     devis = fallback.data as typeof devis;
     devisError = fallback.error;
 
@@ -109,6 +109,33 @@ export default async function DashboardPage() {
             + Nouveau devis
           </Link>
         </div>
+
+        {/* Trial / upgrade banner for free users */}
+        {profile?.plan !== "paid" && (() => {
+          const daysSince = (Date.now() - new Date(user!.created_at).getTime()) / (1000 * 60 * 60 * 24);
+          const daysLeft = Math.max(0, Math.ceil(7 - daysSince));
+          return (
+            <div className={`mb-6 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${daysLeft <= 1 ? "bg-red-50 border border-red-200" : "bg-orange-50 border border-orange-100"}`}>
+              <div>
+                <p className="font-bold text-sm" style={{ color: daysLeft <= 1 ? "#b91c1c" : "#9a3412" }}>
+                  {daysLeft <= 1 ? "⚠️ Dernier jour d'essai gratuit" : `⏳ Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? "s" : ""} restant${daysLeft > 1 ? "s" : ""}`}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "#78350f" }}>
+                  Passez à Artisan Solo pour continuer à utiliser DevisFlow après votre essai.
+                </p>
+              </div>
+              <a
+                href={`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user!.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-colors hover:opacity-90 text-center"
+                style={{ backgroundColor: "#f97316" }}
+              >
+                Passer à Artisan Solo — 29 €/mois →
+              </a>
+            </div>
+          );
+        })()}
 
         {/* Stats */}
         <div className="grid sm:grid-cols-3 gap-4 mb-8">

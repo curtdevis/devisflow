@@ -148,6 +148,46 @@ const DRAFT_KEY = "devisflow_draft_v2";
 
 const inputClass = "w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-shadow text-sm";
 
+// ── Trial banner ───────────────────────────────────────────────────────────────
+
+function TrialBanner({ plan }: { plan: string | null }) {
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (plan === "paid") return;
+    createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      const daysSince = (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24);
+      const left = Math.max(0, Math.ceil(TRIAL_DAYS - daysSince));
+      setDaysLeft(left);
+    });
+  }, [plan]);
+
+  if (plan === "paid" || daysLeft === null) return null;
+
+  return (
+    <div className={`mb-6 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-4 flex-wrap ${daysLeft <= 1 ? "bg-red-50 border border-red-200" : "bg-orange-50 border border-orange-200"}`}>
+      <span style={{ color: daysLeft <= 1 ? "#b91c1c" : "#9a3412" }}>
+        {daysLeft <= 1
+          ? "⚠️ Dernier jour d'essai ! Passez à Artisan Solo pour continuer."
+          : `⏳ Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? "s" : ""} restant${daysLeft > 1 ? "s" : ""}`}
+      </span>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
+            if (user) window.open(`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`, "_blank", "noopener,noreferrer");
+          });
+        }}
+        className="text-xs font-bold px-3 py-1.5 rounded-lg text-white whitespace-nowrap"
+        style={{ backgroundColor: "#f97316" }}
+      >
+        Passer à Artisan Solo →
+      </a>
+    </div>
+  );
+}
+
 // ── Progress bar ───────────────────────────────────────────────────────────────
 
 function ProgressBar({ step }: { step: number }) {
@@ -190,10 +230,14 @@ function ProgressBar({ step }: { step: number }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
+const TRIAL_DAYS = 7;
+
 export default function DevisPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [profession, setProfession] = useState("");
+  const [trialExpired, setTrialExpired] = useState(false);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>({
     clientName: "", clientAddress: "", clientPhone: "", clientEmail: "",
     workDescription: "", materials: [{ ...EMPTY_MATERIAL }],
@@ -231,14 +275,33 @@ export default function DevisPage() {
     async function init() {
       const supabase = createSupabaseBrowser();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+
+      // Require login — no card needed, just free registration
+      if (!user) {
+        router.push("/auth/register?redirect=devis");
+        return;
+      }
+
       const type = user.user_metadata?.account_type;
       setDashboardHref(type === "agence" ? "/agence" : "/dashboard");
 
+      type ProfileRow = { full_name: string | null; siret: string | null; phone: string | null; address: string | null; email: string | null; plan: string | null };
       const [{ data: profile }, clientsRes] = await Promise.all([
-        supabase.from("profiles").select("full_name,siret,phone,address,email").eq("id", user.id).single(),
+        supabase.from("profiles").select("full_name,siret,phone,address,email,plan").eq("id", user.id).single<ProfileRow>(),
         fetch("/api/clients"),
       ]);
+
+      const plan = profile?.plan ?? "free";
+      setUserPlan(plan);
+
+      // Trial enforcement: free users get TRIAL_DAYS days from account creation
+      if (plan !== "paid") {
+        const createdAt = new Date(user.created_at).getTime();
+        const daysSince = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+        if (daysSince > TRIAL_DAYS) {
+          setTrialExpired(true);
+        }
+      }
 
       if (profile) {
         setForm(prev => ({
@@ -387,6 +450,45 @@ export default function DevisPage() {
     return <DevisPreview result={result} onReset={() => router.push(dashboardHref)} />;
   }
 
+  // Trial expired wall — show upgrade prompt instead of form
+  if (trialExpired && userPlan !== "paid") {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#f9fafb" }}>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-md w-full p-8 text-center">
+          <div className="text-5xl mb-4">⏳</div>
+          <h1 className="text-2xl font-extrabold mb-2" style={{ color: "#1e3a5f" }}>
+            Votre essai gratuit est terminé
+          </h1>
+          <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+            Vous avez profité de {TRIAL_DAYS} jours d'accès gratuit. Passez à l'abonnement Artisan Solo pour continuer à générer des devis sans limite.
+          </p>
+          <a
+            href={`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${encodeURIComponent("")}`}
+            onClick={(e) => {
+              e.preventDefault();
+              // Get userId from Supabase before redirecting
+              createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
+                if (user) {
+                  window.open(`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`, "_blank", "noopener,noreferrer");
+                }
+              });
+            }}
+            className="inline-block w-full py-4 rounded-xl text-white font-extrabold text-base shadow-md transition-all hover:scale-[1.02] active:scale-95 mb-3"
+            style={{ backgroundColor: "#f97316" }}
+          >
+            Passer à Artisan Solo — 29 €/mois →
+          </a>
+          <Link
+            href="/dashboard"
+            className="block text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ← Retour au tableau de bord
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const quickItems = QUICK_ITEMS[profession] ?? [];
 
   return (
@@ -414,6 +516,9 @@ export default function DevisPage() {
           <h1 className="text-2xl font-extrabold mb-1" style={{ color: "var(--navy)" }}>Nouveau devis</h1>
           <p className="text-gray-500 text-sm">Complétez les 3 étapes — votre devis IA sera prêt en 30 secondes.</p>
         </div>
+
+        {/* Trial banner for free users */}
+        <TrialBanner plan={userPlan} />
 
         <ProgressBar step={step} />
 
@@ -899,15 +1004,31 @@ function DevisPreview({ result, onReset }: { result: DevisResult; onReset: () =>
   }
 
   function openWhatsApp() {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    const text = encodeURIComponent(`Bonjour ${result.client.name}, voici votre devis DevisFlow : ${url}`);
+    const siteUrl = "https://devis-flow.fr";
+    const text = encodeURIComponent(
+      `Bonjour ${result.client.name},\n\nVeuillez trouver ci-joint votre devis N° ${result.devisNumber} d'un montant de ${result.totalTTC.toFixed(2)} € TTC, établi par ${result.artisan.name}.\n\nValable jusqu'au ${result.validUntil}.\n\nPour visualiser et signer : ${siteUrl}`
+    );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   }
 
-  function handleSign(dataUrl: string) {
+  async function handleSign(dataUrl: string) {
+    const now = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
     setSignatureData(dataUrl);
-    setSignedAt(new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }));
+    setSignedAt(now);
     setShowSignature(false);
+
+    // Persist signature to DB if devis has an id
+    if (result.id) {
+      try {
+        await fetch(`/api/devis/${result.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ signature_data: dataUrl, signed_at: new Date().toISOString(), status: "signed" }),
+        });
+      } catch {
+        // Non-blocking — signature is still visible locally
+      }
+    }
   }
 
   async function convertToInvoice() {
@@ -1118,7 +1239,7 @@ function DevisPreview({ result, onReset }: { result: DevisResult; onReset: () =>
           <div className="grid sm:grid-cols-2 gap-8 mt-10 pt-8 border-t border-gray-200">
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Bon pour accord — Signature client</p>
-              {signatureData ? (
+              {signatureData?.startsWith("data:image/png;base64,") ? (
                 <div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={signatureData} alt="Signature client" className="max-h-20 border border-gray-100 rounded" />
