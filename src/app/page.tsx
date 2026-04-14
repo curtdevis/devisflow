@@ -447,28 +447,32 @@ export default function HomePage() {
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>Voir DevisFlow en action</h2>
             <p className="text-gray-500 mb-10 max-w-lg mx-auto">De la description des travaux au PDF envoyé — regardez le flux complet en moins de 2 minutes.</p>
 
-            <Link href="/devis" className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 aspect-video max-w-3xl mx-auto cursor-pointer group block">
-              {/* Fake thumbnail with gradient */}
-              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%)" }} />
-              {/* Grid pattern */}
-              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-200" />
-
-              {/* Play button */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                <div className="video-play w-20 h-20 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20" style={{ backgroundColor: "var(--orange)" }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 aspect-video max-w-3xl mx-auto group">
+              {/* Real demo video */}
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover"
+                src="/demo.mp4"
+              />
+              {/* Hover CTA overlay */}
+              <Link
+                href="/devis"
+                className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/0 group-hover:bg-black/50 transition-all duration-300 opacity-0 group-hover:opacity-100"
+              >
+                <div className="video-play w-16 h-16 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/30" style={{ backgroundColor: "var(--orange)" }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="white">
                     <polygon points="5 3 19 12 5 21 5 3"/>
                   </svg>
                 </div>
-                <p className="text-white font-semibold text-lg">Essayer la démo en direct →</p>
-                <p className="text-blue-300 text-sm">Créez un vrai devis en 30 secondes — gratuitement</p>
-              </div>
-
+                <p className="text-white font-bold text-lg drop-shadow">Essayer maintenant — gratuit →</p>
+              </Link>
               {/* Badge */}
-              <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs font-mono px-2 py-1 rounded">LIVE</div>
-            </Link>
+              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs font-mono px-2 py-1 rounded">DÉMO IA</div>
+            </div>
           </div>
         </section>
 
