@@ -152,6 +152,9 @@ async function generateWithDirectAPI(prompt: string): Promise<{ lines: DevisLine
   return { lines: parsed.lines ?? [], notes: parsed.notes ?? "", legalMentions: parsed.legalMentions ?? "" };
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_LOGO_BYTES = 500_000; // 500KB base64
+
 export async function POST(req: NextRequest) {
   let body: DevisRequest;
   try {
@@ -169,6 +172,45 @@ export async function POST(req: NextRequest) {
 
   if (!artisanName || !clientName || !clientAddress || !workDescription || !laborHours || !hourlyRate) {
     return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
+  }
+
+  // Validate emails
+  if (artisanEmail && !EMAIL_REGEX.test(artisanEmail)) {
+    return NextResponse.json({ error: "Email artisan invalide." }, { status: 400 });
+  }
+  if (clientEmail && !EMAIL_REGEX.test(clientEmail)) {
+    return NextResponse.json({ error: "Email client invalide." }, { status: 400 });
+  }
+
+  // Validate logo size and format
+  if (logoBase64) {
+    if (!logoBase64.startsWith("data:image/")) {
+      return NextResponse.json({ error: "Format logo invalide." }, { status: 400 });
+    }
+    if (logoBase64.length > MAX_LOGO_BYTES) {
+      return NextResponse.json({ error: "Logo trop volumineux (max 375 Ko)." }, { status: 400 });
+    }
+  }
+
+  // Rate limiting: max 20 devis per hour per authenticated user
+  let userId: string | null = null;
+  try {
+    const supabaseServer = await createSupabaseServer();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+    userId = user?.id ?? null;
+  } catch { /* anonymous allowed */ }
+
+  if (userId) {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { count } = await createSupabaseAdmin()
+      .from("devis")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", oneHourAgo);
+
+    if ((count ?? 0) >= 20) {
+      return NextResponse.json({ error: "Limite atteinte : 20 devis par heure." }, { status: 429 });
+    }
   }
 
   const laborCost = parseFloat(laborHours) * parseFloat(hourlyRate);
@@ -253,15 +295,6 @@ Retourne UNIQUEMENT ce JSON :
     notes,
     legalMentions,
   };
-
-  let userId: string | null = null;
-  try {
-    const supabaseServer = await createSupabaseServer();
-    const { data: { user } } = await supabaseServer.auth.getUser();
-    userId = user?.id ?? null;
-  } catch (err) {
-    console.error("[generate-devis] session error:", err);
-  }
 
   const { data: inserted, error: insertError } = await createSupabaseAdmin()
     .from("devis")

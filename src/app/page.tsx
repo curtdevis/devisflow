@@ -1,6 +1,6 @@
 import Link from "next/link";
 import NavAuth from "./_components/NavAuth";
-import CheckoutButton, { LS_CHECKOUT } from "./_components/CheckoutButton";
+import CheckoutButton from "./_components/CheckoutButton";
 
 const LOCK_ICON = (
   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -32,7 +32,7 @@ const PLANS = [
       "Conformité e-facture 2026",
     ],
     cta: "Commencer l'essai gratuit 7 jours",
-    href: LS_CHECKOUT,
+    href: "checkout",
     highlighted: true,
     badge: "Le plus populaire",
     showLsNote: true,
@@ -59,7 +59,7 @@ const PLANS = [
 ];
 
 const FAQS = [
-  { q: "Comment fonctionne l'essai gratuit ?", a: "Créez votre compte gratuitement en 30 secondes — sans carte bancaire. Vous accédez à toutes les fonctionnalités pendant 7 jours. À l'issue de l'essai, un abonnement à 29 €/mois est proposé pour continuer. Vous choisissez librement, sans engagement." },
+  { q: "Comment fonctionne l'essai gratuit ?", a: "Créez votre compte gratuitement en 30 secondes. Vous accédez à toutes les fonctionnalités pendant 7 jours. À l'issue de l'essai, un abonnement à 29 €/mois est proposé pour continuer. Vous choisissez librement, sans engagement." },
   { q: "Mes devis sont-ils conformes à la réglementation 2026 ?", a: "Oui. Tous les devis générés par DevisFlow sont au format professionnel PDF structuré, prêts pour la réglementation de facturation électronique 2026." },
   { q: "Comment fonctionne la relance automatique ?", a: "Si votre client n'a pas répondu, DevisFlow lui envoie automatiquement des emails de relance selon la fréquence que vous choisissez (tous les 2, 3, 5 ou 7 jours). Nombre de relances et ton (professionnel, amical, urgent) configurables. Désactivable à tout moment." },
   { q: "Puis-je utiliser DevisFlow depuis mon téléphone ?", a: "Absolument. DevisFlow est conçu mobile-first. Créez un devis depuis le chantier en 30 secondes, envoyez-le par WhatsApp directement." },
@@ -173,8 +173,6 @@ export default function HomePage() {
                   </a>
                 </div>
                 <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-blue-300">
-                  <span className="flex items-center gap-1.5">{LOCK_ICON} Sans CB requise</span>
-                  <span>·</span>
                   <span>Annulation à tout moment</span>
                   <span>·</span>
                   <span>Accès immédiat</span>
@@ -516,7 +514,7 @@ export default function HomePage() {
           <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
             <div>
               <p className="text-xl font-extrabold" style={{ color: "var(--navy)" }}>Essai gratuit 7 jours</p>
-              <p className="text-gray-500 text-sm mt-1">Sans carte bancaire — annulation en 1 clic</p>
+              <p className="text-gray-500 text-sm mt-1">Annulation en 1 clic</p>
             </div>
             <CheckoutButton className="shrink-0 inline-block text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-transform hover:scale-105" style={{ backgroundColor: "var(--orange)" }}>
               Commencer gratuitement →
@@ -557,7 +555,7 @@ export default function HomePage() {
                       </li>
                     ))}
                   </ul>
-                  {plan.href === LS_CHECKOUT ? (
+                  {plan.href === "checkout" ? (
                     <CheckoutButton
                       className={`block w-full text-center font-bold py-3.5 rounded-xl transition-colors ${plan.highlighted ? "text-white" : "text-white border border-white/30 hover:bg-white/10"}`}
                       style={plan.highlighted ? { backgroundColor: "var(--orange)" } : {}}
@@ -635,7 +633,7 @@ export default function HomePage() {
               Commencer mon essai gratuit →
             </CheckoutButton>
             <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-blue-400">
-              {LOCK_ICON} Sans CB · Essai 7 jours · Annulation à tout moment
+              {LOCK_ICON} Essai 7 jours · Annulation à tout moment
             </p>
           </div>
         </section>

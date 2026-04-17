@@ -97,10 +97,11 @@ export async function POST(req: NextRequest) {
   `;
 
   try {
-    console.log("[contact] Sending email via Resend to curt.mkb23@gmail.com…");
+    const contactEmail = process.env.CONTACT_EMAIL ?? "curt.mkb23@gmail.com";
+    console.log("[contact] Sending email via Resend to", contactEmail);
     const resendResponse = await resend.emails.send({
       from: "DevisFlow <noreply@devis-flow.fr>",
-      to: "curt.mkb23@gmail.com",
+      to: contactEmail,
       replyTo: email,
       subject: `🎯 Nouvelle démo demandée — ${companyName} (${clientCount} artisans)`,
       html: emailHtml,

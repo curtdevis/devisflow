@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
-import { LS_CHECKOUT } from "@/app/_components/CheckoutButton";
+import CheckoutButton from "@/app/_components/CheckoutButton";
 
 interface Profile {
   full_name: string | null;
@@ -465,24 +465,19 @@ export default function AccountPage() {
                 </a>
               ) : plan === "paid" ? (
                 <a
-                  href="https://app.lemonsqueezy.com/my-orders"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/api/billing/portal"
                   className="text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-center"
                   style={{ color: "var(--navy)" }}
                 >
                   Gérer mon abonnement →
                 </a>
               ) : (
-                <a
-                  href={`${LS_CHECKOUT}?checkout[custom][user_id]=${userId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <CheckoutButton
                   className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-colors hover:opacity-90 text-center"
                   style={{ backgroundColor: "var(--orange)" }}
                 >
                   Passer à Artisan Solo — 29 €/mois →
-                </a>
+                </CheckoutButton>
               )}
             </div>
           </div>

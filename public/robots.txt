@@ -1,4 +1,19 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /auth/
 
 Sitemap: https://devis-flow.fr/sitemap.xml

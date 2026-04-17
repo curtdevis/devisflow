@@ -43,6 +43,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Données manquantes." }, { status: 400 });
   }
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!EMAIL_REGEX.test(recipientEmail)) {
+    return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
+  }
+
   const linesRows = devis.lines
     .map(
       (line, i) => `

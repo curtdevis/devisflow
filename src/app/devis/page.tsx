@@ -276,7 +276,7 @@ export default function DevisPage() {
       const supabase = createSupabaseBrowser();
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Require login — no card needed, just free registration
+      // Require login before generating a quote
       if (!user) {
         router.push("/auth/register?redirect=devis");
         return;

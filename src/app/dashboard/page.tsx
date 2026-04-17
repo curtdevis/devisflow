@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
 import LogoutButton from "./LogoutButton";
+import CheckoutButton from "@/app/_components/CheckoutButton";
 import DevisTable, { type DevisRow } from "./DevisTable";
 
 export default async function DashboardPage() {
@@ -58,6 +59,9 @@ export default async function DashboardPage() {
 
   const devisList = (devis ?? []) as DevisRow[];
   const totalTTC = devisList.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
+  const signedCount = devisList.filter((d) => (d as { signed_at?: string | null }).signed_at).length;
+  const conversionRate = devisList.length > 0 ? Math.round((signedCount / devisList.length) * 100) : 0;
+  const avgTTC = devisList.length > 0 ? totalTTC / devisList.length : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -124,42 +128,44 @@ export default async function DashboardPage() {
                   Passez à Artisan Solo pour continuer à utiliser DevisFlow après votre essai.
                 </p>
               </div>
-              <a
-                href={`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user!.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <CheckoutButton
                 className="shrink-0 text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-colors hover:opacity-90 text-center"
                 style={{ backgroundColor: "#f97316" }}
               >
                 Passer à Artisan Solo — 29 €/mois →
-              </a>
+              </CheckoutButton>
             </div>
           );
         })()}
 
         {/* Stats */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {[
-            { label: "Devis générés", value: devisList.length },
+            { label: "Devis générés", value: String(devisList.length), sub: "total" },
+            { label: "Devis signés", value: String(signedCount), sub: `sur ${devisList.length}` },
+            { label: "Taux de conversion", value: `${conversionRate} %`, sub: devisList.length > 0 ? "acceptés" : "—" },
             {
               label: "Volume total TTC",
-              value: `${totalTTC.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €`,
+              value: `${totalTTC.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} €`,
+              sub: "cumulé",
+            },
+            {
+              label: "Panier moyen",
+              value: avgTTC > 0 ? `${avgTTC.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} €` : "—",
+              sub: "par devis",
             },
             {
               label: "Dernier devis",
               value: devisList[0]
-                ? new Date(devisList[0].created_at).toLocaleDateString("fr-FR")
+                ? new Date(devisList[0].created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short" })
                 : "—",
+              sub: devisList[0] ? new Date(devisList[0].created_at).getFullYear().toString() : "",
             },
           ].map((s) => (
-            <div
-              key={s.label}
-              className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
-            >
-              <p className="text-sm text-gray-500 mb-1">{s.label}</p>
-              <p className="text-2xl font-extrabold" style={{ color: "var(--navy)" }}>
-                {s.value}
-              </p>
+            <div key={s.label} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm col-span-1">
+              <p className="text-xs text-gray-400 mb-1 truncate">{s.label}</p>
+              <p className="text-xl font-extrabold leading-tight" style={{ color: "var(--navy)" }}>{s.value}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
             </div>
           ))}
         </div>

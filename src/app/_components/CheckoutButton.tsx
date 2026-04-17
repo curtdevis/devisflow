@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
-
-export const LS_CHECKOUT =
-  "https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5";
 
 interface Props {
   className?: string;
@@ -15,28 +12,48 @@ interface Props {
 
 export default function CheckoutButton({ className, style, children }: Props) {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    createSupabaseBrowser()
-      .auth.getUser()
-      .then(({ data: { user } }) => setUserId(user?.id ?? null));
-  }, []);
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { data: { user } } = await supabase.auth.getUser();
 
-  function handleClick() {
-    if (userId) {
-      // Logged-in user: go to Lemon Squeezy to upgrade/pay
-      const url = `${LS_CHECKOUT}?checkout[custom][user_id]=${userId}`;
+      if (!user) {
+        router.push("/auth/register");
+        return;
+      }
+
+      // Create a live checkout session server-side (test_mode: false enforced)
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user.id }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error("[checkout]", data.error ?? res.statusText);
+        return;
+      }
+
+      const { url } = await res.json();
       window.open(url, "_blank", "noopener,noreferrer");
-    } else {
-      // Not logged in: free registration — no card required for trial
-      router.push("/auth/register");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <button type="button" onClick={handleClick} className={className} style={style}>
-      {children}
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className={className}
+      style={style}
+    >
+      {loading ? "Chargement…" : children}
     </button>
   );
 }
