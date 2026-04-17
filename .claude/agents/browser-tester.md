@@ -1,6 +1,6 @@
 ---
 name: browser-tester
-description: End-to-end browser testing agent. Use this when you need to test user flows on the live site or local dev server — sign-up, devis generation, email send, signature, dashboard, upgrade. Identifies broken flows, UI bugs, and UX issues. Can use Playwright or manual curl/fetch to simulate browser interactions.
+description: Use after any change to auth, routing, checkout, email, or the devis/sign flows — runs the 6 critical E2E scenarios (no-card trial, devis generation, signature, dashboard, trial wall, auth gates) and reports pass/fail with exact file to fix. Also invoke when a user reports a broken redirect or flow.
 tools: Bash, Read, Glob, Grep
 ---
 
