@@ -262,6 +262,26 @@ function ConvertInvoiceButton({ devisId }: { devisId: string }) {
 
 type SortKey = "date" | "amount" | "client";
 
+function CopyLinkButton({ devisId }: { devisId: string }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    const url = `${window.location.origin}/sign/${devisId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+  return (
+    <button
+      onClick={copy}
+      title="Copier le lien de signature"
+      className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors whitespace-nowrap ${copied ? "border-green-200 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+    >
+      {copied ? "✓ Copié" : "🔗 Lien"}
+    </button>
+  );
+}
+
 export default function DevisTable({ devis }: { devis: DevisRow[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [preview, setPreview] = useState<DevisRow | null>(null);
@@ -518,6 +538,8 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                           <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                       </button>
+                      {/* Sign link — only for unsigned devis */}
+                      {!d.signed_at && <CopyLinkButton devisId={d.id} />}
                       {/* Convert to invoice — only for signed devis */}
                       {d.signed_at && <ConvertInvoiceButton devisId={d.id} />}
                     </div>
