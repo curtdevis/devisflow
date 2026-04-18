@@ -1111,7 +1111,7 @@ function DevisPreview({ result, onReset }: { result: DevisResult; onReset: () =>
                 ✍️ <span className="hidden sm:inline">Signer</span>
               </button>
             )}
-            {!invoiceNumber && result.id && (
+            {!invoiceNumber && result.id && signatureData && (
               <button onClick={convertToInvoice} disabled={convertingInvoice}
                 className="text-sm font-semibold px-3 py-2 rounded-lg text-white disabled:opacity-60" style={{ backgroundColor: "#7c3aed" }}>
                 {convertingInvoice ? "…" : "🧾 Facture"}
