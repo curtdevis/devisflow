@@ -65,6 +65,7 @@ export default async function ClientsPage() {
             { href: "/dashboard", label: "Devis" },
             { href: "/dashboard/factures", label: "Factures" },
             { href: "/dashboard/clients", label: "Clients", active: true },
+            { href: "/account", label: "Mon compte" },
           ].map(n => (
             <Link key={n.href} href={n.href}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${n.active ? "text-white" : "text-gray-600 bg-white border border-gray-200 hover:bg-gray-50"}`}
