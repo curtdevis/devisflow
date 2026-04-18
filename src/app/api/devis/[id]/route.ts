@@ -113,6 +113,12 @@ export async function PATCH(
     return NextResponse.json({ error: "Aucun champ valide à mettre à jour" }, { status: 400 });
   }
 
+  // Disable reminders when devis is signed
+  if (isBeingSigned) {
+    allowed.reminder_enabled = false;
+    allowed.reminder_next_date = null;
+  }
+
   const { error } = await admin.from("devis").update(allowed).eq("id", id);
 
   if (error) {
