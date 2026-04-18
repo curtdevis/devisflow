@@ -97,7 +97,7 @@ curl -s -o /dev/null -w "%{http_code}" https://devis-flow.fr/devis
 curl -s -o /dev/null -w "%{http_code}" https://devis-flow.fr/api/generate-devis
 ```
 
-## État actuel du projet (2026-04-18 — session autonome #2)
+## État actuel du projet (2026-04-18 — session autonome #3)
 - ✅ Landing page avec vraie vidéo démo (public/demo.mp4)
 - ✅ Essai gratuit sans carte — flux corrigé
 - ✅ Auth gate sur /devis
@@ -121,7 +121,7 @@ curl -s -o /dev/null -w "%{http_code}" https://devis-flow.fr/api/generate-devis
 - ✅ Rate limiting /api/generate-devis anonymes (3/heure/IP)
 - ✅ Brute-force protection admin login (5 tentatives / 15min)
 - ✅ Security headers HTTP + poweredByHeader: false
-- ✅ XSS email invitation corrigé (agenceName échappé)
+- ✅ XSS corrigé : send-devis, reminders, invite-artisan (tous les emails)
 - ✅ 40+ tests E2E Playwright
 - ✅ noindex sur agence, dashboard, auth layouts
 - ✅ Admin panel sécurisé (httpOnly cookie, ADMIN_PASSWORD env)
@@ -131,13 +131,15 @@ curl -s -o /dev/null -w "%{http_code}" https://devis-flow.fr/api/generate-devis
 - ✅ Vidéo démo full-page : preload="none" (perf Core Web Vitals)
 - ✅ Lien "Mon compte" ajouté dans la nav du dashboard
 - ✅ Preconnect hints pour Supabase, Fonts, LS, Vercel
+- ✅ Bouton "Copier lien" pour partager le lien de signature depuis le dashboard
+- ✅ Comparaison landing : concurrents nommés (Obat, Henrri) + SEO keyword
 
 ## Prochaines améliorations prioritaires identifiées
 1. Google Search Console — soumettre sitemap (nécessite accès navigateur)
 2. Mentions légales — compléter SIRET/RCS (données à demander à Nathan)
 3. Core Web Vitals — audit Lighthouse complet
-4. Comparaison nommée concurrents (obat.fr, henrri.com, evoliz.com)
-5. Onboarding interactif (tooltip/guide pour first-use)
+4. Onboarding interactif (tooltip/guide pour first-use)
+5. Page comparaison SEO dédiée (devisflow vs obat vs henrri)
 
 ## Computer Use (contrôle visuel navigateur)
 ```bash
