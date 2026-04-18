@@ -1005,8 +1005,9 @@ function DevisPreview({ result, onReset }: { result: DevisResult; onReset: () =>
 
   function openWhatsApp() {
     const siteUrl = "https://devis-flow.fr";
+    const signLink = result.id ? `${siteUrl}/sign/${result.id}` : siteUrl;
     const text = encodeURIComponent(
-      `Bonjour ${result.client.name},\n\nVeuillez trouver ci-joint votre devis N° ${result.devisNumber} d'un montant de ${result.totalTTC.toFixed(2)} € TTC, établi par ${result.artisan.name}.\n\nValable jusqu'au ${result.validUntil}.\n\nPour visualiser et signer : ${siteUrl}`
+      `Bonjour ${result.client.name},\n\nVeuillez trouver ci-joint votre devis N° ${result.devisNumber} d'un montant de ${result.totalTTC.toFixed(2)} € TTC, établi par ${result.artisan.name}.\n\nValable jusqu'au ${result.validUntil}.\n\nPour visualiser et signer en ligne : ${signLink}`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   }
