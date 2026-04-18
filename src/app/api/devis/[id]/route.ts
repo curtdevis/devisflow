@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr";
 
 // Validate a base64 PNG data URL — prevent XSS via svg/javascript URIs
 function isValidSignatureDataUrl(value: unknown): value is string {
@@ -9,6 +13,10 @@ function isValidSignatureDataUrl(value: unknown): value is string {
     value.length > 100 &&
     value.length < 500_000 // ~375KB max
   );
+}
+
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 export async function GET(
@@ -59,7 +67,7 @@ export async function PATCH(
   // Fetch current devis to check it exists and isn't already signed
   const { data: current, error: fetchErr } = await admin
     .from("devis")
-    .select("id, status")
+    .select("id, status, artisan_name, artisan_email, client_name, devis_number, total_ttc")
     .eq("id", id)
     .single();
 
@@ -93,6 +101,7 @@ export async function PATCH(
   }
 
   // Only allow valid status transitions
+  const isBeingSigned = input.status === "signed";
   if (input.status !== undefined) {
     if (input.status !== "signed" && input.status !== "pending") {
       return NextResponse.json({ error: "Statut invalide" }, { status: 422 });
@@ -109,6 +118,49 @@ export async function PATCH(
   if (error) {
     console.error("[PATCH /api/devis/:id]", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Send notification email to artisan when devis is signed
+  if (isBeingSigned && current.artisan_email) {
+    const artisanName = escapeHtml(current.artisan_name ?? "");
+    const clientName = escapeHtml(current.client_name ?? "");
+    const devisNumber = escapeHtml(current.devis_number ?? "");
+    const totalTTC = typeof current.total_ttc === "number"
+      ? current.total_ttc.toLocaleString("fr-FR", { minimumFractionDigits: 2 })
+      : "—";
+
+    const notificationHtml = `
+<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
+  <p style="font-size:22px;font-weight:900;color:#1e3a5f;margin:0 0 24px;">
+    Devis<span style="color:#f97316;">Flow</span>
+  </p>
+  <div style="background:#d1fae5;border:2px solid #6ee7b7;border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+    <p style="font-size:18px;font-weight:700;color:#065f46;margin:0 0 6px;">✅ Devis signé !</p>
+    <p style="font-size:14px;color:#064e3b;margin:0;">
+      <strong>${clientName}</strong> vient d'accepter votre devis <strong>${devisNumber}</strong>
+      d'un montant de <strong>${totalTTC} € TTC</strong>.
+    </p>
+  </div>
+  <p style="font-size:14px;color:#374151;margin:0 0 16px;">
+    Bonjour ${artisanName},<br><br>
+    Excellente nouvelle ! Votre client a signé le devis. Vous pouvez maintenant le convertir en facture depuis votre tableau de bord.
+  </p>
+  <a href="${SITE_URL}/dashboard" style="display:inline-block;background:#1e3a5f;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none;">
+    Voir mon tableau de bord →
+  </a>
+  <p style="color:#9ca3af;font-size:11px;margin-top:20px;">
+    Notification automatique — <a href="${SITE_URL}" style="color:#9ca3af;">DevisFlow</a>
+  </p>
+</div>`;
+
+    resend.emails.send({
+      from: "DevisFlow <noreply@devis-flow.fr>",
+      to: current.artisan_email,
+      subject: `✅ Devis signé — ${current.client_name} a accepté votre devis ${current.devis_number}`,
+      html: notificationHtml,
+    }).catch((err: unknown) => {
+      console.error("[devis-sign] notification email error:", err instanceof Error ? err.message : "unknown");
+    });
   }
 
   return NextResponse.json({ ok: true });
