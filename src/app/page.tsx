@@ -371,7 +371,7 @@ export default function HomePage() {
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[520px]">
                 <thead>
                   <tr className="border-b border-gray-100">
                     <th className="text-left px-6 py-4 text-gray-500 font-medium w-2/5">Fonctionnalité</th>

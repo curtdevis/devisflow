@@ -425,7 +425,7 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
 
       {/* ── Table ── */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm min-w-[600px]">
           <thead>
             <tr className="text-xs text-gray-400 uppercase tracking-wide border-b border-gray-100">
               <th className="px-4 py-3 w-10">
@@ -512,21 +512,21 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                     {d.total_ttc.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
                   </td>
                   <td className="px-4 py-4">
-                    <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                    <div className="flex items-center justify-end gap-1.5 flex-nowrap">
                       {/* Visualiser */}
                       <button
                         onClick={() => setPreview(d)}
                         title="Visualiser le devis"
-                        className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                        className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors whitespace-nowrap"
                         style={{ color: "var(--navy)" }}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                           <circle cx="12" cy="12" r="3"/>
                         </svg>
-                        Voir
+                        <span className="hidden sm:inline">Voir</span>
                       </button>
-                      {/* Télécharger single */}
+                      {/* Télécharger single — icon only on mobile */}
                       <button
                         onClick={() => printRow(d)}
                         title="Télécharger PDF"

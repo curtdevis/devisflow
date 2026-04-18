@@ -647,10 +647,10 @@ export default function DevisPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">SIRET *</label>
                     <div className="relative">
                       <input type="text" required placeholder="123 456 789 00012" value={form.artisanSiret}
-                        onChange={e => updateField("artisanSiret", e.target.value)} className={inputClass} />
-                      {siretLoading && <span className="absolute right-3 top-3 text-xs text-gray-400 animate-pulse">Recherche…</span>}
-                      {siretFound === true && <span className="absolute right-3 top-3 text-xs font-semibold text-green-600">✓ Trouvé</span>}
-                      {siretFound === false && <span className="absolute right-3 top-3 text-xs font-semibold text-red-400">Non trouvé</span>}
+                        onChange={e => updateField("artisanSiret", e.target.value)} className={`${inputClass} pr-20`} />
+                      {siretLoading && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 animate-pulse pointer-events-none">Recherche…</span>}
+                      {siretFound === true && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-green-600 pointer-events-none">✓ Trouvé</span>}
+                      {siretFound === false && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-red-400 pointer-events-none">✗ Inconnu</span>}
                     </div>
                   </div>
                   <div>

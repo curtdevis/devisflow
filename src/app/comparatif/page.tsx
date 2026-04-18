@@ -189,7 +189,8 @@ export default function ComparatifPage() {
                   <tr key={f.label} className="border-b border-gray-50 hover:bg-gray-50 transition-colors group">
                     <td className="px-6 py-4 text-gray-700 font-medium">
                       <span>{f.label}</span>
-                      <span className="hidden group-hover:block text-xs text-gray-400 mt-0.5">{f.detail}</span>
+                      <span className="block sm:hidden text-xs text-gray-400 mt-0.5">{f.detail}</span>
+                      <span className="hidden sm:group-hover:block text-xs text-gray-400 mt-0.5">{f.detail}</span>
                     </td>
                     <td className="px-4 py-4 text-center" style={{ backgroundColor: "rgba(30,58,95,0.03)" }}>
                       <Icon value={f.df} />
