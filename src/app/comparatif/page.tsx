@@ -89,7 +89,7 @@ export default function ComparatifPage() {
         <div className="text-center mb-16">
           <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Comparatif 2026</p>
           <h1 className="text-3xl sm:text-5xl font-extrabold mb-4 leading-tight" style={{ color: "var(--navy)" }}>
-            <span className="font-display italic font-normal">DevisFlow</span> vs Obat vs Henrri
+            DevisFlow vs Obat vs Henrri
           </h1>
           <p className="text-gray-500 text-lg max-w-2xl mx-auto mb-6">
             Vous cherchez le meilleur logiciel de devis pour artisans en 2026 ?

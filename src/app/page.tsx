@@ -149,7 +149,7 @@ export default function HomePage() {
                 {/* H1 */}
                 <h1 className="text-white mb-5" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", lineHeight: 1.1, fontWeight: 800, letterSpacing: "-0.02em" }}>
                   Votre devis pro en{" "}
-                  <span className="font-display italic" style={{ color: "var(--orange)", fontWeight: 400 }}>30 secondes</span>
+                  <span style={{ color: "var(--orange)" }}>30 secondes</span>
                   <br />avec l&apos;IA
                 </h1>
 
@@ -254,7 +254,6 @@ export default function HomePage() {
                 <div key={f.num} className="card-lift bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="h-[3px]" style={{ backgroundColor: f.accent }} />
                   <div className="p-6">
-                    <p className="font-display italic text-4xl leading-none mb-4 select-none" style={{ color: f.accent, opacity: 0.2 }}>{f.num}</p>
                     <h3 className="text-base font-extrabold mb-0.5" style={{ color: "var(--navy)" }}>{f.title}</h3>
                     <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: f.accent }}>{f.sub}</p>
                     <p className="text-gray-500 text-sm leading-relaxed mb-4">{f.desc}</p>
@@ -418,7 +417,7 @@ export default function HomePage() {
           <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 100% at 100% 50%, rgba(249,115,22,0.15) 0%, transparent 70%)" }} />
           <div className="relative max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
             <div>
-              <h2 className="font-display italic text-3xl sm:text-4xl font-normal text-white mb-2" style={{ letterSpacing: "-0.01em" }}>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
                 Prêt à gagner 14h par mois ?
               </h2>
               <p className="text-blue-300 text-sm">Essai gratuit 7 jours · Annulation en 1 clic · Sans CB</p>
