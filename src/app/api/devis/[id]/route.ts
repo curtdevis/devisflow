@@ -22,8 +22,7 @@ export async function GET(
   const { data, error } = await admin
     .from("devis")
     .select(
-      "id, devis_number, artisan_name, client_name, total_ttc, result_json, status, signed_at, created_at"
-      // signature_data intentionally excluded — only returned after a confirmed sign
+      "id, devis_number, artisan_name, client_name, total_ttc, result_json, status, signed_at, created_at, signature_data"
     )
     .eq("id", id)
     .single();
@@ -86,6 +85,9 @@ export async function PATCH(
   if (input.signed_at !== undefined) {
     if (typeof input.signed_at !== "string" || isNaN(Date.parse(input.signed_at))) {
       return NextResponse.json({ error: "Date de signature invalide" }, { status: 422 });
+    }
+    if (new Date(input.signed_at) > new Date()) {
+      return NextResponse.json({ error: "La date de signature ne peut pas être dans le futur" }, { status: 422 });
     }
     allowed.signed_at = input.signed_at;
   }

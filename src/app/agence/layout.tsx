@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseServer } from "@/lib/supabase-server";
@@ -5,6 +6,11 @@ import type { Profile } from "@/lib/supabase-server";
 import AgenceSidebar from "./_components/AgenceSidebar";
 import AgenceHeader from "./_components/AgenceHeader";
 import { Toaster } from "sonner";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  title: "Espace Agence — DevisFlow",
+};
 
 export default async function AgenceLayout({
   children,

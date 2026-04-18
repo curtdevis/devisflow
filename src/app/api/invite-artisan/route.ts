@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -26,18 +26,28 @@ export async function GET(request: NextRequest) {
 
 // POST — send an invitation from an agence to an artisan email
 export async function POST(request: NextRequest) {
+  // Authenticate caller
+  const supabase = await createSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
-  const { email, agenceId, agenceName } = body as {
+  const { email, agenceName: rawAgenceName } = body as {
     email: string;
-    agenceId: string;
     agenceName: string;
   };
+  // Escape HTML to prevent injection in email body
+  const agenceName = String(rawAgenceName ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").slice(0, 200);
 
-  if (!email || !agenceId) {
-    return NextResponse.json({ error: "email et agenceId requis" }, { status: 400 });
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !EMAIL_REGEX.test(email)) {
+    return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
   }
+
+  // agenceId is always the authenticated user — never trust client-supplied value
+  const agenceId = user.id;
 
   const admin = createSupabaseAdmin();
 

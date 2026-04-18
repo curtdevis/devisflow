@@ -3,6 +3,21 @@ import { NextRequest, NextResponse } from "next/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// In-memory rate limit: max 3 contact submissions per IP per hour
+const contactRateLimit = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = contactRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    contactRateLimit.set(ip, { count: 1, resetAt: now + 3600_000 });
+    return true;
+  }
+  if (entry.count >= 3) return false;
+  entry.count++;
+  return true;
+}
+
 interface ContactRequest {
   companyName: string;
   contactName: string;
@@ -13,30 +28,27 @@ interface ContactRequest {
 }
 
 export async function POST(req: NextRequest) {
-  console.log("[contact] Route called —", new Date().toISOString());
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ error: "Trop de demandes. Réessayez dans une heure." }, { status: 429 });
+  }
 
   let body: ContactRequest;
   try {
     body = await req.json();
   } catch {
-    console.error("[contact] Failed to parse request body");
     return NextResponse.json({ error: "Corps de requête invalide." }, { status: 400 });
   }
 
   const { companyName, contactName, email, phone, clientCount, message } = body;
 
-  console.log("[contact] Form data received:", {
-    companyName,
-    contactName,
-    email,
-    phone,
-    clientCount,
-    message: message ? `${message.slice(0, 80)}…` : "(empty)",
-  });
-
   if (!companyName || !contactName || !email || !phone || !clientCount) {
-    console.warn("[contact] Validation failed — missing required fields");
     return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
+  }
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!EMAIL_REGEX.test(email)) {
+    return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
   }
 
   const emailHtml = `
@@ -98,8 +110,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const contactEmail = process.env.CONTACT_EMAIL ?? "curt.mkb23@gmail.com";
-    console.log("[contact] Sending email via Resend to", contactEmail);
-    const resendResponse = await resend.emails.send({
+    await resend.emails.send({
       from: "DevisFlow <noreply@devis-flow.fr>",
       to: contactEmail,
       replyTo: email,
@@ -107,10 +118,9 @@ export async function POST(req: NextRequest) {
       html: emailHtml,
     });
 
-    console.log("[contact] Resend success:", resendResponse);
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("[contact] Resend error:", err);
+    console.error("[contact] email error:", err);
     return NextResponse.json(
       { error: "Erreur lors de l'envoi de l'email. Veuillez réessayer." },
       { status: 500 }

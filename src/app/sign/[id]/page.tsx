@@ -109,6 +109,8 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
         body: JSON.stringify({ signature_data: dataUrl, signed_at: new Date().toISOString(), status: "signed" }),
       });
       if (!res.ok) throw new Error("Erreur serveur");
+      const now = new Date().toISOString();
+      setDevis((prev) => prev ? { ...prev, signature_data: dataUrl, signed_at: now, status: "signed" } : prev);
       setSigned(true);
     } catch {
       setSignError("Une erreur est survenue. Veuillez réessayer.");

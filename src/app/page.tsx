@@ -119,7 +119,7 @@ export default function HomePage() {
           </Link>
           <div className="hidden md:flex items-center gap-7 text-sm text-gray-500 font-medium">
             <a href="#pourquoi" className="hover:text-gray-900 transition-colors">Pourquoi DevisFlow</a>
-            <a href="#comment" className="hover:text-gray-900 transition-colors">Comment ça marche</a>
+            <a href="#demo" className="hover:text-gray-900 transition-colors">Démo</a>
             <a href="#tarifs" className="hover:text-gray-900 transition-colors">Tarifs</a>
             <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
             <Link href="/contact" className="hover:text-gray-900 transition-colors">Agences</Link>
@@ -179,64 +179,36 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right: animated devis mockup */}
+              {/* Right: live demo video */}
               <div className="animate-fadein-d1 hidden lg:block">
                 <div className="relative">
-                  {/* Glow behind card */}
-                  <div className="absolute -inset-4 rounded-3xl opacity-30" style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.4) 0%, transparent 70%)" }} />
-
-                  {/* Mockup card */}
-                  <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/10">
-                    {/* Card header */}
-                    <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between" style={{ backgroundColor: "var(--navy)" }}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-400 opacity-80" />
-                        <div className="w-3 h-3 rounded-full bg-yellow-400 opacity-80" />
-                        <div className="w-3 h-3 rounded-full bg-green-400 opacity-80" />
+                  {/* Glow behind video */}
+                  <div className="absolute -inset-4 rounded-3xl opacity-40" style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.35) 0%, transparent 70%)" }} />
+                  {/* Video frame */}
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-white/10 bg-black">
+                    {/* Browser chrome bar */}
+                    <div className="px-4 py-2.5 flex items-center gap-2" style={{ backgroundColor: "rgba(15,23,42,0.9)" }}>
+                      <div className="w-3 h-3 rounded-full bg-red-400 opacity-80" />
+                      <div className="w-3 h-3 rounded-full bg-yellow-400 opacity-80" />
+                      <div className="w-3 h-3 rounded-full bg-green-400 opacity-80" />
+                      <div className="flex-1 mx-2 h-5 rounded bg-white/10 flex items-center px-2">
+                        <span className="text-xs text-blue-300 font-mono truncate">devis-flow.fr/devis</span>
                       </div>
-                      <span className="text-xs text-blue-300 font-mono">devis-flow.fr/devis</span>
-                      <div />
                     </div>
-
-                    {/* Fake form → devis transition */}
-                    <div className="p-6 space-y-3 bg-gray-50">
-                      {/* AI generation indicator */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: "var(--orange)" }}>✦</div>
-                        <span className="text-xs font-semibold text-gray-500">IA génère votre devis…</span>
-                        <span className="flex gap-0.5">
-                          {[0,1,2].map(i => <span key={i} className="w-1.5 h-1.5 rounded-full bg-orange-400" style={{ animation: `pulse-soft 1.2s ${i*0.2}s ease infinite` }} />)}
-                        </span>
-                      </div>
-
-                      {/* Fake devis lines appearing */}
-                      {[
-                        { label: "DEVIS", sub: "N° DEV-202601-4872", style: { animation: "fadeInUp 0.4s 0.2s both" } },
-                        { label: "Remplacement chauffe-eau 200L", sub: "1 × 450,00 €", style: { animation: "fadeInUp 0.4s 0.5s both" } },
-                        { label: "Main d'œuvre — 4h", sub: "4 × 55,00 €", style: { animation: "fadeInUp 0.4s 0.8s both" } },
-                        { label: "Raccordements et évacuations", sub: "1 × 80,00 €", style: { animation: "fadeInUp 0.4s 1.1s both" } },
-                      ].map((item, i) => (
-                        <div key={i} className="bg-white rounded-xl px-4 py-3 border border-gray-100 flex justify-between items-center" style={item.style}>
-                          <div>
-                            <p className="text-xs font-bold text-gray-800">{item.label}</p>
-                            <p className="text-xs text-gray-400">{item.sub}</p>
-                          </div>
-                          {i === 0 && <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: "var(--navy)" }}>Pro ✓</span>}
-                        </div>
-                      ))}
-
-                      {/* Total */}
-                      <div className="rounded-xl px-4 py-3 text-white flex justify-between items-center" style={{ animation: "fadeInUp 0.4s 1.4s both", backgroundColor: "var(--navy)" }}>
-                        <span className="text-sm font-bold">Total TTC</span>
-                        <span className="text-lg font-extrabold">750,00 €</span>
-                      </div>
-
-                      {/* Send button */}
-                      <div style={{ animation: "fadeInUp 0.4s 1.7s both" }}>
-                        <div className="w-full py-2.5 rounded-xl text-white text-sm font-bold text-center" style={{ backgroundColor: "var(--orange)" }}>
-                          📧 Envoyer au client →
-                        </div>
-                      </div>
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <video
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      preload="auto"
+                      className="w-full block"
+                      style={{ maxHeight: "420px", objectFit: "contain", backgroundColor: "#000" }}
+                      src="/demo.mp4"
+                    />
+                    {/* DÉMO badge */}
+                    <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-lg tracking-wide">
+                      DÉMO IA ✦
                     </div>
                   </div>
                 </div>
@@ -438,38 +410,40 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── Video placeholder ── */}
-        <section className="py-20 px-4" style={{ backgroundColor: "rgba(30,58,95,0.04)" }}>
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Démo</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>Voir DevisFlow en action</h2>
-            <p className="text-gray-500 mb-10 max-w-lg mx-auto">De la description des travaux au PDF envoyé — regardez le flux complet en moins de 2 minutes.</p>
+        {/* ── Video démo (full section) ── */}
+        <section id="demo" className="py-24 px-4" style={{ backgroundColor: "rgba(30,58,95,0.04)" }}>
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Démo complète</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold mb-3" style={{ color: "var(--navy)" }}>Voyez DevisFlow en action</h2>
+              <p className="text-gray-500 max-w-lg mx-auto">Du formulaire au PDF signé en moins de 2 minutes — regardez le flux complet.</p>
+            </div>
 
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 aspect-video max-w-3xl mx-auto group">
-              {/* Real demo video */}
+            {/* Video player — full width, native controls for fullscreen */}
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-black">
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
+                controls
                 autoPlay
                 muted
                 loop
                 playsInline
-                className="w-full h-full object-cover"
+                preload="auto"
+                className="w-full block"
+                style={{ maxHeight: "70vh", objectFit: "contain", backgroundColor: "#000" }}
                 src="/demo.mp4"
               />
-              {/* Hover CTA overlay */}
-              <Link
-                href="/devis"
-                className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/0 group-hover:bg-black/50 transition-all duration-300 opacity-0 group-hover:opacity-100"
+            </div>
+
+            {/* CTA below video */}
+            <div className="mt-8 text-center">
+              <CheckoutButton
+                className="inline-flex items-center gap-2 text-white font-bold text-base px-8 py-4 rounded-xl shadow-lg transition-transform hover:scale-105"
+                style={{ backgroundColor: "var(--orange)" }}
               >
-                <div className="video-play w-16 h-16 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/30" style={{ backgroundColor: "var(--orange)" }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="white">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                </div>
-                <p className="text-white font-bold text-lg drop-shadow">Essayer maintenant — gratuit →</p>
-              </Link>
-              {/* Badge */}
-              <div className="absolute bottom-3 right-3 bg-black/70 text-white text-xs font-mono px-2 py-1 rounded">DÉMO IA</div>
+                Essayer gratuitement — 7 jours →
+              </CheckoutButton>
+              <p className="mt-3 text-xs text-gray-400">Sans carte bancaire · Accès immédiat</p>
             </div>
           </div>
         </section>
@@ -644,15 +618,6 @@ export default function HomePage() {
         "@context": "https://schema.org", "@type": "FAQPage",
         mainEntity: FAQS.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        "@context": "https://schema.org", "@type": "SoftwareApplication",
-        name: "DevisFlow", applicationCategory: "BusinessApplication", operatingSystem: "Web",
-        url: "https://devis-flow.fr",
-        description: "Générateur de devis professionnels par IA pour artisans et TPE françaises. Conformité e-facture 2026.",
-        offers: { "@type": "Offer", price: "29", priceCurrency: "EUR", priceSpecification: { "@type": "UnitPriceSpecification", price: "29", priceCurrency: "EUR", unitText: "MONTH" } },
-        aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", bestRating: "5", worstRating: "1", ratingCount: "200" },
-      })}} />
-
       {/* ── Footer ── */}
       <footer className="py-12 px-4 text-center text-sm text-blue-200" style={{ backgroundColor: "var(--navy-dark)" }}>
         <p className="font-extrabold text-white text-lg mb-1">Devis<span style={{ color: "var(--orange)" }}>Flow</span></p>

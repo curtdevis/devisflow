@@ -1,38 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { createSupabaseServer } from "@/lib/supabase-server";
 import { createCheckoutSession } from "@/lib/lemon-squeezy";
 
-/**
- * POST /api/billing/checkout
- *
- * Creates a live Lemon Squeezy checkout session for the authenticated user.
- * Forces test_mode: false — always charges real money.
- *
- * Response: { url: string }
- */
 export async function POST(request: NextRequest) {
-  // Read user_id from request body (sent by CheckoutButton after client-side auth check)
-  let userId: string | undefined;
-  let userEmail: string | undefined;
+  // Authenticate via server session (cookies) — never trust client-supplied user_id
+  const supabase = await createSupabaseServer();
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  try {
-    const body = await request.json().catch(() => ({}));
-    userId = body.user_id as string | undefined;
-  } catch {
-    // ignore
-  }
-
-  if (!userId) {
-    return NextResponse.json({ error: "user_id required" }, { status: 400 });
-  }
-
-  // Verify the user actually exists in Supabase
-  const admin = createSupabaseAdmin();
-  const { data: { user }, error } = await admin.auth.admin.getUserById(userId);
   if (error || !user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
   }
-  userEmail = user.email ?? "";
+
+  const userId = user.id;
+  const userEmail = user.email ?? "";
+
+  // Consume body to avoid request errors, but ignore user_id from client
+  await request.json().catch(() => {});
 
   try {
     const session = await createCheckoutSession({ userId, userEmail });

@@ -1008,7 +1008,7 @@ function DevisPreview({ result, onReset }: { result: DevisResult; onReset: () =>
     const text = encodeURIComponent(
       `Bonjour ${result.client.name},\n\nVeuillez trouver ci-joint votre devis N° ${result.devisNumber} d'un montant de ${result.totalTTC.toFixed(2)} € TTC, établi par ${result.artisan.name}.\n\nValable jusqu'au ${result.validUntil}.\n\nPour visualiser et signer : ${siteUrl}`
     );
-    window.open(`https://wa.me/?text=${text}`, "_blank");
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   }
 
   async function handleSign(dataUrl: string) {

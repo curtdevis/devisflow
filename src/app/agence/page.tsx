@@ -27,6 +27,7 @@ export type DevisRow = {
   total_ttc: number | null;
   profession: string | null;
   user_id: string;
+  signed_at: string | null;
 };
 
 export default async function AgenceOverviewPage() {
@@ -59,7 +60,7 @@ export default async function AgenceOverviewPage() {
     artisanIds.length > 0
       ? await admin
           .from("devis")
-          .select("id, created_at, devis_number, artisan_name, client_name, total_ttc, profession, user_id")
+          .select("id, created_at, devis_number, artisan_name, client_name, total_ttc, profession, user_id, signed_at")
           .in("user_id", artisanIds)
           .order("created_at", { ascending: false })
           .limit(500)
@@ -80,6 +81,13 @@ export default async function AgenceOverviewPage() {
 
   const activeArtisansThisMonth = new Set(devisThisMonth.map((d) => d.user_id)).size;
   const activeArtisansPrevMonth = new Set(devisPrevMonth.map((d) => d.user_id)).size;
+
+  const kpiAcceptance = devisThisMonth.length > 0
+    ? Math.round((devisThisMonth.filter((d) => d.signed_at).length / devisThisMonth.length) * 100)
+    : 0;
+  const kpiAcceptancePrev = devisPrevMonth.length > 0
+    ? Math.round((devisPrevMonth.filter((d) => d.signed_at).length / devisPrevMonth.length) * 100)
+    : 0;
 
   // ── Chart: devis per day last 30 days ─────────────────────────────────────
   const chartData = Array.from({ length: 30 }, (_, i) => {
@@ -160,12 +168,11 @@ export default async function AgenceOverviewPage() {
         />
         <KPICard
           label="Taux d'acceptation"
-          value={0}
-          prev={0}
+          value={kpiAcceptance}
+          prev={kpiAcceptancePrev}
           isPercent
           icon="✅"
           color="#6366f1"
-          comingSoon
         />
       </div>
 

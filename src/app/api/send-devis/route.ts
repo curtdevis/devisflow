@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -47,6 +48,35 @@ export async function POST(req: NextRequest) {
   if (!EMAIL_REGEX.test(recipientEmail)) {
     return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
   }
+
+  // If the devis has an ID, verify it exists in the DB (prevents using us as arbitrary email relay)
+  if (devis.id) {
+    const { data: devisExists } = await createSupabaseAdmin()
+      .from("devis")
+      .select("id")
+      .eq("id", devis.id)
+      .single();
+    if (!devisExists) {
+      return NextResponse.json({ error: "Devis introuvable." }, { status: 404 });
+    }
+  }
+
+  // Rate limit: max 10 email sends per hour for authenticated users
+  try {
+    const supabaseServer = await createSupabaseServer();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+    if (user) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await createSupabaseAdmin()
+        .from("devis")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", oneHourAgo);
+      if ((count ?? 0) >= 10) {
+        return NextResponse.json({ error: "Limite atteinte : 10 envois par heure." }, { status: 429 });
+      }
+    }
+  } catch { /* non-authenticated send — allowed */ }
 
   const linesRows = devis.lines
     .map(
@@ -178,7 +208,6 @@ export async function POST(req: NextRequest) {
       html: emailHtml,
     });
 
-    console.log("[send-devis] Email sent:", response);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[send-devis] Resend error:", err);

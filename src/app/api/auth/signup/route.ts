@@ -23,6 +23,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Champs obligatoires manquants" }, { status: 400 });
   }
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!EMAIL_RE.test(email)) {
+    return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
+  }
+  if (password.length < 8) {
+    return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
+  }
+  if (fullName.trim().length < 2 || fullName.length > 100) {
+    return NextResponse.json({ error: "Le nom doit contenir entre 2 et 100 caractères." }, { status: 400 });
+  }
+  if (!["artisan", "agence"].includes(accountType)) {
+    return NextResponse.json({ error: "Type de compte invalide." }, { status: 400 });
+  }
+
   const admin = createSupabaseAdmin();
 
   // Generate signup link — creates user + returns confirmation URL (no default Supabase email sent)

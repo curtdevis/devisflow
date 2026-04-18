@@ -32,11 +32,16 @@ export type Profile = {
   id: string;
   email: string;
   full_name: string | null;
+  display_name: string | null;
   account_type: "artisan" | "agence";
   agence_id: string | null;
   company_name: string | null;
   siret: string | null;
   phone: string | null;
   address: string | null;
+  avatar_url: string | null;
   plan: string | null;
+  lemon_squeezy_customer_portal: string | null;
+  profession: string | null;
+  updated_at: string | null;
 };

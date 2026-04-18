@@ -16,4 +16,5 @@ export type Profile = {
   siret: string | null;
   phone: string | null;
   address: string | null;
+  plan: string | null;
 };

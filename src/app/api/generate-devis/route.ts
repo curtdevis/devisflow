@@ -104,6 +104,20 @@ function buildFallback(body: DevisRequest, validMaterials: Material[], laborCost
   };
 }
 
+function extractFirstJson(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === "{") depth++;
+    else if (text[i] === "}") {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
 async function generateWithManagedAgent(prompt: string): Promise<{ lines: DevisLine[]; notes: string; legalMentions: string }> {
   const session = await client.beta.sessions.create({
     agent: AGENT_ID!,
@@ -133,9 +147,9 @@ async function generateWithManagedAgent(prompt: string): Promise<{ lines: DevisL
   // Archive session async — don't block the response
   client.beta.sessions.archive(session.id).catch(() => {});
 
-  const jsonMatch = collectedText.match(/\{[\s\S]*\}/);
+  const jsonMatch = extractFirstJson(collectedText);
   if (!jsonMatch) throw new Error("Réponse agent invalide");
-  const parsed = JSON.parse(jsonMatch[0]);
+  const parsed = JSON.parse(jsonMatch);
   return { lines: parsed.lines ?? [], notes: parsed.notes ?? "", legalMentions: parsed.legalMentions ?? "" };
 }
 
@@ -146,9 +160,9 @@ async function generateWithDirectAPI(prompt: string): Promise<{ lines: DevisLine
     messages: [{ role: "user", content: prompt }],
   });
   const rawText = message.content[0].type === "text" ? message.content[0].text : "";
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const jsonMatch = extractFirstJson(rawText);
   if (!jsonMatch) throw new Error("Réponse IA invalide");
-  const parsed = JSON.parse(jsonMatch[0]);
+  const parsed = JSON.parse(jsonMatch);
   return { lines: parsed.lines ?? [], notes: parsed.notes ?? "", legalMentions: parsed.legalMentions ?? "" };
 }
 

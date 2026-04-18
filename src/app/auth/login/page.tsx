@@ -109,7 +109,16 @@ function LoginForm() {
             </button>
           </form>
 
-          <p className="mt-6 text-sm text-center text-blue-300">
+          <p className="mt-4 text-sm text-center">
+            <Link
+              href="/auth/reset-password"
+              className="text-blue-300 hover:text-white transition-colors"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </p>
+
+          <p className="mt-4 text-sm text-center text-blue-300">
             Pas encore de compte ?{" "}
             <Link
               href="/auth/register"

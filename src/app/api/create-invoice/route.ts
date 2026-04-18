@@ -32,6 +32,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
     }
 
+    if (devis.status !== "signed") {
+      return NextResponse.json(
+        { error: "Le devis doit être signé avant d'être converti en facture." },
+        { status: 422 }
+      );
+    }
+
     // Check if invoice already exists
     const { data: existing } = await admin
       .from("invoices")

@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
 import LogoutButton from "./LogoutButton";
 import CheckoutButton from "@/app/_components/CheckoutButton";
 import DevisTable, { type DevisRow } from "./DevisTable";
+import UpgradeBanner from "./UpgradeBanner";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServer();
@@ -21,45 +23,32 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single<Profile>();
 
-  console.log("[dashboard] fetching devis for user_id:", user.id);
-
   // Use admin client to bypass RLS — server-side only, user already verified above
   // Try full query with result_json first; fall back without it if the column doesn't exist yet
   let { data: devis, error: devisError } = await createSupabaseAdmin()
     .from("devis")
     .select(
-      "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, result_json"
+      "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, result_json, signed_at"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(200);
 
   if (devisError) {
-    console.error("[dashboard] full query error:", devisError.message);
-    // Fallback: query without result_json (column may not exist yet — run the SQL migration)
     const fallback = await createSupabaseAdmin()
       .from("devis")
       .select(
-        "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession"
+        "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, signed_at"
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(200);
     devis = fallback.data as typeof devis;
-    devisError = fallback.error;
-
-    if (devisError) {
-      console.error("[dashboard] fallback query error:", devisError.message);
-    } else {
-      console.log("[dashboard] fallback query OK — result_json column missing, run: ALTER TABLE devis ADD COLUMN IF NOT EXISTS result_json JSONB;");
-    }
   }
-
-  console.log("[dashboard] rows returned:", devis?.length ?? 0);
 
   const devisList = (devis ?? []) as DevisRow[];
   const totalTTC = devisList.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
-  const signedCount = devisList.filter((d) => (d as { signed_at?: string | null }).signed_at).length;
+  const signedCount = devisList.filter((d) => d.signed_at).length;
   const conversionRate = devisList.length > 0 ? Math.round((signedCount / devisList.length) * 100) : 0;
   const avgTTC = devisList.length > 0 ? totalTTC / devisList.length : 0;
 
@@ -113,6 +102,11 @@ export default async function DashboardPage() {
             + Nouveau devis
           </Link>
         </div>
+
+        {/* Post-upgrade success banner */}
+        <Suspense>
+          <UpgradeBanner />
+        </Suspense>
 
         {/* Trial / upgrade banner for free users */}
         {profile?.plan !== "paid" && (() => {
