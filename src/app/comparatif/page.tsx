@@ -30,9 +30,41 @@ function Icon({ value }: { value: boolean | "partial" | string }) {
   return <span className="font-semibold text-sm" style={{ color: "var(--navy)" }}>{value}</span>;
 }
 
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "Quelle est la meilleure alternative à Obat pour un artisan indépendant ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "DevisFlow est la meilleure alternative à Obat pour les artisans indépendants : deux fois moins cher (29 €/mois vs 49-89 €), génération de devis par IA en 30 secondes, et mobile-first. Obat est plus adapté aux grandes entreprises de BTP.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "DevisFlow est-il conforme à la réforme de la facturation électronique 2026 ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Oui. Tous les devis et factures générés par DevisFlow sont en format PDF structuré, conformes aux nouvelles obligations de facturation électronique 2026.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Henrri ou DevisFlow pour un électricien auto-entrepreneur ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "DevisFlow. Henrri est une solution généraliste sans spécialisation BTP. DevisFlow connaît les prestations électricité (tableau électrique, VMC, borne EV…) et génère des devis adaptés en 30 secondes.",
+      },
+    },
+  ],
+};
+
 export default function ComparatifPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
