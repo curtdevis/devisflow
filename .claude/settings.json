@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"C:\\Users\\Natha\\Desktop\\devisflow\" && npx tsc --noEmit 2>&1 | grep -E \"error TS\" | head -10 || true"
+          }
+        ]
+      }
+    ]
+  }
+}

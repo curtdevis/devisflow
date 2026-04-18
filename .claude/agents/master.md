@@ -97,7 +97,7 @@ curl -s -o /dev/null -w "%{http_code}" https://devis-flow.fr/devis
 curl -s -o /dev/null -w "%{http_code}" https://devis-flow.fr/api/generate-devis
 ```
 
-## État actuel du projet (2026-04-15)
+## État actuel du projet (2026-04-18 — session autonome #2)
 - ✅ Landing page avec vraie vidéo démo (public/demo.mp4)
 - ✅ Essai gratuit sans carte — flux corrigé
 - ✅ Auth gate sur /devis
@@ -106,13 +106,38 @@ curl -s -o /dev/null -w "%{http_code}" https://devis-flow.fr/api/generate-devis
 - ✅ Signature électronique client (/sign/[id])
 - ✅ API devis sécurisée (anti-XSS, anti re-signing)
 - ✅ Déployé en prod https://devis-flow.fr
+- ✅ Vidéo démo dans le hero
+- ✅ KPI "Taux d'acceptation" opérationnel dashboard agence
+- ✅ Export PDF rapport agence (window.print)
+- ✅ Signature affichée immédiatement après confirmation
+- ✅ Sécurité : invite-artisan / agence/invitations / billing/checkout forcent auth server-side
+- ✅ Hooks TypeScript PostToolUse dans .claude/settings.json
+- ✅ Cron quotidien 9h UTC (audit) + 7h UTC (reminders)
+- ✅ Flow "mot de passe oublié" complet (/auth/reset-password + /auth/update-password)
+- ✅ Pages erreur 500 brandées (error.tsx + global-error.tsx)
+- ✅ Skeleton loading sur dashboard, agence, devis, factures
+- ✅ Banner post-paiement (?upgraded=1 affiché en dashboard)
+- ✅ Rate limiting /api/contact (3/heure/IP)
+- ✅ Rate limiting /api/generate-devis anonymes (3/heure/IP)
+- ✅ Brute-force protection admin login (5 tentatives / 15min)
+- ✅ Security headers HTTP + poweredByHeader: false
+- ✅ XSS email invitation corrigé (agenceName échappé)
+- ✅ 40+ tests E2E Playwright
+- ✅ noindex sur agence, dashboard, auth layouts
+- ✅ Admin panel sécurisé (httpOnly cookie, ADMIN_PASSWORD env)
+- ✅ Notification email artisan quand devis signé par client
+- ✅ Bouton "Convertir en facture" conditionnel (signé uniquement)
+- ✅ Onboarding dashboard amélioré (guide 3 étapes en empty state)
+- ✅ Vidéo démo full-page : preload="none" (perf Core Web Vitals)
+- ✅ Lien "Mon compte" ajouté dans la nav du dashboard
+- ✅ Preconnect hints pour Supabase, Fonts, LS, Vercel
 
 ## Prochaines améliorations prioritaires identifiées
-1. SEO — meta tags dynamiques par page
-2. Section comparaison concurrents sur landing
-3. Onboarding post-inscription (guide first-use)
-4. Analytics (Plausible ou Vercel Analytics)
-5. Tests Playwright automatisés en CI
+1. Google Search Console — soumettre sitemap (nécessite accès navigateur)
+2. Mentions légales — compléter SIRET/RCS (données à demander à Nathan)
+3. Core Web Vitals — audit Lighthouse complet
+4. Comparaison nommée concurrents (obat.fr, henrri.com, evoliz.com)
+5. Onboarding interactif (tooltip/guide pour first-use)
 
 ## Computer Use (contrôle visuel navigateur)
 ```bash
