@@ -6,7 +6,6 @@
   --navy-light: #243d63;
   --orange: #f97316;
   --orange-dark: #ea580c;
-  --font-display: var(--font-display, 'Georgia', serif);
 }
 
 body {
