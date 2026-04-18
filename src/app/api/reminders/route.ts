@@ -7,6 +7,10 @@ const anthropic = new Anthropic();
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr";
 
+function esc(s: string | number | null | undefined): string {
+  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 // Called by Vercel cron — daily at 9:00 AM Europe/Paris (07:00 UTC)
 export async function GET(request: NextRequest) {
   // Verify cron secret (Vercel sets this automatically)
@@ -163,8 +167,8 @@ function buildLinesTable(devis: ReminderDevis): string {
     .map(
       (l) =>
         `<tr>
-          <td style="padding:6px 12px;font-size:12px;color:#374151;border-bottom:1px solid #f3f4f6;">${l.description}</td>
-          <td style="padding:6px 12px;font-size:12px;color:#6b7280;text-align:right;border-bottom:1px solid #f3f4f6;">${l.quantity}</td>
+          <td style="padding:6px 12px;font-size:12px;color:#374151;border-bottom:1px solid #f3f4f6;">${esc(l.description)}</td>
+          <td style="padding:6px 12px;font-size:12px;color:#6b7280;text-align:right;border-bottom:1px solid #f3f4f6;">${esc(l.quantity)}</td>
           <td style="padding:6px 12px;font-size:12px;font-weight:600;color:#111827;text-align:right;border-bottom:1px solid #f3f4f6;">${l.total.toFixed(2)} €</td>
         </tr>`
     )
@@ -197,10 +201,10 @@ function fallbackBody(devis: {
   artisan_name: string;
   total_ttc: number | null;
 }): string {
-  return `<p>Bonjour ${devis.client_name},</p>
-<p>Je me permets de revenir vers vous au sujet du devis <strong>${devis.devis_number ?? ""}</strong>${devis.total_ttc ? ` d'un montant de ${devis.total_ttc.toFixed(2)} € TTC` : ""} que je vous ai adressé récemment.</p>
+  return `<p>Bonjour ${esc(devis.client_name)},</p>
+<p>Je me permets de revenir vers vous au sujet du devis <strong>${esc(devis.devis_number)}</strong>${devis.total_ttc ? ` d'un montant de ${devis.total_ttc.toFixed(2)} € TTC` : ""} que je vous ai adressé récemment.</p>
 <p>N'hésitez pas à me contacter pour toute question.</p>
-<p>Cordialement,<br>${devis.artisan_name}</p>`;
+<p>Cordialement,<br>${esc(devis.artisan_name)}</p>`;
 }
 
 function wrapTemplate(body: string, linesTable: string, artisanName: string, artisanEmail: string | null): string {
@@ -215,7 +219,7 @@ function wrapTemplate(body: string, linesTable: string, artisanName: string, art
   </div>
   <hr style="border:none;border-top:2px solid #f97316;margin:0 0 16px;" />
   <p style="color:#6b7280;font-size:13px;margin:0;">
-    ${artisanName}${artisanEmail ? ` &nbsp;·&nbsp; <a href="mailto:${artisanEmail}" style="color:#f97316;text-decoration:none;">${artisanEmail}</a>` : ""}
+    ${esc(artisanName)}${artisanEmail ? ` &nbsp;·&nbsp; <a href="mailto:${esc(artisanEmail)}" style="color:#f97316;text-decoration:none;">${esc(artisanEmail)}</a>` : ""}
   </p>
   <p style="color:#9ca3af;font-size:11px;margin-top:16px;">
     Cet email a été envoyé via <a href="${SITE_URL}" style="color:#9ca3af;">DevisFlow</a>
