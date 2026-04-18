@@ -424,11 +424,10 @@ export default function HomePage() {
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
                 controls
-                autoPlay
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload="none"
                 className="w-full block"
                 style={{ maxHeight: "70vh", objectFit: "contain", backgroundColor: "#000" }}
                 src="/demo.mp4"

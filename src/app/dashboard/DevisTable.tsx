@@ -312,17 +312,36 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
 
   if (devis.length === 0) {
     return (
-      <div className="text-center py-16 text-gray-400">
-        <p className="text-4xl mb-3">📋</p>
-        <p className="font-semibold">Aucun devis pour l&apos;instant</p>
-        <p className="text-sm mt-1">Créez votre premier devis en moins de 30 secondes.</p>
-        <Link
-          href="/devis"
-          className="inline-block mt-4 text-sm font-bold px-5 py-2 rounded-xl text-white"
-          style={{ backgroundColor: "var(--orange)" }}
-        >
-          Créer un devis →
-        </Link>
+      <div className="px-6 py-12">
+        <div className="max-w-xl mx-auto text-center mb-10">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4" style={{ backgroundColor: "rgba(30,58,95,0.07)" }}>📋</div>
+          <h3 className="text-xl font-extrabold mb-2" style={{ color: "var(--navy)" }}>Bienvenue sur DevisFlow !</h3>
+          <p className="text-gray-500 text-sm">Créez votre premier devis professionnel en moins de 30 secondes.</p>
+        </div>
+        <div className="grid sm:grid-cols-3 gap-5 mb-8 max-w-2xl mx-auto">
+          {[
+            { step: "1", icon: "⚡", title: "Décrivez la mission", desc: "Sélectionnez votre métier et décrivez les travaux en langage naturel." },
+            { step: "2", icon: "🤖", title: "L'IA génère le devis", desc: "Lignes de prestation, calculs TVA, mentions légales — en 30 secondes." },
+            { step: "3", icon: "✉️", title: "Envoyez et signez", desc: "Par email ou WhatsApp. Le client signe en ligne depuis son téléphone." },
+          ].map(s => (
+            <div key={s.step} className="bg-gray-50 rounded-2xl p-5 text-center border border-gray-100">
+              <div className="text-2xl mb-2">{s.icon}</div>
+              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "var(--orange)" }}>Étape {s.step}</p>
+              <p className="font-bold text-sm mb-1" style={{ color: "var(--navy)" }}>{s.title}</p>
+              <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="text-center">
+          <Link
+            href="/devis"
+            className="inline-flex items-center gap-2 text-white font-bold px-7 py-3.5 rounded-xl shadow-sm transition-transform hover:scale-105 text-sm"
+            style={{ backgroundColor: "var(--orange)" }}
+          >
+            Créer mon premier devis →
+          </Link>
+          <p className="mt-3 text-xs text-gray-400">Sans carte bancaire pendant l&apos;essai · Résultat en 30 secondes</p>
+        </div>
       </div>
     );
   }
