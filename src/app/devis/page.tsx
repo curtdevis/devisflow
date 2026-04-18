@@ -257,6 +257,15 @@ export default function DevisPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
 
+  // ── API intégrations ─────────────────────────────────────────────────────────
+  const [clientAddrSuggestions, setClientAddrSuggestions] = useState<string[]>([]);
+  const [showClientAddr, setShowClientAddr] = useState(false);
+  const [artisanAddrSuggestions, setArtisanAddrSuggestions] = useState<string[]>([]);
+  const [showArtisanAddr, setShowArtisanAddr] = useState(false);
+  const [siretLoading, setSiretLoading] = useState(false);
+  const [siretFound, setSiretFound] = useState<boolean | null>(null);
+  const [holidayWarning, setHolidayWarning] = useState<string | null>(null);
+
   // Load draft first (sync) then profile — profile only fills artisan fields that are still empty
   useEffect(() => {
     // 1. Restore draft from localStorage
@@ -343,6 +352,77 @@ export default function DevisPage() {
     const filtered = clients.filter(c => c.name.toLowerCase().includes(q));
     setClientSuggestions(filtered.slice(0, 5));
   }, [form.clientName, clients]);
+
+  // API Adresse — client address autocomplete (api-adresse.data.gouv.fr)
+  useEffect(() => {
+    if (form.clientAddress.length < 4) { setClientAddrSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(form.clientAddress)}&limit=5`);
+        const data = await res.json();
+        setClientAddrSuggestions(data.features?.map((f: { properties: { label: string } }) => f.properties.label) ?? []);
+      } catch { setClientAddrSuggestions([]); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [form.clientAddress]);
+
+  // API Adresse — artisan address autocomplete
+  useEffect(() => {
+    if (form.artisanAddress.length < 4) { setArtisanAddrSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(form.artisanAddress)}&limit=5`);
+        const data = await res.json();
+        setArtisanAddrSuggestions(data.features?.map((f: { properties: { label: string } }) => f.properties.label) ?? []);
+      } catch { setArtisanAddrSuggestions([]); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [form.artisanAddress]);
+
+  // recherche-entreprises.api.gouv.fr — SIRET lookup → autofill artisan info
+  useEffect(() => {
+    const siret = form.artisanSiret.replace(/[\s.]/g, "");
+    if (siret.length !== 14) { setSiretFound(null); setSiretLoading(false); return; }
+    setSiretLoading(true);
+    setSiretFound(null);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${siret}&per_page=1`);
+        const data = await res.json();
+        const first = data.results?.[0];
+        if (first) {
+          const nom = first.nom_raison_sociale || first.nom_complet || "";
+          const addr = [first.siege?.adresse, first.siege?.code_postal, first.siege?.libelle_commune].filter(Boolean).join(" ");
+          setForm(prev => ({
+            ...prev,
+            artisanName: prev.artisanName || nom,
+            artisanAddress: prev.artisanAddress || addr,
+          }));
+          setSiretFound(true);
+        } else {
+          setSiretFound(false);
+        }
+      } catch { setSiretFound(false); }
+      finally { setSiretLoading(false); }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [form.artisanSiret]);
+
+  // Nager.Date — public holiday warning on validity end date
+  useEffect(() => {
+    if (!form.validityDays) { setHolidayWarning(null); return; }
+    const end = new Date();
+    end.setDate(end.getDate() + parseInt(form.validityDays));
+    const year = end.getFullYear();
+    const dateStr = `${year}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
+    fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/FR`)
+      .then(r => r.json())
+      .then((holidays: Array<{ date: string; localName: string }>) => {
+        const match = holidays.find(h => h.date === dateStr);
+        setHolidayWarning(match ? match.localName : null);
+      })
+      .catch(() => setHolidayWarning(null));
+  }, [form.validityDays]);
 
   // Real-time totals
   const materialsTotal = form.materials.reduce((s, m) => {
@@ -565,18 +645,37 @@ export default function DevisPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">SIRET *</label>
-                    <input type="text" required placeholder="123 456 789 00012" value={form.artisanSiret}
-                      onChange={e => updateField("artisanSiret", e.target.value)} className={inputClass} />
+                    <div className="relative">
+                      <input type="text" required placeholder="123 456 789 00012" value={form.artisanSiret}
+                        onChange={e => updateField("artisanSiret", e.target.value)} className={inputClass} />
+                      {siretLoading && <span className="absolute right-3 top-3 text-xs text-gray-400 animate-pulse">Recherche…</span>}
+                      {siretFound === true && <span className="absolute right-3 top-3 text-xs font-semibold text-green-600">✓ Trouvé</span>}
+                      {siretFound === false && <span className="absolute right-3 top-3 text-xs font-semibold text-red-400">Non trouvé</span>}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                     <input type="tel" placeholder="06 12 34 56 78" value={form.artisanPhone}
                       onChange={e => updateField("artisanPhone", e.target.value)} className={inputClass} />
                   </div>
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 relative">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
                     <input type="text" placeholder="12 rue des Artisans, 75011 Paris" value={form.artisanAddress}
-                      onChange={e => updateField("artisanAddress", e.target.value)} className={inputClass} />
+                      onChange={e => { updateField("artisanAddress", e.target.value); setShowArtisanAddr(true); }}
+                      onFocus={() => setShowArtisanAddr(true)}
+                      onBlur={() => setTimeout(() => setShowArtisanAddr(false), 150)}
+                      className={inputClass} autoComplete="off" />
+                    {showArtisanAddr && artisanAddrSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-20 mt-1 overflow-hidden">
+                        {artisanAddrSuggestions.map(addr => (
+                          <button key={addr} type="button"
+                            onClick={() => { updateField("artisanAddress", addr); setArtisanAddrSuggestions([]); setShowArtisanAddr(false); }}
+                            className="suggestion-item w-full text-left px-4 py-2.5 text-sm text-gray-700 border-b border-gray-50 last:border-0">
+                            📍 {addr}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email professionnel</label>
@@ -642,10 +741,24 @@ export default function DevisPage() {
                     )}
                   </div>
 
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 relative">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
                     <input type="text" required placeholder="12 rue des Fleurs, 75001 Paris" value={form.clientAddress}
-                      onChange={e => updateField("clientAddress", e.target.value)} className={inputClass} />
+                      onChange={e => { updateField("clientAddress", e.target.value); setShowClientAddr(true); }}
+                      onFocus={() => setShowClientAddr(true)}
+                      onBlur={() => setTimeout(() => setShowClientAddr(false), 150)}
+                      className={inputClass} autoComplete="off" />
+                    {showClientAddr && clientAddrSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-20 mt-1 overflow-hidden">
+                        {clientAddrSuggestions.map(addr => (
+                          <button key={addr} type="button"
+                            onClick={() => { updateField("clientAddress", addr); setClientAddrSuggestions([]); setShowClientAddr(false); }}
+                            className="suggestion-item w-full text-left px-4 py-2.5 text-sm text-gray-700 border-b border-gray-50 last:border-0">
+                            📍 {addr}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
@@ -773,6 +886,9 @@ export default function DevisPage() {
                       <option value="60">60 jours</option>
                       <option value="90">90 jours</option>
                     </select>
+                    {holidayWarning && (
+                      <p className="mt-1.5 text-xs text-amber-600 font-medium">⚠️ La date d&apos;expiration tombe un jour férié ({holidayWarning})</p>
+                    )}
                   </div>
                 </div>
               </section>
