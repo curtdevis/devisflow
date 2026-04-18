@@ -364,7 +364,7 @@ export default function HomePage() {
             <div className="text-center mb-14">
               <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Comparatif</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>
-                DevisFlow vs les alternatives
+                DevisFlow vs Obat, Henrri et Excel
               </h2>
               <p className="text-gray-500 max-w-lg mx-auto">Pourquoi 800+ artisans ont choisi DevisFlow plutôt qu&apos;Excel ou un logiciel traditionnel.</p>
             </div>
@@ -375,21 +375,21 @@ export default function HomePage() {
                   <tr className="border-b border-gray-100">
                     <th className="text-left px-6 py-4 text-gray-500 font-medium w-2/5">Fonctionnalité</th>
                     <th className="px-4 py-4 text-center font-extrabold rounded-t-xl" style={{ color: "white", backgroundColor: "var(--navy)" }}>DevisFlow</th>
+                    <th className="px-4 py-4 text-center text-gray-500 font-medium">Obat / Henrri</th>
                     <th className="px-4 py-4 text-center text-gray-500 font-medium">Excel / Word</th>
-                    <th className="px-4 py-4 text-center text-gray-500 font-medium">Logiciels trad.</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    ["Génération en 30 secondes", "✓", "✗", "✗"],
-                    ["IA adaptée au métier BTP", "✓", "✗", "✗"],
+                    ["Génération IA en 30 secondes", "✓", "✗", "✗"],
+                    ["IA spécialisée BTP", "✓", "✗", "✗"],
                     ["Depuis le téléphone", "✓", "~", "~"],
-                    ["Relances automatiques", "✓", "✗", "~"],
-                    ["Signature électronique", "✓", "✗", "~"],
-                    ["Conformité e-facture 2026", "✓", "✗", "✓"],
-                    ["Conversion devis → facture", "✓", "Manuelle", "✓"],
-                    ["Base clients intégrée", "✓", "✗", "✓"],
-                    ["Prix / mois", "29€", "0€ (mais 2h/devis)", "60-200€"],
+                    ["Relances automatiques", "✓", "~", "✗"],
+                    ["Signature électronique", "✓", "~", "✗"],
+                    ["Conformité e-facture 2026", "✓", "✓", "✗"],
+                    ["Conversion devis → facture", "✓", "✓", "Manuelle"],
+                    ["Base clients intégrée", "✓", "✓", "✗"],
+                    ["Prix / mois", "29€", "40-89€", "0€ (mais 2h/devis)"],
                   ].map(([feat, a, b, c]) => (
                     <tr key={feat} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 text-gray-700 font-medium">{feat}</td>
