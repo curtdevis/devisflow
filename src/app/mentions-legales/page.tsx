@@ -31,20 +31,22 @@ export default function MentionsLegalesPage() {
           <section>
             <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>1. Éditeur du site</h2>
             <p>
-              Le site <strong>devis-flow.fr</strong> est édité par la société <strong>DevisFlow</strong>,
-              entreprise immatriculée en France.
+              Le site <strong>devis-flow.fr</strong> est édité par la société <strong>Drip Record</strong>,
+              éditeur du service DevisFlow.
             </p>
             <ul className="mt-3 space-y-1 text-sm">
-              <li><strong>Raison sociale :</strong> DevisFlow</li>
-              <li><strong>Forme juridique :</strong> SAS (Société par Actions Simplifiée)</li>
-              <li><strong>Siège social :</strong> France</li>
+              <li><strong>Raison sociale :</strong> Drip Record</li>
+              <li><strong>Forme juridique :</strong> SAS à associé unique (Société par Actions Simplifiée)</li>
+              <li><strong>Capital social :</strong> 100,00 €</li>
+              <li><strong>RCS :</strong> 914 221 288 R.C.S. Paris</li>
+              <li><strong>Siège social :</strong> 34 avenue des Champs-Élysées, 75008 Paris</li>
               <li><strong>Email :</strong> <a href="mailto:contact@devis-flow.fr" className="underline" style={{ color: "var(--orange)" }}>contact@devis-flow.fr</a></li>
             </ul>
           </section>
 
           <section>
             <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>2. Directeur de la publication</h2>
-            <p>Le directeur de la publication est le représentant légal de la société DevisFlow.</p>
+            <p>Le directeur de la publication est <strong>Nathan Emeri Makambo</strong>, Président de la société Drip Record.</p>
           </section>
 
           <section>
