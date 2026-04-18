@@ -70,47 +70,6 @@ const FAQS = [
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes typewriter {
-          0%,20% { width: 0; }
-          60%,100% { width: 100%; }
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-        @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes pulse-soft {
-          0%,100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-        @keyframes scan {
-          0% { top: 0; opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
-        .animate-fadein { animation: fadeInUp 0.7s ease both; }
-        .animate-fadein-d1 { animation: fadeInUp 0.7s 0.15s ease both; }
-        .animate-fadein-d2 { animation: fadeInUp 0.7s 0.3s ease both; }
-        .animate-fadein-d3 { animation: fadeInUp 0.7s 0.45s ease both; }
-        .mockup-line { animation: fadeInUp 0.5s ease both; }
-        .hero-glow {
-          background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(249,115,22,0.18) 0%, transparent 70%),
-                      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(96,165,250,0.12) 0%, transparent 60%);
-        }
-        .comparison-check { color: #10b981; font-size: 18px; }
-        .comparison-cross { color: #ef4444; font-size: 18px; }
-        .comparison-partial { color: #f59e0b; font-size: 18px; }
-        .video-play:hover { transform: scale(1.08); }
-        .video-play { transition: transform 0.2s; }
-        .feature-card:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(15,23,42,0.12); }
-        .feature-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .stat-number { font-variant-numeric: tabular-nums; }
-      `}</style>
-
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
@@ -153,10 +112,16 @@ export default function HomePage() {
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
                   Nouveau — IA spécialisée BTP
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.08] tracking-tight mb-6">
-                  Votre devis pro<br />
-                  en <span style={{ color: "var(--orange)" }}>30 secondes</span><br />
-                  avec l&apos;IA
+                <h1 className="text-4xl sm:text-5xl lg:text-[3.75rem] text-white leading-[1.06] tracking-tight mb-6">
+                  <span className="font-display block italic font-normal" style={{ letterSpacing: "-0.01em" }}>Votre devis pro</span>
+                  <span className="font-extrabold block">
+                    en{" "}
+                    <span className="relative inline-block">
+                      <span style={{ color: "var(--orange)" }}>30 secondes</span>
+                      <span className="absolute -bottom-1 left-0 right-0 h-[3px] rounded-full opacity-60" style={{ background: "var(--orange)" }} />
+                    </span>
+                  </span>
+                  <span className="font-display block italic font-normal" style={{ letterSpacing: "-0.01em" }}>avec l&apos;IA</span>
                 </h1>
                 <p className="text-lg text-blue-200 leading-relaxed mb-8 max-w-lg">
                   DevisFlow génère des devis professionnels pour votre métier — depuis votre téléphone, sur le chantier.
@@ -219,18 +184,18 @@ export default function HomePage() {
         </section>
 
         {/* ── Stats bar ── */}
-        <section className="border-b border-gray-100" style={{ backgroundColor: "var(--navy-dark)" }}>
-          <div className="max-w-5xl mx-auto px-4 py-5">
-            <div className="flex flex-wrap justify-center gap-8 sm:gap-16 text-center">
+        <section style={{ backgroundColor: "var(--navy-dark)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="max-w-5xl mx-auto px-4 py-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/10">
               {[
                 { value: "800+", label: "artisans actifs" },
-                { value: "30 s", label: "génération en moyenne" },
+                { value: "30 s", label: "génération moyenne" },
                 { value: "4,9/5", label: "satisfaction client" },
-                { value: "98%", label: "conformité e-facture 2026" },
+                { value: "98%", label: "conformité 2026" },
               ].map(s => (
-                <div key={s.label}>
-                  <p className="text-2xl font-extrabold stat-number" style={{ color: "var(--orange)" }}>{s.value}</p>
-                  <p className="text-xs text-blue-300 mt-0.5">{s.label}</p>
+                <div key={s.label} className="text-center py-4 px-6 first:pl-0 last:pr-0">
+                  <p className="text-3xl font-extrabold stat-number leading-none mb-1" style={{ color: "var(--orange)" }}>{s.value}</p>
+                  <p className="text-[11px] font-medium uppercase tracking-widest text-blue-300/80">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -238,23 +203,23 @@ export default function HomePage() {
         </section>
 
         {/* ── Social proof avatars ── */}
-        <section className="py-5 px-4 bg-white border-b border-gray-100">
-          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-10 text-center">
-            <div className="flex items-center gap-3">
+        <section className="py-4 px-4 bg-white border-b border-gray-100">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-0 text-center divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+            <div className="flex items-center gap-3 sm:pr-8">
               <div className="flex -space-x-2">
                 {["M","S","J","K","P"].map(i => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: "var(--navy)" }}>{i}</div>
                 ))}
               </div>
-              <p className="text-sm text-gray-600"><strong className="text-gray-900">800+ artisans</strong> font confiance à DevisFlow</p>
+              <p className="text-sm text-gray-600"><strong className="text-gray-900">800+ artisans</strong> nous font confiance</p>
             </div>
-            <div className="hidden sm:block w-px h-8 bg-gray-200" />
-            <div className="flex items-center gap-2">
-              <span className="text-orange-400">★★★★★</span>
-              <p className="text-sm text-gray-600"><strong className="text-gray-900">4,9/5</strong> — 200+ avis vérifiés</p>
+            <div className="flex items-center gap-2 sm:px-8 py-2 sm:py-0">
+              <span className="text-orange-400 text-base tracking-tighter">★★★★★</span>
+              <p className="text-sm text-gray-600"><strong className="text-gray-900">4,9/5</strong> · 200+ avis</p>
             </div>
-            <div className="hidden sm:block w-px h-8 bg-gray-200" />
-            <p className="text-sm text-gray-600"><strong className="text-gray-900">15 000+</strong> devis générés</p>
+            <div className="sm:pl-8 py-2 sm:py-0">
+              <p className="text-sm text-gray-600"><strong className="text-gray-900">15 000+</strong> devis générés</p>
+            </div>
           </div>
         </section>
 
@@ -264,49 +229,55 @@ export default function HomePage() {
             <div className="text-center mb-16">
               <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Pourquoi DevisFlow</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 leading-tight" style={{ color: "var(--navy)" }}>
-                L&apos;avantage IA pour les artisans
+                L&apos;avantage <span className="font-display italic font-normal">IA</span> pour les artisans
               </h2>
               <p className="text-gray-500 text-lg max-w-xl mx-auto">
                 Conçu pour les artisans qui veulent gagner en efficacité sans sacrifier le professionnalisme.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-3 gap-6">
               {[
                 {
-                  icon: "⚡",
-                  color: "#f97316",
+                  index: "01",
+                  accentColor: "var(--orange)",
                   title: "Vitesse × 22",
                   sub: "30 secondes vs 2 heures",
-                  desc: "Notre IA génère un devis complet, avec le détail des lignes, les calculs TVA et les mentions légales, en moins de 30 secondes. Vous répondez avant vos concurrents.",
-                  highlight: "73% des clients choisissent le premier artisan qui répond",
+                  desc: "Notre IA génère un devis complet — lignes, calculs TVA, mentions légales — en moins de 30 secondes. Vous répondez avant vos concurrents.",
+                  stat: "73% des clients choisissent le premier artisan qui répond",
                 },
                 {
-                  icon: "🧠",
-                  color: "#3b82f6",
+                  index: "02",
+                  accentColor: "#3b82f6",
                   title: "IA de métier",
                   sub: "Formée sur le BTP français",
-                  desc: "Plomberie, électricité, peinture, maçonnerie, menuiserie — DevisFlow connaît vos prix, vos unités, vos mentions légales. Une bibliothèque de prestations clé en main.",
-                  highlight: "8 corps de métier couverts, prix du marché intégrés",
+                  desc: "Plomberie, électricité, peinture, maçonnerie, menuiserie — DevisFlow connaît vos prix, vos unités et vos mentions légales. Bibliothèque de prestations incluse.",
+                  stat: "8 corps de métier couverts, prix du marché intégrés",
                 },
                 {
-                  icon: "📱",
-                  color: "#10b981",
+                  index: "03",
+                  accentColor: "#10b981",
                   title: "Depuis le chantier",
                   sub: "100% mobile, zéro paperasse",
-                  desc: "Créez et envoyez votre devis depuis votre téléphone pendant que vous êtes sur place. Le client reçoit un lien pour signer en ligne immédiatement.",
-                  highlight: "Signature électronique incluse, envoi WhatsApp en 1 tap",
+                  desc: "Créez et envoyez votre devis depuis votre téléphone. Le client reçoit un lien pour signer en ligne — depuis le sien.",
+                  stat: "Signature électronique + envoi WhatsApp en 1 tap",
                 },
               ].map(f => (
-                <div key={f.title} className="feature-card bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6" style={{ backgroundColor: `${f.color}15` }}>
-                    {f.icon}
-                  </div>
-                  <h3 className="text-xl font-extrabold mb-1" style={{ color: "var(--navy)" }}>{f.title}</h3>
-                  <p className="text-sm font-semibold mb-4" style={{ color: f.color }}>{f.sub}</p>
-                  <p className="text-gray-500 text-sm leading-relaxed mb-5">{f.desc}</p>
-                  <div className="rounded-xl px-4 py-3 text-xs font-semibold text-white" style={{ backgroundColor: f.color }}>
-                    {f.highlight}
+                <div key={f.title} className="feature-card group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  {/* Orange accent bar on top */}
+                  <div className="h-1 w-full" style={{ backgroundColor: f.accentColor }} />
+                  <div className="p-8">
+                    {/* Editorial index */}
+                    <p className="font-display italic text-5xl font-normal leading-none mb-5 select-none"
+                       style={{ color: f.accentColor, opacity: 0.25 }}>
+                      {f.index}
+                    </p>
+                    <h3 className="text-xl font-extrabold mb-1" style={{ color: "var(--navy)" }}>{f.title}</h3>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: f.accentColor }}>{f.sub}</p>
+                    <p className="text-gray-500 text-sm leading-relaxed mb-6">{f.desc}</p>
+                    <div className="rounded-xl px-4 py-3 text-xs font-semibold" style={{ backgroundColor: `${f.accentColor}12`, color: f.accentColor }}>
+                      {f.stat}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -328,7 +299,7 @@ export default function HomePage() {
             <div className="text-center mb-16">
               <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Simple comme bonjour</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>
-                Un devis professionnel en 3 étapes
+                Un devis pro en <span className="font-display italic font-normal">3 étapes</span>
               </h2>
             </div>
             <div className="grid sm:grid-cols-3 gap-10">
@@ -454,27 +425,35 @@ export default function HomePage() {
             <div className="text-center mb-14">
               <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Témoignages</p>
               <h2 className="text-3xl sm:text-4xl font-extrabold" style={{ color: "var(--navy)" }}>
-                Ils ont adopté DevisFlow
+                Ils ont adopté <span className="font-display italic font-normal">DevisFlow</span>
               </h2>
             </div>
-            <div className="grid sm:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-3 gap-6">
               {TESTIMONIALS.map(t => (
-                <div key={t.name} className="feature-card bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-                  <div className="flex mb-4">
-                    {Array.from({length: t.stars}).map((_, i) => (
-                      <svg key={i} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#f97316" stroke="none">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                      </svg>
-                    ))}
+                <div key={t.name} className="feature-card bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+                  {/* Large decorative quote mark */}
+                  <div className="px-8 pt-8 pb-0">
+                    <span className="font-display italic text-7xl leading-none select-none" style={{ color: "var(--orange)", opacity: 0.18 }}>&ldquo;</span>
                   </div>
-                  <p className="text-gray-600 italic mb-6 leading-relaxed text-sm">&ldquo;{t.quote}&rdquo;</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ backgroundColor: "var(--navy)" }}>
-                      {t.name[0]}
-                    </div>
-                    <div>
-                      <p className="font-bold text-sm" style={{ color: "var(--navy)" }}>{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.job}</p>
+                  <div className="px-8 pb-8 pt-1 flex flex-col flex-1">
+                    <p className="text-gray-700 leading-relaxed text-sm flex-1 mb-6">{t.quote}</p>
+                    <div className="border-t border-gray-100 pt-5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-extrabold shrink-0" style={{ backgroundColor: "var(--navy)" }}>
+                          {t.name[0]}
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm" style={{ color: "var(--navy)" }}>{t.name}</p>
+                          <p className="text-[11px] text-gray-400">{t.job}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {Array.from({length: t.stars}).map((_, i) => (
+                          <svg key={i} xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="#f97316" stroke="none">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                          </svg>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -484,13 +463,16 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA 2 ── */}
-        <section className="py-12 px-4 border-y border-gray-100 bg-gray-50">
-          <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+        <section className="relative overflow-hidden py-14 px-4 grain-overlay" style={{ backgroundColor: "var(--navy)" }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 80% 50%, rgba(249,115,22,0.12) 0%, transparent 70%)" }} />
+          <div className="relative max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-8">
             <div>
-              <p className="text-xl font-extrabold" style={{ color: "var(--navy)" }}>Essai gratuit 7 jours</p>
-              <p className="text-gray-500 text-sm mt-1">Annulation en 1 clic</p>
+              <p className="font-display italic text-3xl sm:text-4xl font-normal text-white leading-tight mb-2" style={{ letterSpacing: "-0.01em" }}>
+                Prêt à gagner 14h par mois ?
+              </p>
+              <p className="text-blue-300 text-sm">Essai gratuit 7 jours · Annulation en 1 clic · Sans carte bancaire</p>
             </div>
-            <CheckoutButton className="shrink-0 inline-block text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-transform hover:scale-105" style={{ backgroundColor: "var(--orange)" }}>
+            <CheckoutButton className="btn-orange shrink-0 inline-flex items-center gap-2 text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-all hover:scale-105 whitespace-nowrap" style={{ backgroundColor: "var(--orange)" }}>
               Commencer gratuitement →
             </CheckoutButton>
           </div>

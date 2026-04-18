@@ -3,28 +3,139 @@
 :root {
   --navy: #1e3a5f;
   --navy-dark: #152d4a;
+  --navy-light: #243d63;
   --orange: #f97316;
   --orange-dark: #ea580c;
+  --font-display: var(--font-display, 'Georgia', serif);
 }
 
 body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* ── Display font utility ─────────────────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-display), Georgia, serif;
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes shimmerSlide {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.7; }
+}
+
+/* Staggered fade-in */
+.animate-fadein    { animation: fadeInUp 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-fadein-d1 { animation: fadeInUp 0.7s 0.12s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-fadein-d2 { animation: fadeInUp 0.7s 0.24s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-fadein-d3 { animation: fadeInUp 0.7s 0.36s cubic-bezier(0.22,1,0.36,1) both; }
+
+/* Scroll-reveal variants (slightly slower, more dramatic) */
+.reveal    { animation: revealUp 0.85s cubic-bezier(0.22,1,0.36,1) both; }
+.reveal-d1 { animation: revealUp 0.85s 0.1s  cubic-bezier(0.22,1,0.36,1) both; }
+.reveal-d2 { animation: revealUp 0.85s 0.2s  cubic-bezier(0.22,1,0.36,1) both; }
+.reveal-d3 { animation: revealUp 0.85s 0.3s  cubic-bezier(0.22,1,0.36,1) both; }
+
+/* ── Card lift on hover ───────────────────────────────────────────────────── */
+.card-lift {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.card-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 28px 48px -8px rgba(15,23,42,0.16),
+              0 4px 16px -4px rgba(249,115,22,0.08);
+}
+
+/* Legacy alias used in page.tsx */
+.feature-card {
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 28px 48px -8px rgba(15,23,42,0.16),
+              0 4px 16px -4px rgba(249,115,22,0.08);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn-orange {
+  position: relative;
+  overflow: hidden;
+}
+.btn-orange::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.18) 50%, transparent 100%);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+  pointer-events: none;
+}
+.btn-orange:hover::after {
+  transform: translateX(100%);
+}
+
+/* ── Grain texture ────────────────────────────────────────────────────────── */
+.grain-overlay {
+  position: relative;
+}
+.grain-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Hero glow ────────────────────────────────────────────────────────────── */
+.hero-glow {
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -10%, rgba(249,115,22,0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 85% 85%, rgba(96,165,250,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 10% 60%, rgba(249,115,22,0.06) 0%, transparent 50%);
+}
+
+/* ── Misc helpers ─────────────────────────────────────────────────────────── */
+.stat-number { font-variant-numeric: tabular-nums; }
+.comparison-check   { color: #10b981; font-size: 18px; }
+.comparison-cross   { color: #ef4444; font-size: 18px; }
+.comparison-partial { color: #f59e0b; font-size: 18px; }
+.video-play { transition: transform 0.2s; }
+.video-play:hover { transform: scale(1.08); }
+
+/* Autocomplete suggestion item */
+.suggestion-item:hover {
+  background-color: rgba(30,58,95,0.05);
+}
+
+/* ── Print ────────────────────────────────────────────────────────────────── */
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-
-  body {
-    background: white !important;
-  }
-
-  .print-hidden {
-    display: none !important;
-  }
-
+  body { background: white !important; }
+  .print-hidden { display: none !important; }
   .devis-document {
     box-shadow: none !important;
     border: none !important;
