@@ -133,7 +133,6 @@ export default function HomePage() {
         <section className="relative overflow-hidden" style={{ backgroundColor: "var(--navy)" }}>
           {/* Glow + grid */}
           <div className="absolute inset-0 hero-glow" />
-          <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)", backgroundSize: "64px 64px" }} />
 
           <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 lg:py-28">
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
