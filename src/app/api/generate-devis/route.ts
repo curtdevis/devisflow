@@ -4,6 +4,20 @@ import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server
 
 const client = new Anthropic();
 
+// IP-based rate limit for unauthenticated requests: 3 per hour
+const anonRateLimit = new Map<string, { count: number; resetAt: number }>();
+function checkAnonLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = anonRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    anonRateLimit.set(ip, { count: 1, resetAt: now + 3_600_000 });
+    return true;
+  }
+  if (entry.count >= 3) return false;
+  entry.count++;
+  return true;
+}
+
 const AGENT_ID = process.env.ANTHROPIC_AGENT_ID;
 const ENV_ID = process.env.ANTHROPIC_ENV_ID;
 
@@ -206,13 +220,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Rate limiting: max 20 devis per hour per authenticated user
+  // Rate limiting
   let userId: string | null = null;
   try {
     const supabaseServer = await createSupabaseServer();
     const { data: { user } } = await supabaseServer.auth.getUser();
     userId = user?.id ?? null;
   } catch { /* anonymous allowed */ }
+
+  if (!userId) {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    if (!checkAnonLimit(ip)) {
+      return NextResponse.json({ error: "Limite atteinte. Créez un compte pour continuer." }, { status: 429 });
+    }
+  }
 
   if (userId) {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
