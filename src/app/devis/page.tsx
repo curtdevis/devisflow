@@ -542,22 +542,20 @@ export default function DevisPage() {
           <p className="text-gray-500 text-sm mb-6 leading-relaxed">
             Vous avez profité de {TRIAL_DAYS} jours d'accès gratuit. Passez à l'abonnement Artisan Solo pour continuer à générer des devis sans limite.
           </p>
-          <a
-            href={`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${encodeURIComponent("")}`}
-            onClick={(e) => {
-              e.preventDefault();
-              // Get userId from Supabase before redirecting
+          <button
+            type="button"
+            onClick={() => {
               createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
                 if (user) {
                   window.open(`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`, "_blank", "noopener,noreferrer");
                 }
               });
             }}
-            className="inline-block w-full py-4 rounded-xl text-white font-extrabold text-base shadow-md transition-all hover:scale-[1.02] active:scale-95 mb-3"
+            className="w-full py-4 rounded-xl text-white font-extrabold text-base shadow-md transition-all hover:scale-[1.02] active:scale-95 mb-3"
             style={{ backgroundColor: "#f97316" }}
           >
             Passer à Artisan Solo — 29 €/mois →
-          </a>
+          </button>
           <Link
             href="/dashboard"
             className="block text-sm text-gray-400 hover:text-gray-600 transition-colors"

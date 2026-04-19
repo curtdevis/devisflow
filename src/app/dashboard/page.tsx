@@ -52,6 +52,36 @@ export default async function DashboardPage() {
   const conversionRate = devisList.length > 0 ? Math.round((signedCount / devisList.length) * 100) : 0;
   const avgTTC = devisList.length > 0 ? totalTTC / devisList.length : 0;
 
+  // ── Analytics artisan ────────────────────────────────────────────────────────
+  // CA total signé
+  const caSigne = devisList
+    .filter((d) => d.signed_at)
+    .reduce((s, d) => s + (d.total_ttc ?? 0), 0);
+
+  // Taux d'acceptation : signés / envoyés (tous les devis sont considérés envoyés)
+  const sentCount = devisList.length;
+  const tauxAcceptation = sentCount > 0 ? Math.round((signedCount / sentCount) * 100) : 0;
+
+  // Délai moyen de signature (jours entre created_at et signed_at)
+  const signedWithDelay = devisList.filter(
+    (d) => d.signed_at && d.created_at
+  );
+  const delaiMoyen =
+    signedWithDelay.length > 0
+      ? Math.round(
+          signedWithDelay.reduce((sum, d) => {
+            const created = new Date(d.created_at).getTime();
+            const signed = new Date(d.signed_at!).getTime();
+            return sum + (signed - created) / (1000 * 60 * 60 * 24);
+          }, 0) / signedWithDelay.length
+        )
+      : null;
+
+  // Devis ce mois-ci
+  const now = new Date();
+  const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const devisCeMois = devisList.filter((d) => d.created_at >= firstOfMonth).length;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -133,6 +163,42 @@ export default async function DashboardPage() {
           );
         })()}
 
+        {/* ── Analytics artisan ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          {[
+            {
+              label: "CA total signé",
+              value: caSigne > 0
+                ? `${caSigne.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} €`
+                : "—",
+              sub: "devis acceptés",
+            },
+            {
+              label: "Taux d'acceptation",
+              value: sentCount > 0 ? `${tauxAcceptation} %` : "—",
+              sub: `${signedCount} signé${signedCount > 1 ? "s" : ""} / ${sentCount} envoyé${sentCount > 1 ? "s" : ""}`,
+            },
+            {
+              label: "Délai moyen signature",
+              value: delaiMoyen !== null ? `${delaiMoyen} j` : "—",
+              sub: delaiMoyen !== null ? "entre création et signature" : "aucune signature",
+            },
+            {
+              label: "Devis ce mois-ci",
+              value: String(devisCeMois),
+              sub: now.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+            },
+          ].map((s) => (
+            <div key={s.label} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <p className="text-xs text-gray-400 mb-1 leading-tight">{s.label}</p>
+              <p className="text-2xl font-extrabold leading-tight" style={{ color: "var(--navy)" }}>
+                {s.value}
+              </p>
+              <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+            </div>
+          ))}
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {[
@@ -167,10 +233,25 @@ export default async function DashboardPage() {
 
         {/* Devis table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
             <h2 className="font-bold text-lg" style={{ color: "var(--navy)" }}>
               Mes devis
             </h2>
+            {devisList.length > 0 && (
+              <a
+                href="/api/devis/export"
+                download
+                className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl border transition-colors hover:bg-gray-50"
+                style={{ color: "var(--navy)", borderColor: "#1e3a5f" }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Exporter CSV
+              </a>
+            )}
           </div>
           <DevisTable devis={devisList} />
         </div>

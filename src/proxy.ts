@@ -31,10 +31,12 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const PROTECTED = ["/devis", "/dashboard", "/agence", "/account"];
+  const PROTECTED = ["/dashboard", "/agence", "/account"];
+  const isProtectedDevis = pathname === "/devis" || pathname.startsWith("/devis/");
+  const isProtected = isProtectedDevis || PROTECTED.some((p) => pathname.startsWith(p));
 
   // Unauthenticated → redirect to login
-  if (PROTECTED.some((p) => pathname.startsWith(p)) && !user) {
+  if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("redirect", pathname);

@@ -147,7 +147,7 @@ L'email commence par "Bonjour ${devis.client_name}," et finit par "Cordialement,
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5",
+      model: "claude-haiku-4-6",
       max_tokens: 256,
       messages: [{ role: "user", content: prompt }],
     });

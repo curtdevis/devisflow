@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
 function RegisterForm() {
   const router = useRouter();

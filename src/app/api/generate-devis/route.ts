@@ -4,18 +4,58 @@ import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server
 
 const client = new Anthropic();
 
-// IP-based rate limit for unauthenticated requests: 3 per hour
-const anonRateLimit = new Map<string, { count: number; resetAt: number }>();
-function checkAnonLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = anonRateLimit.get(ip);
-  if (!entry || now > entry.resetAt) {
-    anonRateLimit.set(ip, { count: 1, resetAt: now + 3_600_000 });
+// IP-based rate limit for unauthenticated requests: 5 per hour, persisted in Supabase
+// SQL to run once in Supabase:
+// CREATE TABLE IF NOT EXISTS rate_limits (
+//   ip TEXT NOT NULL,
+//   window_start TIMESTAMPTZ NOT NULL DEFAULT now(),
+//   count INTEGER NOT NULL DEFAULT 1,
+//   PRIMARY KEY (ip, window_start)
+// );
+const ANON_RATE_LIMIT = 5;
+
+async function checkAnonLimitDb(ip: string): Promise<boolean> {
+  try {
+    const admin = createSupabaseAdmin();
+    const oneHourAgo = new Date(Date.now() - 3_600_000).toISOString();
+
+    // Clean up expired entries (non-blocking, best-effort)
+    void admin
+      .from("rate_limits")
+      .delete()
+      .lt("window_start", oneHourAgo);
+
+    // Count requests in the last hour for this IP
+    const { count, error: countError } = await admin
+      .from("rate_limits")
+      .select("*", { count: "exact", head: true })
+      .eq("ip", ip)
+      .gte("window_start", oneHourAgo);
+
+    if (countError) {
+      // Fallback: allow the request if we can't read the table
+      console.warn("[rate-limit] count error, allowing:", countError.message);
+      return true;
+    }
+
+    if ((count ?? 0) >= ANON_RATE_LIMIT) return false;
+
+    // Record this request
+    const { error: insertError } = await admin
+      .from("rate_limits")
+      .insert({ ip, window_start: new Date().toISOString(), count: 1 });
+
+    if (insertError) {
+      // Table might not exist yet — fallback silently
+      console.warn("[rate-limit] insert error, allowing:", insertError.message);
+    }
+
+    return true;
+  } catch (err) {
+    // Any unexpected error: allow the request rather than block
+    console.warn("[rate-limit] unexpected error, allowing:", err);
     return true;
   }
-  if (entry.count >= 3) return false;
-  entry.count++;
-  return true;
 }
 
 const AGENT_ID = process.env.ANTHROPIC_AGENT_ID;
@@ -230,7 +270,8 @@ export async function POST(req: NextRequest) {
 
   if (!userId) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    if (!checkAnonLimit(ip)) {
+    const allowed = await checkAnonLimitDb(ip);
+    if (!allowed) {
       return NextResponse.json({ error: "Limite atteinte. Créez un compte pour continuer." }, { status: 429 });
     }
   }
@@ -330,6 +371,11 @@ Retourne UNIQUEMENT ce JSON :
     notes,
     legalMentions,
   };
+
+  // Anonymous users: generate the devis but don't persist to DB
+  if (!userId) {
+    return NextResponse.json({ ...result, id: null });
+  }
 
   const { data: inserted, error: insertError } = await createSupabaseAdmin()
     .from("devis")

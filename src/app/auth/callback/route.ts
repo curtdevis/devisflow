@@ -25,8 +25,71 @@ export async function GET(request: NextRequest) {
   const accountType = (meta.account_type ?? "artisan") as "artisan" | "agence";
   const inviteToken = meta.invite_token as string | null | undefined;
 
+  // Detect OAuth provider (Google etc.) — identities[0].provider = "google"
+  const isOAuthLogin =
+    Array.isArray(user.identities) &&
+    user.identities.length > 0 &&
+    user.identities[0].provider !== "email";
+
   // Create profile using admin client (bypasses RLS)
   const admin = createSupabaseAdmin();
+
+  // For OAuth logins, check if profile already exists before creating it.
+  // This avoids overwriting data on subsequent logins (idempotent).
+  if (isOAuthLogin) {
+    const { data: existingProfile } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      // First Google login → create profile with plan free
+      await admin.from("profiles").insert({
+        id: user.id,
+        email: user.email!,
+        full_name: meta.full_name ?? meta.name ?? null,
+        account_type: "artisan",
+        plan: "free",
+        created_at: new Date().toISOString(),
+      });
+
+      // Send onboarding email for new Google users (fire-and-forget)
+      // Sanitize the name before embedding in HTML to prevent injection if
+      // a malicious OAuth identity provider sends crafted metadata.
+      const rawNameOAuth = ((meta.full_name ?? meta.name) as string | undefined)?.split(" ")[0] ?? "là";
+      const firstNameOAuth = rawNameOAuth.replace(/[<>&"]/g, (c) =>
+        ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c] ?? c)
+      );
+      resend.emails.send({
+        from: "bonjour@devis-flow.fr",
+        to: user.email!,
+        subject: `${firstNameOAuth}, votre compte DevisFlow est activé 🎉`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
+            <p style="font-size:24px;font-weight:900;color:#1e3a5f;margin:0 0 4px">
+              Devis<span style="color:#f97316">Flow</span>
+            </p>
+            <p style="color:#6b7280;font-size:13px;margin:0 0 28px">Générateur de devis IA pour artisans</p>
+            <h1 style="font-size:20px;color:#1e3a5f;margin:0 0 8px">Bienvenue ${firstNameOAuth} ! 🎉</h1>
+            <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px">
+              Votre compte est activé. Vous avez <strong>7 jours d'essai gratuit</strong> pour tout tester — sans carte bancaire.
+            </p>
+            <a href="${SITE_URL}/devis"
+               style="display:inline-block;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 28px;border-radius:12px;text-decoration:none;">
+              Créer mon premier devis →
+            </a>
+            <p style="color:#9ca3af;font-size:12px;line-height:1.5;margin-top:24px;">
+              Une question ? Répondez directement à cet email — on vous répond sous 24h.<br>L'équipe DevisFlow
+            </p>
+          </div>
+        `,
+      }).catch((e: unknown) => console.error("[onboarding email google]", e));
+    }
+
+    // OAuth flow → toujours rediriger vers /devis
+    return NextResponse.redirect(`${origin}/devis`);
+  }
 
   // Resolve invite → get agence_id if token present
   let agenceId: string | null = null;
@@ -63,7 +126,11 @@ export async function GET(request: NextRequest) {
   );
 
   // Send onboarding email (fire-and-forget — don't block redirect)
-  const firstName = (meta.full_name as string | undefined)?.split(" ")[0] ?? "là";
+  // Sanitize name embedded in HTML.
+  const rawFirstName = (meta.full_name as string | undefined)?.split(" ")[0] ?? "là";
+  const firstName = rawFirstName.replace(/[<>&"]/g, (c) =>
+    ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[c] ?? c)
+  );
   const isAgence = accountType === "agence";
   const onboardingCta = isAgence
     ? `${SITE_URL}/agence/invitations`

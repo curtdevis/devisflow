@@ -90,9 +90,6 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
-  verification: {
-    google: "",
-  },
   other: {
     "geo.region": "FR",
     "geo.placename": "France",

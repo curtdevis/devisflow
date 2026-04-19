@@ -118,7 +118,7 @@ function LoginForm() {
             </Link>
           </p>
 
-          <p className="mt-4 text-sm text-center text-blue-300">
+          <p className="mt-5 text-sm text-center text-blue-300">
             Pas encore de compte ?{" "}
             <Link
               href="/auth/register"

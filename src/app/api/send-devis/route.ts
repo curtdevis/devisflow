@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
   }
 
-  // If the devis has an ID, verify it exists in the DB (prevents using us as arbitrary email relay)
+  // Verify ownership: if devis has an ID, check it exists; if no ID, require auth (prevent email relay)
   if (devis.id) {
     const { data: devisExists } = await createSupabaseAdmin()
       .from("devis")
@@ -62,6 +62,12 @@ export async function POST(req: NextRequest) {
       .single();
     if (!devisExists) {
       return NextResponse.json({ error: "Devis introuvable." }, { status: 404 });
+    }
+  } else {
+    const supabaseServer = await createSupabaseServer();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
     }
   }
 
@@ -204,7 +210,7 @@ export async function POST(req: NextRequest) {
 </html>`;
 
   try {
-    const response = await resend.emails.send({
+    await resend.emails.send({
       from: "DevisFlow <noreply@devis-flow.fr>",
       to: recipientEmail,
       replyTo: devis.artisan.email ?? undefined,
