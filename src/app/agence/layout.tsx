@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseServer } from "@/lib/supabase-server";
+import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
 import AgenceSidebar from "./_components/AgenceSidebar";
 import AgenceHeader from "./_components/AgenceHeader";
@@ -24,14 +24,40 @@ export default async function AgenceLayout({
 
   if (!user) redirect("/auth/login");
 
-  const { data: profile } = await supabase
+  const admin = createSupabaseAdmin();
+
+  let { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single<Profile>();
 
-  // No profile at all — edge case (e.g. callback not yet run), send to login
-  if (!profile) redirect("/auth/login");
+  // Profile missing — auto-create from user metadata (happens when email
+  // confirmation is skipped or the /auth/callback round-trip was interrupted).
+  // Never redirect to /auth/login here — that creates a proxy redirect loop.
+  if (!profile) {
+    const meta = user.user_metadata ?? {};
+    await admin.from("profiles").upsert(
+      {
+        id: user.id,
+        email: user.email!,
+        full_name: meta.full_name ?? null,
+        company_name: meta.full_name ?? null,
+        account_type: (meta.account_type as string) === "agence" ? "agence" : "artisan",
+        plan: "free",
+      },
+      { onConflict: "id" }
+    );
+    const { data: created } = await admin
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single<Profile>();
+    profile = created;
+  }
+
+  // Still no profile after auto-create → DB issue, send to home (not /auth/login to avoid loop)
+  if (!profile) redirect("/");
 
   // Wrong account type: show a clear access-denied page instead of a silent redirect
   if (profile.account_type !== "agence") {

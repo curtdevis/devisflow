@@ -35,7 +35,7 @@ export default async function AgenceOverviewPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/auth/login");
+  if (!user) redirect("/auth/login"); // layout already guards this, belt-and-suspenders
 
   const admin = createSupabaseAdmin();
   const now = new Date();
