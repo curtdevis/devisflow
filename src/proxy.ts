@@ -40,7 +40,11 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(url);
+    const redirectRes = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach(({ name, value }) => {
+      redirectRes.cookies.set(name, value);
+    });
+    return redirectRes;
   }
 
   if (user) {
@@ -52,7 +56,12 @@ export async function proxy(request: NextRequest) {
       !pathname.startsWith("/auth/callback")
     ) {
       const dest = accountType === "agence" ? "/agence" : "/dashboard";
-      return NextResponse.redirect(new URL(dest, request.url));
+      const redirectRes = NextResponse.redirect(new URL(dest, request.url));
+      // Copy refreshed session cookies so the destination page can read the session
+      supabaseResponse.cookies.getAll().forEach(({ name, value }) => {
+        redirectRes.cookies.set(name, value);
+      });
+      return redirectRes;
     }
   }
 
