@@ -49,6 +49,11 @@ export default function AccountPage() {
   const [savingPwd, setSavingPwd] = useState(false);
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Delete account
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [showDeleteSection, setShowDeleteSection] = useState(false);
+
   useEffect(() => {
     async function load() {
       const supabase = createSupabaseBrowser();
@@ -150,6 +155,25 @@ export default function AccountPage() {
     await supabase.from("profiles").update({ avatar_url: finalUrl }).eq("id", userId);
     setAvatarUrl(finalUrl);
     setUploadingAvatar(false);
+  }
+
+  async function deleteAccount() {
+    if (deleteConfirm !== "SUPPRIMER") return;
+    setDeletingAccount(true);
+    try {
+      const res = await fetch("/api/account/delete", { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d.error ?? "Erreur lors de la suppression.");
+        setDeletingAccount(false);
+        return;
+      }
+      await createSupabaseBrowser().auth.signOut();
+      router.push("/?deleted=1");
+    } catch {
+      alert("Une erreur est survenue.");
+      setDeletingAccount(false);
+    }
   }
 
   async function changePassword(e: React.FormEvent) {
@@ -439,7 +463,7 @@ export default function AccountPage() {
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold text-white"
                   style={{ backgroundColor: plan === "paid" ? "var(--orange)" : "#6b7280" }}
                 >
-                  {plan === "paid" ? "Artisan Solo" : "Essai gratuit"}
+                  {plan === "paid" ? "Artisan Solo — Actif" : "Essai gratuit"}
                 </span>
                 {plan === "paid" && (
                   <span className="text-sm text-gray-500">29 €/mois</span>
@@ -453,24 +477,31 @@ export default function AccountPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              {plan === "paid" && portalUrl ? (
-                <a
-                  href={portalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-center"
-                  style={{ color: "var(--navy)" }}
-                >
-                  Gérer mon abonnement →
-                </a>
-              ) : plan === "paid" ? (
-                <a
-                  href="/api/billing/portal"
-                  className="text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-center"
-                  style={{ color: "var(--navy)" }}
-                >
-                  Gérer mon abonnement →
-                </a>
+              {plan === "paid" ? (
+                <>
+                  {portalUrl ? (
+                    <a
+                      href={portalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-center"
+                      style={{ color: "var(--navy)" }}
+                    >
+                      Gérer mon abonnement →
+                    </a>
+                  ) : (
+                    <a
+                      href="/api/billing/portal"
+                      className="text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-center"
+                      style={{ color: "var(--navy)" }}
+                    >
+                      Gérer mon abonnement →
+                    </a>
+                  )}
+                  <p className="text-xs text-gray-400 text-center">
+                    Résiliation possible depuis le portail client
+                  </p>
+                </>
               ) : (
                 <CheckoutButton
                   className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-colors hover:opacity-90 text-center"
@@ -481,6 +512,86 @@ export default function AccountPage() {
               )}
             </div>
           </div>
+
+          {plan === "paid" && (
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              <p className="text-sm font-semibold text-gray-700 mb-1">Résilier mon abonnement</p>
+              <p className="text-xs text-gray-400 mb-3">
+                Votre abonnement restera actif jusqu&apos;à la fin de la période en cours. Aucun remboursement partiel.
+              </p>
+              {portalUrl ? (
+                <a
+                  href={portalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  Résilier mon abonnement →
+                </a>
+              ) : (
+                <a
+                  href="/api/billing/portal"
+                  className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  Résilier mon abonnement →
+                </a>
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* ── Danger zone ── */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm border border-red-100">
+          <h2 className="text-lg font-bold mb-2 text-red-600">Zone dangereuse</h2>
+          <p className="text-sm text-gray-500 mb-4">
+            La suppression de votre compte est <strong>irréversible</strong>. Tous vos devis, factures et données seront définitivement supprimés.
+          </p>
+
+          {plan === "paid" && (
+            <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+              ⚠️ Vous avez un abonnement actif. Résiliez-le d&apos;abord depuis le portail ci-dessus avant de supprimer votre compte.
+            </div>
+          )}
+
+          {!showDeleteSection ? (
+            <button
+              type="button"
+              onClick={() => setShowDeleteSection(true)}
+              className="text-sm font-semibold px-4 py-2 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition-colors"
+            >
+              Supprimer mon compte
+            </button>
+          ) : (
+            <div className="space-y-3 max-w-sm">
+              <p className="text-sm text-gray-600">
+                Tapez <strong>SUPPRIMER</strong> pour confirmer :
+              </p>
+              <input
+                type="text"
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                placeholder="SUPPRIMER"
+                className={inputClass}
+              />
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={deleteAccount}
+                  disabled={deletingAccount || deleteConfirm !== "SUPPRIMER"}
+                  className="text-sm font-bold px-5 py-2.5 rounded-xl text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 transition-colors"
+                >
+                  {deletingAccount ? "Suppression…" : "Confirmer la suppression"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowDeleteSection(false); setDeleteConfirm(""); }}
+                  className="text-sm font-semibold px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       </main>
     </div>

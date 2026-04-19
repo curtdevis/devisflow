@@ -32,7 +32,16 @@ function LoginForm() {
       return;
     }
 
-    const accountType = data.user?.user_metadata?.account_type;
+    // Read account_type from DB profile (source of truth) — user_metadata can be stale
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("account_type")
+      .eq("id", data.user.id)
+      .single();
+    const accountType =
+      (profile?.account_type as string | undefined) ??
+      data.user?.user_metadata?.account_type;
+
     if (redirect === "checkout" && data.user) {
       const checkoutUrl = `https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${data.user.id}`;
       window.open(checkoutUrl, "_blank", "noopener,noreferrer");
