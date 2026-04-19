@@ -120,10 +120,6 @@ export async function createCheckoutSession(params: {
           discount: false,
           button_color: "#f97316",
         },
-        // Force immediate payment — override any trial period set on the variant in LS dashboard.
-        // The app already handles its own 7-day trial; LS should charge immediately at checkout.
-        trial_ends_at: new Date().toISOString(),
-        expires_at: null,
       },
       relationships: {
         store: { data: { type: "stores", id: String(storeId) } },
