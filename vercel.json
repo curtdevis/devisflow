@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/audit",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/campaign-artisans-idf",
+      "schedule": "0 6 20 4 *"
     }
   ]
 }
