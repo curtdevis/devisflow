@@ -60,75 +60,164 @@ function metierLabel(metier: string): string {
   return labels[metier] ?? metier;
 }
 
-function buildEmail(prospect: { nom: string; metier: string }): { subject: string; html: string } {
+function buildEmail(prospect: { nom: string; metier: string; email: string }): { subject: string; html: string; text: string } {
   const label = metierLabel(prospect.metier);
   const prenom = prospect.nom.split(" ")[0];
+  const utmUrl = `${SITE_URL}?utm_source=cold&utm_medium=email&utm_campaign=artisans-idf-avril`;
+  const unsubUrl = `${SITE_URL}/unsubscribe?email=${encodeURIComponent(prospect.email)}`;
 
-  const subject = `${prenom}, vos devis en 30 secondes — essai gratuit`;
+  const subject = `${prenom}, vos devis en 30 secondes`;
 
   const html = `<!DOCTYPE html>
-<html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;">
-  <div style="max-width:580px;margin:32px auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+<html lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>DevisFlow</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;mso-line-height-rule:exactly;">
 
-    <div style="background:#1e3a5f;padding:24px 32px;">
-      <p style="margin:0;font-size:20px;font-weight:800;color:white;">
-        Devis<span style="color:#f97316;">Flow</span>
-      </p>
-      <p style="margin:4px 0 0;font-size:13px;color:#93c5fd;">Le générateur de devis IA pour les artisans</p>
-    </div>
-
-    <div style="padding:28px 32px;">
-      <p style="font-size:15px;color:#111827;margin:0 0 16px;">Bonjour,</p>
-
-      <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;">
-        En tant que <strong>${label}</strong>, vous passez probablement plusieurs heures par semaine
-        à rédiger vos devis — pour des clients qui parfois ne répondent même pas.
-      </p>
-
-      <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 24px;">
-        <strong>DevisFlow</strong> change ça : décrivez vos travaux en langage naturel,
-        l'IA génère un devis professionnel en <strong>30 secondes</strong>.
-        Vos clients signent directement depuis leur téléphone.
-      </p>
-
-      <div style="background:#f9fafb;border-left:4px solid #f97316;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
-        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.05em;">Ce que vous gagnez</p>
-        <ul style="margin:0;padding-left:18px;color:#374151;font-size:14px;line-height:1.8;">
-          <li>Devis en 30 secondes au lieu de 30 minutes</li>
-          <li>Signature électronique — plus d'impression, de scan</li>
-          <li>Relances automatiques J+3 et J+7</li>
-          <li>Conformité e-facture obligatoire en 2026</li>
-        </ul>
-      </div>
-
-      <div style="text-align:center;margin-bottom:24px;">
-        <a href="${SITE_URL}?utm_source=cold&utm_medium=email&utm_campaign=artisans-idf-avril"
-           style="display:inline-block;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">
-          Essayer gratuitement 7 jours →
-        </a>
-        <p style="margin:10px 0 0;font-size:12px;color:#9ca3af;">Sans carte bancaire · Sans engagement</p>
-      </div>
-
-      <p style="font-size:14px;color:#6b7280;line-height:1.6;margin:0;">
-        Des questions ? Répondez directement à cet email — je vous répond sous 24h.<br>
-        Nathan — fondateur DevisFlow
-      </p>
-    </div>
-
-    <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.6;">
-        DevisFlow · <a href="${SITE_URL}" style="color:#9ca3af;">devis-flow.fr</a><br>
-        Vous recevez cet email car votre activité est référencée dans les annuaires professionnels.<br>
-        <a href="${SITE_URL}/unsubscribe?email={{email}}" style="color:#9ca3af;">Se désinscrire</a>
-      </p>
-    </div>
+  <!-- Preheader (hidden preview text) -->
+  <div style="display:none;font-size:1px;color:#f3f4f6;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+    G&eacute;n&eacute;rez vos devis en 30 secondes avec l&rsquo;IA &mdash; essai gratuit 7 jours, sans carte bancaire.
   </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="580" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;width:100%;background:white;border-radius:12px;overflow:hidden;">
+
+          <!-- En-tête avec logo -->
+          <tr>
+            <td style="background:#1e3a5f;padding:24px 32px;">
+              <a href="${SITE_URL}" style="text-decoration:none;display:block;">
+                <img src="${SITE_URL}/logo.png" alt="DevisFlow" width="160" height="auto"
+                     style="display:block;border:0;outline:none;max-width:160px;height:auto;"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                <span style="display:none;font-size:22px;font-weight:800;color:white;font-family:Arial,sans-serif;">
+                  Devis<span style="color:#f97316;">Flow</span>
+                </span>
+              </a>
+              <p style="margin:8px 0 0;font-size:13px;color:#93c5fd;font-family:Arial,sans-serif;">Le g&eacute;n&eacute;rateur de devis IA pour les artisans</p>
+            </td>
+          </tr>
+
+          <!-- Corps -->
+          <tr>
+            <td style="padding:28px 32px;">
+              <p style="font-size:15px;color:#111827;margin:0 0 16px;font-family:Arial,sans-serif;">Bonjour,</p>
+
+              <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 16px;font-family:Arial,sans-serif;">
+                En tant que <strong>${label}</strong>, vous passez probablement plusieurs heures par semaine
+                &agrave; r&eacute;diger vos devis &mdash; pour des clients qui parfois ne r&eacute;pondent m&ecirc;me pas.
+              </p>
+
+              <p style="font-size:15px;color:#374151;line-height:1.7;margin:0 0 24px;font-family:Arial,sans-serif;">
+                <strong>DevisFlow</strong> change &ccedil;a&nbsp;: d&eacute;crivez vos travaux en langage naturel,
+                notre IA g&eacute;n&egrave;re un devis professionnel en <strong>30 secondes</strong>.
+                Vos clients signent directement depuis leur t&eacute;l&eacute;phone.
+              </p>
+
+              <!-- Encart avantages -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9fafb;border-left:4px solid #f97316;border-radius:8px;margin-bottom:24px;">
+                <tr>
+                  <td style="padding:16px 20px;">
+                    <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.05em;font-family:Arial,sans-serif;">Ce que vous gagnez</p>
+                    <p style="margin:0;font-size:14px;color:#374151;line-height:1.9;font-family:Arial,sans-serif;">
+                      &bull;&nbsp; Devis en 30 secondes au lieu de 30 minutes<br>
+                      &bull;&nbsp; Signature &eacute;lectronique &mdash; plus d&rsquo;impression, de scan<br>
+                      &bull;&nbsp; Relances automatiques J+3 et J+7<br>
+                      &bull;&nbsp; Conformit&eacute; e-facture obligatoire en 2026
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA -->
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+                <tr>
+                  <td align="center">
+                    <a href="${utmUrl}"
+                       style="display:inline-block;background:#f97316;color:#ffffff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;font-family:Arial,sans-serif;">
+                      Essayer gratuitement 7 jours &#8594;
+                    </a>
+                    <p style="margin:10px 0 0;font-size:12px;color:#9ca3af;font-family:Arial,sans-serif;">Sans carte bancaire &middot; Sans engagement</p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size:14px;color:#6b7280;line-height:1.6;margin:0 0 24px;font-family:Arial,sans-serif;">
+                Des questions&nbsp;? R&eacute;pondez directement &agrave; cet email, je vous r&eacute;ponds sous 24h.
+              </p>
+
+              <!-- Signature -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #e5e7eb;padding-top:20px;width:100%;">
+                <tr>
+                  <td style="padding-right:16px;vertical-align:middle;width:72px;">
+                    <img src="${SITE_URL}/logo.png" alt="DevisFlow" width="60" height="60"
+                         style="display:block;border-radius:8px;border:0;object-fit:contain;background:#1e3a5f;padding:4px;"
+                         onerror="this.style.display='none';">
+                  </td>
+                  <td style="vertical-align:middle;border-left:2px solid #e5e7eb;padding-left:16px;">
+                    <p style="margin:0;font-size:14px;font-weight:700;color:#111827;font-family:Arial,sans-serif;">Nathan Makambo</p>
+                    <p style="margin:2px 0;font-size:12px;color:#6b7280;font-family:Arial,sans-serif;">Fondateur &amp; CEO, DevisFlow</p>
+                    <p style="margin:4px 0 0;font-size:12px;font-family:Arial,sans-serif;">
+                      <a href="mailto:contact@devis-flow.fr" style="color:#f97316;text-decoration:none;">contact@devis-flow.fr</a>
+                      &nbsp;&middot;&nbsp;
+                      <a href="${SITE_URL}" style="color:#f97316;text-decoration:none;">devis-flow.fr</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Pied de page -->
+          <tr>
+            <td style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb;text-align:center;">
+              <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.8;font-family:Arial,sans-serif;">
+                DevisFlow &mdash; Paris, France &middot; <a href="${SITE_URL}" style="color:#9ca3af;text-decoration:none;">devis-flow.fr</a><br>
+                Vous recevez cet email car votre activit&eacute; est r&eacute;f&eacute;renc&eacute;e dans les annuaires professionnels.<br>
+                <a href="${unsubUrl}" style="color:#9ca3af;">Se d&eacute;sinscrire</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>`;
 
-  return { subject, html };
+  const text = `Bonjour,
+
+En tant que ${label}, vous passez probablement plusieurs heures par semaine a rediger vos devis -- pour des clients qui parfois ne repondent meme pas.
+
+DevisFlow change ca : decrivez vos travaux en langage naturel, notre IA genere un devis professionnel en 30 secondes. Vos clients signent directement depuis leur telephone.
+
+Ce que vous gagnez :
+- Devis en 30 secondes au lieu de 30 minutes
+- Signature electronique -- plus d'impression, de scan
+- Relances automatiques J+3 et J+7
+- Conformite e-facture obligatoire en 2026
+
+Essayer gratuitement 7 jours (sans carte bancaire) :
+${utmUrl}
+
+Des questions ? Repondez directement a cet email, je vous reponds sous 24h.
+
+--
+Nathan Makambo
+Fondateur & CEO, DevisFlow
+contact@devis-flow.fr | devis-flow.fr
+
+---
+Vous recevez cet email car votre activite est referencee dans les annuaires professionnels.
+Se desinscrire : ${unsubUrl}`;
+
+  return { subject, html, text };
 }
 
 export async function GET(request: NextRequest) {
@@ -152,15 +241,21 @@ export async function GET(request: NextRequest) {
 
   for (const prospect of PROSPECTS) {
     try {
-      const { subject, html } = buildEmail(prospect);
-      const personalizedHtml = html.replace("{{email}}", encodeURIComponent(prospect.email));
+      const { subject, html, text } = buildEmail(prospect);
+      const unsubUrl = `${SITE_URL}/unsubscribe?email=${encodeURIComponent(prospect.email)}`;
 
       const { error } = await resend.emails.send({
-        from: "Nathan — DevisFlow <bonjour@devis-flow.fr>",
+        from: "DevisFlow <bonjour@devis-flow.fr>",
         to: prospect.email,
         replyTo: "contact@devis-flow.fr",
         subject,
-        html: personalizedHtml,
+        html,
+        text,
+        headers: {
+          "List-Unsubscribe": `<mailto:contact@devis-flow.fr?subject=unsubscribe>, <${unsubUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          "X-Entity-Ref-ID": `campaign-artisans-idf-${prospect.email}`,
+        },
       });
 
       if (error) {
