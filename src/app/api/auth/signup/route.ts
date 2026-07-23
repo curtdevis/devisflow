@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -114,6 +115,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+
+  notifyAdmin(
+    `Nouvel utilisateur DevisFlow — ${email}`,
+    `<p><strong>Nom :</strong> ${escapeHtml(fullName)}</p>
+     <p><strong>Email :</strong> ${escapeHtml(email)}</p>
+     <p><strong>Type de compte :</strong> ${escapeHtml(accountType)}</p>`
+  );
 
   return NextResponse.json({ success: true });
 }

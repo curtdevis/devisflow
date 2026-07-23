@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
 
 const client = new Anthropic();
 
@@ -13,6 +14,7 @@ const client = new Anthropic();
 //   PRIMARY KEY (ip, window_start)
 // );
 const ANON_RATE_LIMIT = 5;
+const TRIAL_DAYS = 7;
 
 async function checkAnonLimitDb(ip: string): Promise<boolean> {
   try {
@@ -262,10 +264,12 @@ export async function POST(req: NextRequest) {
 
   // Rate limiting
   let userId: string | null = null;
+  let userCreatedAt: string | null = null;
   try {
     const supabaseServer = await createSupabaseServer();
     const { data: { user } } = await supabaseServer.auth.getUser();
     userId = user?.id ?? null;
+    userCreatedAt = user?.created_at ?? null;
   } catch { /* anonymous allowed */ }
 
   if (!userId) {
@@ -277,8 +281,28 @@ export async function POST(req: NextRequest) {
   }
 
   if (userId) {
+    const admin = createSupabaseAdmin();
+
+    // Trial enforcement — mirrors the client-side check in devis/page.tsx,
+    // but this one can't be bypassed by calling the API directly.
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("plan")
+      .eq("id", userId)
+      .single();
+
+    if (profile?.plan !== "paid" && userCreatedAt) {
+      const daysSinceSignup = (Date.now() - new Date(userCreatedAt).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceSignup > TRIAL_DAYS) {
+        return NextResponse.json(
+          { error: "Votre essai gratuit de 7 jours est terminé. Passez à l'abonnement Artisan Solo pour continuer à générer des devis." },
+          { status: 403 }
+        );
+      }
+    }
+
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count } = await createSupabaseAdmin()
+    const { count } = await admin
       .from("devis")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
@@ -406,6 +430,15 @@ Retourne UNIQUEMENT ce JSON :
 
   if (insertError) {
     console.error("[generate-devis] insert error:", insertError.message);
+  } else {
+    notifyAdmin(
+      `Nouveau devis — ${artisanName} → ${clientName} — ${totalTTC.toFixed(2)}€`,
+      `<p><strong>Artisan :</strong> ${escapeHtml(artisanName)}</p>
+       <p><strong>Client :</strong> ${escapeHtml(clientName)}</p>
+       <p><strong>Total TTC :</strong> ${totalTTC.toFixed(2)} €</p>
+       <p><strong>Devis n° :</strong> ${escapeHtml(result.devisNumber)}</p>
+       <p><strong>Description :</strong> ${escapeHtml(workDescription.slice(0, 200))}</p>`
+    );
   }
 
   return NextResponse.json({ ...result, id: inserted?.id ?? null });

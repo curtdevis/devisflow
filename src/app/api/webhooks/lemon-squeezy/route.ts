@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import { verifyWebhookSignature, parseWebhookPayload, planFromEvent } from "@/lib/lemon-squeezy";
+import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
 
 /**
  * POST /api/webhooks/lemon-squeezy
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
   const newPlan = planFromEvent(eventName);
 
   if (newPlan === "paid") {
-    const { error } = await admin
+    const { data: updatedProfile, error } = await admin
       .from("profiles")
       .update({
         plan: "paid",
@@ -59,13 +60,24 @@ export async function POST(request: NextRequest) {
         lemon_squeezy_customer_portal: customerPortal ?? null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", userId);
+      .eq("id", userId)
+      .select("email")
+      .single();
 
     if (error) {
       console.error("[ls-webhook] Failed to activate plan:", error.message);
       return NextResponse.json({ error: "DB update failed" }, { status: 500 });
     }
     console.log(`[ls-webhook] Plan → paid for user ${userId}`);
+
+    const customerEmail = updatedProfile?.email ?? userId;
+    notifyAdmin(
+      `Nouveau client payant — ${customerEmail} — Artisan Solo`,
+      `<p><strong>Email :</strong> ${escapeHtml(customerEmail)}</p>
+       <p><strong>Événement :</strong> ${escapeHtml(eventName)}</p>
+       <p><strong>Customer ID Lemon Squeezy :</strong> ${escapeHtml(customerId ?? "-")}</p>
+       <p><strong>Subscription ID :</strong> ${escapeHtml(subscriptionId ?? "-")}</p>`
+    );
   }
 
   if (newPlan === "free") {
