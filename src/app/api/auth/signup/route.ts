@@ -41,21 +41,37 @@ export async function POST(request: NextRequest) {
   const admin = createSupabaseAdmin();
 
   // Generate signup link — creates user + returns confirmation URL (no default Supabase email sent)
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: "signup",
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-        account_type: accountType,
-        invite_token: inviteToken ?? null,
-        redirect_after: redirectAfter ?? null,
-        artisan_count: artisanCount ?? null,
+  // Retried once on a transient JWT signature error: Supabase's Auth API
+  // intermittently rejects with "bad_jwt" unrelated to this request
+  // (reproduced directly against their Admin API, outside our app) — an
+  // immediate retry resolves it almost every time.
+  type GenerateLinkResult = Awaited<ReturnType<typeof admin.auth.admin.generateLink>>;
+  let linkData: GenerateLinkResult["data"] | null = null;
+  let linkError: GenerateLinkResult["error"] | null = null;
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const result = await admin.auth.admin.generateLink({
+      type: "signup",
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          account_type: accountType,
+          invite_token: inviteToken ?? null,
+          redirect_after: redirectAfter ?? null,
+          artisan_count: artisanCount ?? null,
+        },
+        redirectTo: `${SITE_URL}/auth/callback`,
       },
-      redirectTo: `${SITE_URL}/auth/callback`,
-    },
-  });
+    });
+    linkData = result.data;
+    linkError = result.error;
+
+    const isTransientJwtError = linkError?.message.includes("JWT");
+    if (!linkError || !isTransientJwtError || attempt === 2) break;
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
 
   if (linkError) {
     const msg = linkError.message.includes("already registered")
