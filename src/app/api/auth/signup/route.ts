@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
   type GenerateLinkResult = Awaited<ReturnType<typeof admin.auth.admin.generateLink>>;
   let linkData: GenerateLinkResult["data"] | null = null;
   let linkError: GenerateLinkResult["error"] | null = null;
+  let retriedAfterJwtError = false;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     const result = await admin.auth.admin.generateLink({
@@ -68,15 +69,26 @@ export async function POST(request: NextRequest) {
     linkData = result.data;
     linkError = result.error;
 
-    const isTransientJwtError = linkError?.message.includes("JWT");
+    // "bad_jwt" is Supabase's stable error code for the transient signature
+    // failure — more robust than matching on their message text.
+    const isTransientJwtError = linkError?.code === "bad_jwt";
     if (!linkError || !isTransientJwtError || attempt === 2) break;
+    retriedAfterJwtError = true;
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
   if (linkError) {
-    const msg = linkError.message.includes("already registered")
-      ? "Cet email est déjà utilisé. Connectez-vous."
-      : linkError.message;
+    const isDuplicate = linkError.message.includes("already registered");
+    // If "already registered" only shows up after our own JWT retry, the
+    // first attempt may have created the account before failing to return a
+    // token — that's not the same as a genuine pre-existing account, so
+    // don't tell the user to just log in with a password they never set.
+    const msg =
+      isDuplicate && retriedAfterJwtError
+        ? "Un problème temporaire est survenu. Réessayez dans quelques instants ou contactez le support si ça persiste."
+        : isDuplicate
+        ? "Cet email est déjà utilisé. Connectez-vous."
+        : linkError.message;
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
