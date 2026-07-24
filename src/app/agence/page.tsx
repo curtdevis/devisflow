@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
-import OverviewClient from "./_components/OverviewClient";
+
+// recharts is heavy and only needed here — dynamic import keeps it out of
+// the shared bundle that public marketing pages would otherwise inherit.
+const OverviewClient = dynamic(() => import("./_components/OverviewClient"));
 
 export type ArtisanStat = {
   id: string;

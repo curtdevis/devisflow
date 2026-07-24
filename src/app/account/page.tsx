@@ -540,6 +540,24 @@ export default function AccountPage() {
           )}
         </section>
 
+        {/* ── Données personnelles (RGPD) ── */}
+        <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+          <h2 className="text-lg font-bold mb-2" style={{ color: "var(--navy)" }}>
+            Vos données personnelles
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            Conformément au RGPD, vous pouvez exporter l&apos;intégralité de vos données (profil, devis, clients) dans un fichier au format lisible.
+          </p>
+          <a
+            href="/api/account/export"
+            download
+            className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            style={{ color: "var(--navy)" }}
+          >
+            Exporter mes données →
+          </a>
+        </section>
+
         {/* ── Danger zone ── */}
         <section className="bg-white rounded-2xl p-6 shadow-sm border border-red-100">
           <h2 className="text-lg font-bold mb-2 text-red-600">Zone dangereuse</h2>
