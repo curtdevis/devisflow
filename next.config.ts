@@ -11,6 +11,19 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
+  async redirects() {
+    // Événementiel vertical removed — redirect the previously-indexed URLs
+    // to the homepage instead of leaving them as 404s.
+    const removedPaths = [
+      "/entrepreneur",
+      "/devis-traiteur",
+      "/devis-photographe",
+      "/devis-dj-animateur",
+      "/devis-decorateur-evenementiel",
+      "/devis-wedding-planner",
+    ];
+    return removedPaths.map((source) => ({ source, destination: "/", permanent: true }));
+  },
   async headers() {
     return [
       {
