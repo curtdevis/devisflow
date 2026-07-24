@@ -21,7 +21,6 @@ const metiers = [
   { icon: "🎤", label: "Animateur / DJ", href: "/devis-dj-animateur" },
   { icon: "💒", label: "Wedding Planner", href: "/devis-wedding-planner" },
   { icon: "📸", label: "Photographe", href: "/devis-photographe" },
-  { icon: "🎪", label: "Location de matériel", href: "/devis-location-evenementiel" },
 ];
 
 const avantages = [
@@ -61,7 +60,7 @@ const testimonials = [
     stars: 5,
   },
   {
-    name: "Sophie L.",
+    name: "Camille R.",
     job: "Wedding planner, Paris",
     text: "La signature électronique a changé ma vie. Plus besoin d'imprimer, de scanner, de renvoyer. Tout se fait en ligne.",
     stars: 5,

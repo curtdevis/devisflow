@@ -1,0 +1,37 @@
+# DevisFlow
+
+> DevisFlow est un logiciel SaaS français qui génère des devis professionnels pour artisans du
+> BTP (plombiers, électriciens, peintres, maçons, carreleurs) et prestataires événementiels
+> (traiteurs, photographes, DJ, décorateurs, wedding planners) en moins de 30 secondes grâce à
+> l'IA, conforme à la réglementation de facturation électronique 2026 (Factur-X). 29€/mois,
+> essai gratuit 7 jours sans carte bancaire.
+
+## Produit
+- [Accueil](https://devis-flow.fr/): tarifs, fonctionnement, comparatif avec Obat/Henrri/Excel, FAQ produit
+- [Comparatif](https://devis-flow.fr/comparatif): DevisFlow vs autres logiciels de devis artisan
+
+## Guides métiers BTP (devis par corps de métier)
+- [Devis plombier](https://devis-flow.fr/devis-plombier): TVA plomberie 10%/5,5%/20%, mentions légales obligatoires, exemple de devis chiffré
+- [Devis électricien](https://devis-flow.fr/devis-electricien)
+- [Devis peintre](https://devis-flow.fr/devis-peintre)
+- [Devis maçon](https://devis-flow.fr/devis-macon)
+- [Devis carreleur](https://devis-flow.fr/devis-carreleur)
+
+## Prestataires événementiel
+- [DevisFlow Entrepreneur](https://devis-flow.fr/entrepreneur): devis pour métiers de l'événementiel
+- [Devis traiteur](https://devis-flow.fr/devis-traiteur)
+- [Devis photographe](https://devis-flow.fr/devis-photographe)
+- [Devis DJ / animateur](https://devis-flow.fr/devis-dj-animateur)
+- [Devis décorateur événementiel](https://devis-flow.fr/devis-decorateur-evenementiel)
+- [Devis wedding planner](https://devis-flow.fr/devis-wedding-planner)
+
+## Réglementation
+- [Facture électronique artisan 2026](https://devis-flow.fr/facture-electronique-artisan-2026): dates d'obligation (sept. 2026/2027), format Factur-X, Chorus Pro, sanctions (15€/facture, plafond 15 000€/an)
+
+## Légal
+- [Mentions légales](https://devis-flow.fr/mentions-legales): éditeur, SIRET, hébergement
+- [CGU](https://devis-flow.fr/cgu)
+- [Confidentialité](https://devis-flow.fr/confidentialite)
+
+## Optional
+- [Contact](https://devis-flow.fr/contact)

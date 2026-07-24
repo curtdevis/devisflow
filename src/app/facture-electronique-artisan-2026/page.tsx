@@ -87,7 +87,7 @@ export default function FactureElectroniqueArtisan2026Page() {
             </p>
 
             <div className="flex flex-wrap gap-3 text-sm text-blue-300">
-              {["5 min de lecture", "Mis à jour avril 2026", "Validé par des experts-comptables"].map((tag) => (
+              {["5 min de lecture", "Mis à jour avril 2026"].map((tag) => (
                 <span key={tag} className="flex items-center gap-1.5">
                   <span style={{ color: "var(--orange)" }}>✓</span> {tag}
                 </span>
@@ -411,7 +411,7 @@ export default function FactureElectroniqueArtisan2026Page() {
               Commencer l&apos;essai gratuit — 7 jours, sans carte bancaire
             </h2>
             <p className="text-blue-200 text-sm sm:text-base mb-8">
-              Soyez prêt avant septembre 2026. Rejoignez 800+ artisans qui génèrent déjà leurs devis et factures conformes avec DevisFlow.
+              Soyez prêt avant septembre 2026. Générez dès maintenant vos devis et factures conformes avec DevisFlow.
             </p>
             <Link href="/auth/register" className="inline-flex items-center text-white font-bold text-base px-10 py-4 rounded-xl shadow-xl transition-all hover:opacity-90 hover:scale-105 active:scale-95" style={{ backgroundColor: "var(--orange)" }}>
               Commencer mon essai gratuit →

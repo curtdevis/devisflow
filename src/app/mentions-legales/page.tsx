@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Mentions légales — DevisFlow",
   description: "Mentions légales de DevisFlow, éditeur du logiciel de devis pour artisans.",
+  alternates: { canonical: "/mentions-legales" },
 };
 
 export default function MentionsLegalesPage() {

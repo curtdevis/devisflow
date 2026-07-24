@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "DevisFlow vs Obat vs Henrri — Comparatif logiciels devis artisans 2026",
   description: "Comparatif complet DevisFlow, Obat et Henrri. Quel logiciel de devis choisir pour votre artisan en 2026 ? Fonctionnalités, prix, IA, signature électronique.",
   keywords: ["logiciel devis artisan", "alternative obat", "alternative henrri", "devis plombier electricien", "comparatif devis btp"],
+  alternates: { canonical: "/comparatif" },
 };
 
 const FEATURES = [

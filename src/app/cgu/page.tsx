@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Conditions Générales d'Utilisation — DevisFlow",
   description: "Conditions Générales d'Utilisation du logiciel DevisFlow.",
+  alternates: { canonical: "/cgu" },
 };
 
 export default function CguPage() {

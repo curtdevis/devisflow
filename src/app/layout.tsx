@@ -113,13 +113,6 @@ const structuredData = {
     priceValidUntil: "2027-12-31",
     description: "Abonnement mensuel artisan — essai gratuit 7 jours",
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    ratingCount: "127",
-    bestRating: "5",
-    worstRating: "1",
-  },
   author: {
     "@type": "Organization",
     name: "DevisFlow",

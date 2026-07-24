@@ -186,7 +186,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                    <video autoPlay muted loop playsInline preload="auto" className="w-full block" style={{ maxHeight: "400px", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
+                    <video autoPlay muted loop playsInline preload="metadata" className="w-full block" style={{ maxHeight: "400px", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
                     <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md tracking-wide">DÉMO IA</div>
                   </div>
                 </div>
@@ -200,10 +200,10 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto px-4 py-5">
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 sm:gap-x-16">
               {[
-                { v: "800+", l: "artisans actifs" },
                 { v: "30 s", l: "génération moyenne" },
-                { v: "4,9/5", l: "satisfaction client" },
-                { v: "98%",  l: "conformité 2026" },
+                { v: "7 jours", l: "essai gratuit" },
+                { v: "0€", l: "sans carte bancaire" },
+                { v: "29€", l: "par mois" },
               ].map(s => (
                 <div key={s.l} className="text-center">
                   <p className="text-2xl sm:text-3xl font-extrabold stat-number leading-none" style={{ color: "var(--orange)" }}>{s.v}</p>
@@ -217,21 +217,11 @@ export default function HomePage() {
         {/* ── Social proof ── */}
         <div className="bg-white border-b border-gray-100 py-3 px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {["M","S","J","K","P"].map(l => (
-                  <div key={l} className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: "var(--navy)" }}>{l}</div>
-                ))}
-              </div>
-              <span><strong className="text-gray-900">800+ artisans</strong> nous font confiance</span>
-            </div>
+            <span><strong className="text-gray-900">Conforme e-facture 2026</strong></span>
             <span className="text-gray-200 hidden sm:inline">|</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-orange-400">★★★★★</span>
-              <span><strong className="text-gray-900">4,9/5</strong> · 200+ avis</span>
-            </div>
+            <span><strong className="text-gray-900">Données hébergées en UE</strong> (Supabase)</span>
             <span className="text-gray-200 hidden sm:inline">|</span>
-            <span><strong className="text-gray-900">15 000+</strong> devis générés</span>
+            <span><strong className="text-gray-900">Paiement sécurisé</strong> par Lemon Squeezy</span>
           </div>
         </div>
 
@@ -314,7 +304,7 @@ export default function HomePage() {
               <h2 className="text-2xl sm:text-3xl font-extrabold mb-2" style={{ color: "var(--navy)" }}>
                 DevisFlow vs Obat, Henrri et Excel
               </h2>
-              <p className="text-gray-500 max-w-md mx-auto text-sm">Pourquoi 800+ artisans ont choisi DevisFlow.</p>
+              <p className="text-gray-500 max-w-md mx-auto text-sm">Pourquoi les artisans choisissent DevisFlow.</p>
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
@@ -504,6 +494,34 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── Devis par métier ── */}
+        <section className="py-14 px-4 bg-white">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-8" style={{ color: "var(--navy)" }}>
+              Devis par métier
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {[
+                { label: "Devis plombier", href: "/devis-plombier" },
+                { label: "Devis électricien", href: "/devis-electricien" },
+                { label: "Devis peintre", href: "/devis-peintre" },
+                { label: "Devis maçon", href: "/devis-macon" },
+                { label: "Devis carreleur", href: "/devis-carreleur" },
+                { label: "DevisFlow vs Obat / Henrri", href: "/comparatif" },
+              ].map(m => (
+                <Link
+                  key={m.href}
+                  href={m.href}
+                  className="text-center text-sm font-semibold rounded-xl border border-gray-100 py-3 px-2 hover:border-gray-300 transition-colors"
+                  style={{ color: "var(--navy)" }}
+                >
+                  {m.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ── SEO articles ── */}
         <section className="py-14 px-4 border-y border-gray-100" style={{ backgroundColor: "rgba(30,58,95,0.03)" }}>
           <div className="max-w-4xl mx-auto">
@@ -512,15 +530,22 @@ export default function HomePage() {
             </h2>
             <div className="grid sm:grid-cols-3 gap-5">
               {[
-                { title: "Comment créer un devis professionnel rapidement ?", body: "Un bon devis artisan doit inclure vos coordonnées, celles du client, le détail des travaux, le coût de la main d'œuvre et des matériaux. Avec DevisFlow, l'IA génère tout en 30 secondes depuis votre téléphone." },
-                { title: "Facturation électronique 2026 : ce qu'il faut savoir", body: "Dès septembre 2026, la facturation électronique est obligatoire pour toutes les entreprises françaises. DevisFlow génère des devis au format structuré conforme, sans effort supplémentaire." },
-                { title: "Comment relancer un client après un devis ?", body: "73% des devis non signés ne le sont pas par désintérêt, mais parce que le client a oublié. DevisFlow envoie des relances automatiques à J+3 et J+7 — vous gérez votre chantier, DevisFlow gère le suivi." },
-              ].map(a => (
-                <article key={a.title} className="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                  <h3 className="text-sm font-bold mb-2" style={{ color: "var(--navy)" }}>{a.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{a.body}</p>
-                </article>
-              ))}
+                { title: "Comment créer un devis professionnel rapidement ?", body: "Un bon devis artisan doit inclure vos coordonnées, celles du client, le détail des travaux, le coût de la main d'œuvre et des matériaux. Avec DevisFlow, l'IA génère tout en 30 secondes depuis votre téléphone.", href: null },
+                { title: "Facturation électronique 2026 : ce qu'il faut savoir", body: "Dès septembre 2026, la facturation électronique est obligatoire pour toutes les entreprises françaises. DevisFlow génère des devis au format structuré conforme, sans effort supplémentaire.", href: "/facture-electronique-artisan-2026" },
+                { title: "Comment relancer un client après un devis ?", body: "73% des devis non signés ne le sont pas par désintérêt, mais parce que le client a oublié. DevisFlow envoie des relances automatiques à J+3 et J+7 — vous gérez votre chantier, DevisFlow gère le suivi.", href: null },
+              ].map(a => {
+                const Card = (
+                  <article className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 h-full hover:border-gray-200 transition-colors">
+                    <h3 className="text-sm font-bold mb-2" style={{ color: "var(--navy)" }}>{a.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{a.body}</p>
+                  </article>
+                );
+                return a.href ? (
+                  <Link key={a.title} href={a.href}>{Card}</Link>
+                ) : (
+                  <div key={a.title}>{Card}</div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -532,7 +557,7 @@ export default function HomePage() {
               Prêt à prendre l&apos;avantage IA ?
             </h2>
             <p className="text-blue-200 text-sm sm:text-base mb-8">
-              Rejoignez 800+ artisans qui ont transformé leur gestion des devis.
+              Essai gratuit 7 jours, sans carte bancaire.
             </p>
             <CheckoutButton className="btn-orange inline-flex items-center text-white font-bold text-base px-10 py-4 rounded-xl shadow-xl transition-all hover:opacity-90 hover:scale-105 active:scale-95" style={{ backgroundColor: "var(--orange)" }}>
               Commencer mon essai gratuit →

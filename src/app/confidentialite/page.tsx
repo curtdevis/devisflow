@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Politique de confidentialité — DevisFlow",
   description: "Politique de confidentialité et protection des données personnelles (RGPD) de DevisFlow.",
+  alternates: { canonical: "/confidentialite" },
 };
 
 export default function ConfidentialitePage() {

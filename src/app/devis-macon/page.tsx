@@ -396,7 +396,7 @@ export default function DevisMaconPage() {
             </h2>
             <p className="text-blue-200 text-sm sm:text-base mb-8">
               TVA 10 % ou 20 % automatique · Garantie décennale incluse · Conforme Factur-X 2026<br />
-              Rejoignez 800+ artisans qui font confiance à DevisFlow.
+              Essai gratuit 7 jours, sans carte bancaire.
             </p>
             <Link
               href="/auth/register"
