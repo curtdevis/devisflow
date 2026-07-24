@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Instrument_Serif } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import CookieBanner from "./_components/CookieBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -154,6 +155,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-white text-gray-900">
         {children}
         <Analytics />
+        <CookieBanner />
       </body>
     </html>
   );
