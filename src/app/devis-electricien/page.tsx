@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Générateur Devis Électricien Gratuit — DevisFlow IA",
+  title: "Logiciel Devis Électricien — Devis IA en 30s | DevisFlow",
   description:
-    "Créez un devis électricien professionnel en 30 secondes avec l'IA. Qualifications Qualifelec/RGE, TVA 10%, Factur-X 2026. Essai gratuit 7 jours sans carte.",
+    "Le logiciel de devis pensé pour les électriciens : génération par IA en 30 secondes, qualifications Qualifelec/RGE, TVA 10%, Factur-X 2026. Essai gratuit 7 jours sans carte.",
   alternates: { canonical: "/devis-electricien" },
 };
 

@@ -17,10 +17,11 @@ export async function GET() {
 
   const admin = createSupabaseAdmin();
 
-  const [{ data: profile }, { data: devis }, { data: clients }] = await Promise.all([
+  const [{ data: profile }, { data: devis }, { data: clients }, { data: invoices }] = await Promise.all([
     admin.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     admin.from("devis").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
     admin.from("clients").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+    admin.from("invoices").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
   ]);
 
   const exportData = {
@@ -33,6 +34,7 @@ export async function GET() {
     profile: profile ?? null,
     devis: devis ?? [],
     clients: clients ?? [],
+    invoices: invoices ?? [],
   };
 
   const filename = `devisflow-donnees-${user.id.slice(0, 8)}-${new Date().toISOString().slice(0, 10)}.json`;

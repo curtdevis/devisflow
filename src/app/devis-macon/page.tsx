@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Générateur Devis Maçon Gratuit — DevisFlow IA",
+  title: "Logiciel Devis Maçon — Devis IA en 30s | DevisFlow",
   description:
-    "Créez un devis maçon professionnel en 30 secondes avec l'IA. Gros œuvre, rénovation, extension. Factur-X 2026. Essai gratuit 7 jours sans carte bancaire.",
+    "Le logiciel de devis pensé pour les maçons : génération par IA en 30 secondes, gros œuvre, rénovation, extension, Factur-X 2026. Essai gratuit 7 jours sans carte bancaire.",
   alternates: { canonical: "/devis-macon" },
 };
 

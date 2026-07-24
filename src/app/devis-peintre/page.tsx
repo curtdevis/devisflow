@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Générateur Devis Peintre Gratuit — DevisFlow IA",
+  title: "Logiciel Devis Peintre — Devis IA en 30s | DevisFlow",
   description:
-    "Créez un devis peintre professionnel en 30 secondes avec l'IA. Devis peinture intérieure/extérieure, TVA 10%, Factur-X 2026. Essai gratuit 7 jours sans carte.",
+    "Le logiciel de devis pensé pour les peintres en bâtiment : génération par IA en 30 secondes, peinture intérieure/extérieure, TVA 10%, Factur-X 2026. Essai gratuit 7 jours sans carte.",
   alternates: { canonical: "/devis-peintre" },
 };
 

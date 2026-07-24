@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Générateur Devis Carreleur Gratuit — DevisFlow IA",
+  title: "Logiciel Devis Carreleur — Devis IA en 30s | DevisFlow",
   description:
-    "Créez un devis carreleur professionnel en 30 secondes avec l'IA. Pose carrelage, faïence, parquet. TVA 10%, Factur-X 2026. Essai gratuit 7 jours sans carte.",
+    "Le logiciel de devis pensé pour les carreleurs : génération par IA en 30 secondes, pose carrelage, faïence, parquet, TVA 10%, Factur-X 2026. Essai gratuit 7 jours sans carte.",
   alternates: { canonical: "/devis-carreleur" },
 };
 
@@ -98,9 +98,8 @@ export default function DevisCarreleurPage() {
               IA spécialisée BTP · Carreleur · Conforme 2026
             </div>
             <h1 className="text-white mb-5" style={{ fontSize: "clamp(1.9rem, 5vw, 3.2rem)", lineHeight: 1.1, fontWeight: 800, letterSpacing: "-0.02em" }}>
-              Générateur de devis carreleur{" "}
-              <span style={{ color: "var(--orange)" }}>gratuit et professionnel</span>{" "}
-              en 30 secondes
+              Devis carreleur professionnel{" "}
+              <span style={{ color: "var(--orange)" }}>en 30 secondes</span>
             </h1>
             <p className="text-blue-200 leading-relaxed mb-8 max-w-2xl mx-auto" style={{ fontSize: "clamp(0.95rem, 2vw, 1.1rem)" }}>
               Créez un devis carrelage complet — pose, ragréage, fourniture, joints, plinthes — avec calcul automatique en m², TVA 10 % et PDF professionnel à votre en-tête. Depuis votre téléphone, sur le chantier.

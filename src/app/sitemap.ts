@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: BASE, lastModified: now, changeFrequency: "weekly", priority: 1 },
     { url: `${BASE}/entrepreneur`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${BASE}/cabinets-experts-comptables`, lastModified: now, changeFrequency: "weekly", priority: 0.85 },
     { url: `${BASE}/comparatif`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     // Artisans BTP
     { url: `${BASE}/devis-plombier`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },

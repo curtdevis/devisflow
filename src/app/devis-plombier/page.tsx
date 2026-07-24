@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Générateur Devis Plombier Gratuit — DevisFlow IA",
+  title: "Logiciel Devis Plombier — Devis IA en 30s | DevisFlow",
   description:
-    "Créez un devis plombier professionnel en 30 secondes avec l'IA. Conforme TVA 10%, mentions légales, Factur-X 2026. Essai gratuit 7 jours sans carte bancaire.",
+    "Le logiciel de devis pensé pour les plombiers : génération par IA en 30 secondes, conforme TVA 10%, mentions légales, Factur-X 2026. Essai gratuit 7 jours sans carte bancaire.",
   alternates: { canonical: "/devis-plombier" },
 };
 

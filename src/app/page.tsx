@@ -55,6 +55,7 @@ const PLANS = [
     highlighted: false,
     badge: null,
     showLsNote: false,
+    learnMoreHref: "/cabinets-experts-comptables",
   },
 ];
 
@@ -466,6 +467,11 @@ export default function HomePage() {
                     <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-gray-400">
                       {LOCK_ICON} Paiement sécurisé par Lemon Squeezy
                     </p>
+                  )}
+                  {plan.learnMoreHref && (
+                    <Link href={plan.learnMoreHref} className="block mt-3 text-center text-xs text-blue-300 hover:text-white transition-colors underline">
+                      En savoir plus sur l&apos;offre Cabinet &amp; Groupement →
+                    </Link>
                   )}
                 </div>
               ))}
