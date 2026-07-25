@@ -64,6 +64,15 @@ const JSONLD_FAQ = {
   })),
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://devis-flow.fr/" },
+    { "@type": "ListItem", position: 2, name: "Devis Carreleur", item: "https://devis-flow.fr/devis-carreleur" },
+  ],
+};
+
 export default function DevisCarreleurPage() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -78,6 +87,8 @@ export default function DevisCarreleurPage() {
             <Link href="/#pourquoi" className="hover:text-gray-900 transition-colors">Pourquoi</Link>
             <Link href="/#tarifs" className="hover:text-gray-900 transition-colors">Tarifs</Link>
             <Link href="/#faq" className="hover:text-gray-900 transition-colors">FAQ</Link>
+            <Link href="/comparatif" className="hover:text-gray-900 transition-colors">Comparatif</Link>
+            <Link href="/cabinets-experts-comptables" className="hover:text-gray-900 transition-colors">Agences</Link>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/auth/register" className="text-sm font-bold text-white px-4 py-2 rounded-lg shadow-sm transition-all hover:opacity-90 active:scale-95" style={{ backgroundColor: "var(--orange)" }}>
@@ -85,6 +96,10 @@ export default function DevisCarreleurPage() {
             </Link>
           </div>
         </div>
+      </nav>
+
+      <nav aria-label="fil d'ariane" className="max-w-6xl mx-auto px-4 sm:px-6 pt-3 text-xs text-gray-400">
+        <Link href="/" className="hover:text-gray-600">Accueil</Link> / Devis Carreleur
       </nav>
 
       <main className="flex-1">
@@ -298,12 +313,20 @@ export default function DevisCarreleurPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD_FAQ) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       {/* ── Footer ── */}
       <footer className="py-10 px-4 text-center text-sm text-blue-200" style={{ backgroundColor: "var(--navy-dark)" }}>
         <p className="font-extrabold text-white text-lg mb-1">Devis<span style={{ color: "var(--orange)" }}>Flow</span></p>
         <p className="mb-5 text-blue-300 text-sm">Le générateur de devis IA pour les artisans français</p>
         <div className="flex flex-wrap justify-center gap-5 text-xs text-blue-400 mb-5">
+          <Link href="/devis-peintre" className="hover:text-white transition-colors">Devis Peintre</Link>
+          <Link href="/comparatif" className="hover:text-white transition-colors">Comparatif</Link>
+          <Link href="/cabinets-experts-comptables" className="hover:text-white transition-colors">Cabinets &amp; Groupements</Link>
+          <Link href="/facture-electronique-artisan-2026" className="hover:text-white transition-colors">Facture électronique 2026</Link>
           <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
           <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
           <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>

@@ -33,6 +33,15 @@ const SCHEMA_FAQ = {
   })),
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://devis-flow.fr/" },
+    { "@type": "ListItem", position: 2, name: "Devis Peintre", item: "https://devis-flow.fr/devis-peintre" },
+  ],
+};
+
 const SPECS = [
   {
     accent: "#f97316",
@@ -78,7 +87,7 @@ export default function DevisPeintrePage() {
             <Link href="/#pourquoi" className="hover:text-gray-900 transition-colors">Pourquoi</Link>
             <Link href="/#tarifs" className="hover:text-gray-900 transition-colors">Tarifs</Link>
             <Link href="/comparatif" className="hover:text-gray-900 transition-colors">Comparatif</Link>
-            <Link href="/contact" className="hover:text-gray-900 transition-colors">Agences</Link>
+            <Link href="/cabinets-experts-comptables" className="hover:text-gray-900 transition-colors">Agences</Link>
           </div>
           <Link
             href="/auth/register"
@@ -88,6 +97,10 @@ export default function DevisPeintrePage() {
             Essai gratuit →
           </Link>
         </div>
+      </nav>
+
+      <nav aria-label="fil d'ariane" className="max-w-6xl mx-auto px-4 sm:px-6 pt-3 text-xs text-gray-400">
+        <Link href="/" className="hover:text-gray-600">Accueil</Link> / Devis Peintre
       </nav>
 
       <main className="flex-1">
@@ -336,11 +349,11 @@ export default function DevisPeintrePage() {
               </blockquote>
               <div className="flex items-center justify-center gap-3">
                 <div className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-extrabold" style={{ backgroundColor: "var(--navy)" }}>
-                  R
+                  J
                 </div>
                 <div className="text-left">
-                  <p className="font-bold text-sm" style={{ color: "var(--navy)" }}>Rachid A.</p>
-                  <p className="text-xs text-gray-400">Peintre en bâtiment, Toulouse · Auto-entrepreneur</p>
+                  <p className="font-bold text-sm" style={{ color: "var(--navy)" }}>Julien P.</p>
+                  <p className="text-xs text-gray-400">Peintre en bâtiment, Lille · Auto-entrepreneur</p>
                 </div>
               </div>
             </div>
@@ -406,6 +419,10 @@ export default function DevisPeintrePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(SCHEMA_FAQ) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       {/* ── Footer ── */}
       <footer className="py-10 px-4 text-center text-sm text-blue-200" style={{ backgroundColor: "var(--navy-dark)" }}>
@@ -417,6 +434,8 @@ export default function DevisPeintrePage() {
           <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
           <Link href="/devis-macon" className="hover:text-white transition-colors">Devis Maçon</Link>
           <Link href="/comparatif" className="hover:text-white transition-colors">Comparatif</Link>
+          <Link href="/cabinets-experts-comptables" className="hover:text-white transition-colors">Cabinets &amp; Groupements</Link>
+          <Link href="/facture-electronique-artisan-2026" className="hover:text-white transition-colors">Facture électronique 2026</Link>
           <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
           <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
           <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>

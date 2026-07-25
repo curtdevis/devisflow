@@ -100,30 +100,68 @@ export const metadata: Metadata = {
 
 const structuredData = {
   "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "DevisFlow",
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "Web",
-  url: "https://devis-flow.fr",
-  description:
-    "Logiciel SaaS de génération de devis professionnels par intelligence artificielle pour artisans français. Conforme réglementation facture électronique 2026.",
-  offers: {
-    "@type": "Offer",
-    price: "29",
-    priceCurrency: "EUR",
-    priceValidUntil: "2027-12-31",
-    description: "Abonnement mensuel artisan — essai gratuit 7 jours",
-  },
-  author: {
-    "@type": "Organization",
-    name: "DevisFlow",
-    url: "https://devis-flow.fr",
-  },
-  inLanguage: "fr-FR",
-  audience: {
-    "@type": "BusinessAudience",
-    audienceType: "Artisans, TPE, PME françaises",
-  },
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://devis-flow.fr/#organization",
+      name: "DevisFlow",
+      url: "https://devis-flow.fr",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://devis-flow.fr/logo-512.png",
+        width: 512,
+        height: 512,
+      },
+      email: "contact@devis-flow.fr",
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "contact@devis-flow.fr",
+        areaServed: "FR",
+        availableLanguage: ["French"],
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://devis-flow.fr/#software",
+      name: "DevisFlow",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: "https://devis-flow.fr",
+      description:
+        "Logiciel SaaS de génération de devis professionnels par intelligence artificielle pour artisans français. Conforme réglementation facture électronique 2026.",
+      inLanguage: "fr-FR",
+      audience: {
+        "@type": "BusinessAudience",
+        audienceType: "Artisans, TPE, PME françaises",
+      },
+      author: { "@id": "https://devis-flow.fr/#organization" },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Artisan Solo",
+          price: "29",
+          priceCurrency: "EUR",
+          priceValidUntil: "2027-12-31",
+          description: "Abonnement mensuel artisan indépendant ou auto-entrepreneur — essai gratuit 7 jours",
+          url: "https://devis-flow.fr/#tarifs",
+        },
+        {
+          "@type": "Offer",
+          name: "Cabinet & Groupement",
+          priceCurrency: "EUR",
+          priceSpecification: {
+            "@type": "UnitPriceSpecification",
+            minPrice: "299",
+            priceCurrency: "EUR",
+            billingDuration: "P1M",
+          },
+          description: "Offre sur devis pour cabinets d'experts-comptables, fédérations d'artisans et groupements BTP — à partir de 299 €/mois selon le nombre d'artisans gérés",
+          url: "https://devis-flow.fr/cabinets-experts-comptables",
+        },
+      ],
+    },
+  ],
 };
 
 export default function RootLayout({

@@ -11,23 +11,23 @@ export const metadata: Metadata = {
 const FAQS = [
   {
     q: "La facture électronique est-elle obligatoire pour les auto-entrepreneurs ?",
-    a: "Oui. La réforme s'applique à TOUTES les entreprises françaises assujetties à la TVA, y compris les micro-entrepreneurs et auto-entrepreneurs. Dès le 1er septembre 2026, vous devrez être en mesure de recevoir des factures électroniques. L'obligation d'émettre des e-factures suit pour les TPE/PME à partir du 1er septembre 2027.",
+    a: "Oui. La réforme s'applique à TOUTES les entreprises françaises assujetties à la TVA, y compris les micro-entrepreneurs et auto-entrepreneurs. Dès le 1er septembre 2026, vous devrez être en mesure de recevoir des factures électroniques, quelle que soit la taille de votre structure. L'obligation d'émettre vos propres e-factures suit pour les TPE/PME à partir du 1er septembre 2027. Seule exception : les micro-entrepreneurs sous le régime de la franchise en base de TVA, donc non assujettis, ne sont pas encore concernés par l'obligation d'émission — mais ils devront tout de même être capables de recevoir des e-factures dès septembre 2026, comme toutes les autres entreprises. Les grandes entreprises de plus de 5 000 salariés émettent déjà des e-factures depuis 2024 : si vous travaillez avec elles, vous pourriez recevoir des demandes de facturation électronique avant même l'échéance officielle de 2026.",
   },
   {
     q: "Qu'est-ce que le format Factur-X ?",
-    a: "Factur-X est un format hybride : un fichier PDF lisible par vous et votre client, dans lequel est embarqué un fichier XML structuré lisible par les logiciels de comptabilité et les plateformes fiscales. C'est le format recommandé pour les TPE/PME car il ne nécessite aucun changement dans vos habitudes de lecture — vous continuez à ouvrir un PDF, mais ce PDF contient toutes les données fiscales exploitables automatiquement.",
+    a: "Factur-X est un format hybride : un fichier PDF lisible normalement par vous et votre client, dans lequel est embarqué un fichier XML structuré, conforme à la norme européenne EN 16931, lisible automatiquement par les logiciels de comptabilité et les plateformes fiscales. C'est le format recommandé pour les TPE/PME et les artisans, car il ne nécessite aucun changement dans vos habitudes de lecture : vous continuez à ouvrir un PDF classique, mais ce même fichier contient toutes les données fiscales exploitables sans ressaisie, ce qui limite les erreurs de saisie autant pour l'artisan que pour son expert-comptable. Factur-X coexiste avec deux autres formats acceptés par la réforme, l'UBL et le CII, mais ceux-ci sont des XML purs sans PDF lisible, donc moins adaptés aux petites structures. DevisFlow génère automatiquement vos factures au format Factur-X, avec possibilité de télécharger le fichier XML séparément pour votre expert-comptable.",
   },
   {
     q: "Qu'est-ce que Chorus Pro ?",
-    a: "Chorus Pro est la plateforme gouvernementale obligatoire pour la facturation dans le cadre des marchés publics (administrations, collectivités). Si vous travaillez pour une mairie, un hôpital ou une école, vous devez déjà passer par Chorus Pro. Pour les factures entre entreprises privées (B2B), Chorus Pro n'est pas obligatoire mais il existe : des plateformes de dématérialisation partenaires (PDP) gèrent ces échanges.",
+    a: "Chorus Pro est la plateforme gouvernementale gérée par l'Agence de Services et de Paiement (ASP), obligatoire pour la facturation dans le cadre des marchés publics : administrations, collectivités territoriales et établissements publics. Si vous travaillez pour une mairie, un hôpital ou une école, vous devez déjà déposer vos factures sur Chorus Pro, cette obligation étant en vigueur depuis 2020 selon la taille du client public concerné. Pour les factures entre entreprises privées (B2B), Chorus Pro n'est en revanche pas obligatoire : ce sont des plateformes de dématérialisation partenaires (PDP), accréditées par la DGFiP, qui gèrent ces échanges à partir de septembre 2026. Un artisan qui travaille à la fois pour des clients publics et privés peut donc avoir besoin de passer par Chorus Pro pour les uns et par une PDP pour les autres.",
   },
   {
     q: "Quelle est la sanction si je n'émets pas de facture électronique ?",
-    a: "L'amende prévue est de 15 € par facture non conforme, plafonnée à 15 000 € par an. En cas de récidive dans les deux ans, ces plafonds peuvent être doublés. Au-delà des sanctions financières, ne pas être conforme peut bloquer vos relations commerciales avec des clients qui exigent des e-factures pour leur propre comptabilité.",
+    a: "L'amende prévue est de 15 € par facture non conforme, plafonnée à 15 000 € par an. En cas de récidive dans les deux ans, ces plafonds peuvent être doublés, portant le risque à 30 000 € par an pour un artisan qui n'aurait pas corrigé sa pratique. Au-delà des sanctions financières directes, ne pas être conforme peut avoir des conséquences commerciales concrètes : certains donneurs d'ordre, notamment les grandes entreprises et ETI qui émettent déjà des e-factures depuis 2024, commencent à exiger des e-factures de leurs sous-traitants comme condition de paiement. Un artisan non conforme risque donc de perdre des marchés, pas seulement de payer une amende. La mise en conformité reste toutefois simple avec un logiciel adapté : DevisFlow génère automatiquement le bon format Factur-X, sans compétence technique requise de votre part.",
   },
   {
     q: "Comment créer une facture électronique gratuitement ?",
-    a: "DevisFlow génère automatiquement vos factures au format Factur-X (PDF + XML embarqué) sans aucune manipulation technique de votre part. Créez votre compte gratuitement, essai 7 jours sans carte bancaire. Vous téléchargez le fichier Factur-X conforme, prêt à envoyer à votre client ou à déposer sur votre plateforme.",
+    a: "DevisFlow génère automatiquement vos factures au format Factur-X — un PDF classique avec un fichier XML conforme à la norme EN 16931 embarqué — sans aucune manipulation technique de votre part. Créez votre compte gratuitement, avec un essai de 7 jours sans carte bancaire ; après l'essai, l'abonnement est de 29 €/mois, sans engagement. Vous téléchargez ensuite le fichier Factur-X conforme, prêt à envoyer par email à votre client ou à déposer sur votre plateforme de dématérialisation partenaire (PDP). Si votre expert-comptable a besoin du fichier XML seul, pour import comptable ou dépôt sur une PDP, vous pouvez le télécharger séparément en un clic depuis votre tableau de bord. L'horodatage et la traçabilité de chaque envoi sont conservés automatiquement dans votre historique DevisFlow, ce qui facilite un contrôle ou un audit ultérieur de vos factures électroniques.",
   },
 ];
 
@@ -39,6 +39,15 @@ const JSONLD_FAQ = {
     name: f.q,
     acceptedAnswer: { "@type": "Answer", text: f.a },
   })),
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://devis-flow.fr/" },
+    { "@type": "ListItem", position: 2, name: "Facture électronique artisan 2026", item: "https://devis-flow.fr/facture-electronique-artisan-2026" },
+  ],
 };
 
 export default function FactureElectroniqueArtisan2026Page() {
@@ -62,6 +71,10 @@ export default function FactureElectroniqueArtisan2026Page() {
             </Link>
           </div>
         </div>
+      </nav>
+
+      <nav aria-label="fil d'ariane" className="max-w-6xl mx-auto px-4 sm:px-6 pt-3 text-xs text-gray-400">
+        <Link href="/" className="hover:text-gray-600">Accueil</Link> / Facture électronique artisan 2026
       </nav>
 
       <main className="flex-1">
@@ -426,12 +439,20 @@ export default function FactureElectroniqueArtisan2026Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD_FAQ) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       {/* ── Footer ── */}
       <footer className="py-10 px-4 text-center text-sm text-blue-200" style={{ backgroundColor: "var(--navy-dark)" }}>
         <p className="font-extrabold text-white text-lg mb-1">Devis<span style={{ color: "var(--orange)" }}>Flow</span></p>
         <p className="mb-5 text-blue-300 text-sm">Le générateur de devis IA pour les artisans français</p>
         <div className="flex flex-wrap justify-center gap-5 text-xs text-blue-400 mb-5">
+          <Link href="/devis-plombier" className="hover:text-white transition-colors">Devis plombier</Link>
+          <Link href="/devis-electricien" className="hover:text-white transition-colors">Devis électricien</Link>
+          <Link href="/comparatif" className="hover:text-white transition-colors">Comparatif</Link>
+          <Link href="/cabinets-experts-comptables" className="hover:text-white transition-colors">Cabinets &amp; Groupements</Link>
           <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
           <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
           <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>

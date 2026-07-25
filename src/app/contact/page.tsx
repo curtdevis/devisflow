@@ -142,7 +142,7 @@ export default function ContactPage() {
               <p className="text-white text-2xl font-extrabold mb-1">
                 À partir de 299€<span className="text-base font-normal text-blue-200">/mois</span>
               </p>
-              <p className="text-blue-200 text-sm">Jusqu&apos;à 500 artisans gérés · Multi-utilisateurs · Marque blanche</p>
+              <p className="text-blue-200 text-sm">De quelques artisans à plusieurs dizaines · Multi-utilisateurs · Marque blanche</p>
             </div>
           </div>
 

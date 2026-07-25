@@ -62,10 +62,20 @@ const faqSchema = {
   ],
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://devis-flow.fr/" },
+    { "@type": "ListItem", position: 2, name: "Comparatif logiciels devis artisans", item: "https://devis-flow.fr/comparatif" },
+  ],
+};
+
 export default function ComparatifPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -82,6 +92,10 @@ export default function ComparatifPage() {
             </CheckoutButton>
           </div>
         </div>
+      </nav>
+
+      <nav aria-label="fil d'ariane" className="max-w-5xl mx-auto px-4 pt-3 text-xs text-gray-400">
+        <Link href="/" className="hover:text-gray-600">Accueil</Link> / Comparatif
       </nav>
 
       <main className="max-w-5xl mx-auto px-4 py-16">
@@ -221,7 +235,7 @@ export default function ComparatifPage() {
               {
                 icon: "📱",
                 title: "Conçu pour le téléphone",
-                desc: "73% des artisans créent leurs devis depuis leur téléphone sur le chantier. DevisFlow est mobile-first. Obat et Henrri sont pensés pour le bureau.",
+                desc: "De nombreux artisans créent leurs devis depuis leur téléphone, directement sur le chantier. DevisFlow est mobile-first. Obat et Henrri sont pensés pour le bureau.",
               },
               {
                 icon: "🧠",
@@ -296,6 +310,9 @@ export default function ComparatifPage() {
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
           <p>© 2026 DevisFlow — Nathan Makambo · SIRET 920 513 330 00018</p>
           <div className="flex gap-4">
+            <Link href="/devis-plombier" className="hover:text-gray-700 transition-colors">Devis plombier</Link>
+            <Link href="/cabinets-experts-comptables" className="hover:text-gray-700 transition-colors">Cabinets &amp; Groupements</Link>
+            <Link href="/facture-electronique-artisan-2026" className="hover:text-gray-700 transition-colors">Facture électronique 2026</Link>
             <Link href="/mentions-legales" className="hover:text-gray-700 transition-colors">Mentions légales</Link>
             <Link href="/cgu" className="hover:text-gray-700 transition-colors">CGU</Link>
             <Link href="/contact" className="hover:text-gray-700 transition-colors">Contact</Link>

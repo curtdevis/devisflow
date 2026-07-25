@@ -2,9 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
 const TRIAL_DAYS = 7;
+
+// @supabase/supabase-js is ~54KB gzip — dynamic import keeps it out of the
+// shared marketing-page bundle, fetched only when this button is clicked.
+async function getSupabaseClient() {
+  const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+  return createSupabaseBrowser();
+}
 
 interface Props {
   className?: string;
@@ -19,7 +25,7 @@ export default function CheckoutButton({ className, style, children }: Props) {
   async function handleClick() {
     setLoading(true);
     try {
-      const supabase = createSupabaseBrowser();
+      const supabase = await getSupabaseClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       // Not logged in → register

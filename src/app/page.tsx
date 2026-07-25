@@ -76,7 +76,7 @@ const FEATURES = [
     title: "Vitesse × 22",
     sub: "30 s vs 2 heures",
     desc: "L'IA génère un devis complet — lignes, TVA, mentions légales — en moins de 30 secondes. Vous répondez avant vos concurrents.",
-    badge: "73% des clients choisissent le premier artisan qui répond",
+    badge: "Les clients choisissent souvent le premier artisan qui répond",
   },
   {
     num: "02",
@@ -114,7 +114,7 @@ export default function HomePage() {
             <a href="#tarifs" className="hover:text-gray-900 transition-colors">Tarifs</a>
             <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
             <Link href="/comparatif" className="hover:text-gray-900 transition-colors">Comparatif</Link>
-            <Link href="/contact" className="hover:text-gray-900 transition-colors">Agences</Link>
+            <Link href="/cabinets-experts-comptables" className="hover:text-gray-900 transition-colors">Agences</Link>
           </div>
           <div className="flex items-center gap-3">
             <NavAuth />
@@ -187,7 +187,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                    <video autoPlay muted loop playsInline preload="metadata" className="w-full block" style={{ maxHeight: "400px", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
+                    <video autoPlay muted loop playsInline preload="metadata" className="w-full block" style={{ maxHeight: "400px", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
                     <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md tracking-wide">DÉMO IA</div>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function HomePage() {
             </div>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200 bg-black">
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-              <video controls muted loop playsInline preload="none" className="w-full block" style={{ maxHeight: "65vh", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
+              <video controls muted loop playsInline preload="none" className="w-full block" style={{ maxHeight: "65vh", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
             </div>
             <div className="mt-6 text-center">
               <CheckoutButton className="btn-orange inline-flex items-center text-white font-bold px-7 py-3.5 rounded-xl shadow-lg transition-all hover:opacity-90 text-sm" style={{ backgroundColor: "var(--orange)" }}>
@@ -538,7 +538,7 @@ export default function HomePage() {
               {[
                 { title: "Comment créer un devis professionnel rapidement ?", body: "Un bon devis artisan doit inclure vos coordonnées, celles du client, le détail des travaux, le coût de la main d'œuvre et des matériaux. Avec DevisFlow, l'IA génère tout en 30 secondes depuis votre téléphone.", href: null },
                 { title: "Facturation électronique 2026 : ce qu'il faut savoir", body: "Dès septembre 2026, la facturation électronique est obligatoire pour toutes les entreprises françaises. DevisFlow génère des devis au format structuré conforme, sans effort supplémentaire.", href: "/facture-electronique-artisan-2026" },
-                { title: "Comment relancer un client après un devis ?", body: "73% des devis non signés ne le sont pas par désintérêt, mais parce que le client a oublié. DevisFlow envoie des relances automatiques à J+3 et J+7 — vous gérez votre chantier, DevisFlow gère le suivi.", href: null },
+                { title: "Comment relancer un client après un devis ?", body: "Un devis non signé n'est souvent pas un refus : le client a simplement oublié d'y revenir. DevisFlow envoie des relances automatiques à J+3 et J+7 — vous gérez votre chantier, DevisFlow gère le suivi.", href: null },
               ].map(a => {
                 const Card = (
                   <article className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 h-full hover:border-gray-200 transition-colors">

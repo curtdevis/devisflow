@@ -47,6 +47,15 @@ const DEVIS_LINES = [
   { desc: "Main d'œuvre (4h × 50 €/h)", unit: "h", qty: 4, pu: 50, tva: 10 },
 ];
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://devis-flow.fr/" },
+    { "@type": "ListItem", position: 2, name: "Devis Électricien", item: "https://devis-flow.fr/devis-electricien" },
+  ],
+};
+
 export default function DevisElectricienPage() {
   const totalHT = DEVIS_LINES.reduce((acc, l) => acc + l.qty * l.pu, 0);
   const totalTVA = DEVIS_LINES.reduce((acc, l) => acc + l.qty * l.pu * (l.tva / 100), 0);
@@ -57,6 +66,10 @@ export default function DevisElectricienPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
       {/* ── Navbar ── */}
@@ -78,6 +91,10 @@ export default function DevisElectricienPage() {
             </Link>
           </div>
         </div>
+      </nav>
+
+      <nav aria-label="fil d'ariane" className="max-w-5xl mx-auto px-4 pt-3 text-xs text-gray-400">
+        <Link href="/" className="hover:text-gray-600">Accueil</Link> / Devis Électricien
       </nav>
 
       <main className="flex-1">
@@ -463,6 +480,8 @@ export default function DevisElectricienPage() {
           <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
           <Link href="/comparatif" className="hover:text-white transition-colors">Comparatif</Link>
           <Link href="/devis-plombier" className="hover:text-white transition-colors">Devis plombier</Link>
+          <Link href="/cabinets-experts-comptables" className="hover:text-white transition-colors">Cabinets &amp; Groupements</Link>
+          <Link href="/facture-electronique-artisan-2026" className="hover:text-white transition-colors">Facture électronique 2026</Link>
           <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
           <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
           <Link href="/contact" className="hover:text-white transition-colors">Contact</Link>
