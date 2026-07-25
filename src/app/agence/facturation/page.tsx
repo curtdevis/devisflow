@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import { ARTISAN_LIMIT, DEVIS_LIMIT_PER_MONTH } from "@/lib/agence-limits";
 
 export default async function FacturationPage() {
   const supabase = await createSupabaseServer();
@@ -31,9 +32,6 @@ export default async function FacturationPage() {
 
   const plan = (profile as { plan?: string } | null)?.plan ?? "free";
   const isActive = plan === "paid";
-
-  const ARTISAN_LIMIT = 50;
-  const DEVIS_LIMIT_PER_MONTH = 500;
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">

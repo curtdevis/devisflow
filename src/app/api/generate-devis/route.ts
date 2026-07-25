@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
+import { DEVIS_LIMIT_PER_MONTH } from "@/lib/agence-limits";
 
 const client = new Anthropic();
 
@@ -283,15 +284,47 @@ export async function POST(req: NextRequest) {
   if (userId) {
     const admin = createSupabaseAdmin();
 
-    // Trial enforcement — mirrors the client-side check in devis/page.tsx,
-    // but this one can't be bypassed by calling the API directly.
     const { data: profile } = await admin
       .from("profiles")
-      .select("plan")
+      .select("plan, agence_id")
       .eq("id", userId)
       .single();
 
-    if (profile?.plan !== "paid" && userCreatedAt) {
+    // Artisans linked to a paid Cabinet & Groupement account are covered by
+    // the agence's subscription — their own 7-day trial clock doesn't apply,
+    // but the agence's shared monthly devis cap does.
+    let coveredByAgence = false;
+    if (profile?.agence_id) {
+      const { data: agenceProfile } = await admin
+        .from("profiles")
+        .select("plan")
+        .eq("id", profile.agence_id)
+        .single<{ plan: string | null }>();
+      coveredByAgence = agenceProfile?.plan === "paid";
+    }
+
+    if (coveredByAgence) {
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      const { data: agenceArtisans } = await admin
+        .from("profiles")
+        .select("id")
+        .eq("agence_id", profile!.agence_id);
+      const artisanIds = (agenceArtisans ?? []).map((a: { id: string }) => a.id);
+      const { count: agenceDevisThisMonth } = await admin
+        .from("devis")
+        .select("id", { count: "exact", head: true })
+        .in("user_id", artisanIds)
+        .gte("created_at", monthStart);
+
+      if ((agenceDevisThisMonth ?? 0) >= DEVIS_LIMIT_PER_MONTH) {
+        return NextResponse.json(
+          { error: `Limite mensuelle de ${DEVIS_LIMIT_PER_MONTH} devis atteinte pour votre cabinet. Contactez votre administrateur.` },
+          { status: 403 }
+        );
+      }
+    } else if (profile?.plan !== "paid" && userCreatedAt) {
+      // Trial enforcement — mirrors the client-side check in devis/page.tsx,
+      // but this one can't be bypassed by calling the API directly.
       const daysSinceSignup = (Date.now() - new Date(userCreatedAt).getTime()) / (1000 * 60 * 60 * 24);
       if (daysSinceSignup > TRIAL_DAYS) {
         return NextResponse.json(

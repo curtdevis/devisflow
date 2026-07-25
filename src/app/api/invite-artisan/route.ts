@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin, requirePaidAgence } from "@/lib/supabase-server";
+import { ARTISAN_LIMIT } from "@/lib/agence-limits";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -54,6 +55,29 @@ export async function POST(request: NextRequest) {
   const agenceId = user.id;
 
   const admin = createSupabaseAdmin();
+
+  // Cap portfolio size: linked artisans + invitations still pending count
+  // against the limit, so a burst of invites can't overshoot it once accepted.
+  // Invitations older than 7 days (the stated validity in the invite email)
+  // no longer count — otherwise dead, never-accepted invites would silently
+  // eat into the cap forever.
+  const inviteValidityCutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const [{ count: linkedCount }, { count: pendingCount }] = await Promise.all([
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("agence_id", agenceId),
+    admin
+      .from("agence_invitations")
+      .select("id", { count: "exact", head: true })
+      .eq("agence_id", agenceId)
+      .is("accepted_at", null)
+      .gte("created_at", inviteValidityCutoff),
+  ]);
+
+  if ((linkedCount ?? 0) + (pendingCount ?? 0) >= ARTISAN_LIMIT) {
+    return NextResponse.json(
+      { error: `Limite de ${ARTISAN_LIMIT} artisans atteinte pour votre portefeuille. Contactez le support pour l'augmenter.` },
+      { status: 403 }
+    );
+  }
 
   // Create invitation record
   const token = crypto.randomUUID();
