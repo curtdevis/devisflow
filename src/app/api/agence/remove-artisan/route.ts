@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import { createSupabaseServer, createSupabaseAdmin, requirePaidAgence } from "@/lib/supabase-server";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
@@ -19,18 +19,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const admin = createSupabaseAdmin();
-
-  // Verify the requester is an agence
-  const { data: agenceProfile } = await admin
-    .from("profiles")
-    .select("account_type")
-    .eq("id", user.id)
-    .single();
-
-  if (agenceProfile?.account_type !== "agence") {
+  if (!(await requirePaidAgence(user.id))) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
   }
+
+  const admin = createSupabaseAdmin();
 
   // Verify the artisan actually belongs to this agence
   const { data: artisanProfile } = await admin

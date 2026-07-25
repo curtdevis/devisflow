@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 interface DevisRow {
   id: string;
   created_at: string;
@@ -11,16 +13,49 @@ interface DevisRow {
   profession: string | null;
 }
 
+interface AgenceRow {
+  id: string;
+  email: string;
+  full_name: string | null;
+  company_name: string | null;
+  plan: string | null;
+  created_at: string;
+}
+
 export default function AdminClient({
   devis,
   userCount,
+  agences,
 }: {
   devis: DevisRow[];
   userCount: number;
+  agences: AgenceRow[];
 }) {
+  const [agenceList, setAgenceList] = useState(agences);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+
   async function handleLogout() {
     await fetch("/api/admin/login", { method: "DELETE" });
     window.location.reload();
+  }
+
+  async function setAgencePlan(id: string, plan: "paid" | "free") {
+    setPendingId(id);
+    try {
+      const res = await fetch("/api/admin/agences/activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, plan }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Erreur lors de la mise à jour.");
+        return;
+      }
+      setAgenceList((prev) => prev.map((a) => (a.id === id ? { ...a, plan } : a)));
+    } finally {
+      setPendingId(null);
+    }
   }
 
   const uniqueArtisans = new Set(devis.map((d) => d.artisan_email ?? d.artisan_name)).size;
@@ -55,6 +90,81 @@ export default function AdminClient({
               <p className="text-3xl font-bold" style={{ color: s.color }}>{s.value}</p>
             </div>
           ))}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="font-bold text-[#1e3a5f]">Comptes Cabinet &amp; Groupement ({agenceList.length})</h2>
+            <p className="text-xs text-gray-400">Vente sur devis — activez l&apos;accès après paiement confirmé</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                  <th className="text-left px-4 py-3">Inscrit le</th>
+                  <th className="text-left px-4 py-3">Cabinet</th>
+                  <th className="text-left px-4 py-3">Email</th>
+                  <th className="text-left px-4 py-3">Statut</th>
+                  <th className="text-right px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {agenceList.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                      Aucun compte agence pour l&apos;instant
+                    </td>
+                  </tr>
+                ) : (
+                  agenceList.map((a) => {
+                    const isPaid = a.plan === "paid";
+                    return (
+                      <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+                          {new Date(a.created_at).toLocaleDateString("fr-FR", {
+                            day: "2-digit", month: "2-digit", year: "2-digit",
+                          })}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-[#1e3a5f]">
+                          {a.company_name ?? a.full_name ?? "—"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{a.email}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                              isPaid ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                            }`}
+                          >
+                            {isPaid ? "Actif" : "En attente"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {isPaid ? (
+                            <button
+                              onClick={() => setAgencePlan(a.id, "free")}
+                              disabled={pendingId === a.id}
+                              className="text-xs font-semibold text-gray-500 hover:text-red-600 underline disabled:opacity-50"
+                            >
+                              Désactiver
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setAgencePlan(a.id, "paid")}
+                              disabled={pendingId === a.id}
+                              className="text-xs font-bold text-white px-3 py-1.5 rounded-lg disabled:opacity-50"
+                              style={{ backgroundColor: "#f97316" }}
+                            >
+                              {pendingId === a.id ? "…" : "Activer"}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow overflow-hidden">

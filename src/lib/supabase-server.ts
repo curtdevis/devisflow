@@ -28,6 +28,20 @@ export const createSupabaseAdmin = () =>
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
+/** Cabinet & Groupement is sold "sur devis" (manual sales process, activated
+ * from /admin) — API routes that perform agence actions (inviting artisans,
+ * managing invitations) must check this directly, since the plan gate on
+ * /agence/* only blocks page rendering, not the underlying routes. */
+export async function requirePaidAgence(userId: string): Promise<boolean> {
+  const admin = createSupabaseAdmin();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("account_type, plan")
+    .eq("id", userId)
+    .single<{ account_type: string; plan: string | null }>();
+  return profile?.account_type === "agence" && profile?.plan === "paid";
+}
+
 export type Profile = {
   id: string;
   email: string;

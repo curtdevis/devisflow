@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import { createSupabaseServer, createSupabaseAdmin, requirePaidAgence } from "@/lib/supabase-server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -30,6 +30,10 @@ export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+  if (!(await requirePaidAgence(user.id))) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+  }
 
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });

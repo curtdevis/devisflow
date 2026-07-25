@@ -11,9 +11,9 @@ export default async function FacturationPage() {
 
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name, company_name, plan, lemon_squeezy_customer_portal")
+    .select("full_name, company_name, plan")
     .eq("id", user.id)
-    .single<{ full_name: string | null; company_name: string | null; plan: string | null; lemon_squeezy_customer_portal: string | null }>();
+    .single<{ full_name: string | null; company_name: string | null; plan: string | null }>();
 
   const { data: artisans } = await admin
     .from("profiles")
@@ -30,7 +30,7 @@ export default async function FacturationPage() {
   const devisCount = (devisThisMonth as unknown as { count: number } | null)?.count ?? 0;
 
   const plan = (profile as { plan?: string } | null)?.plan ?? "free";
-  const portalUrl = (profile as { lemon_squeezy_customer_portal?: string } | null)?.lemon_squeezy_customer_portal ?? "";
+  const isActive = plan === "paid";
 
   const ARTISAN_LIMIT = 50;
   const DEVIS_LIMIT_PER_MONTH = 500;
@@ -51,7 +51,7 @@ export default async function FacturationPage() {
           <div className="flex items-start justify-between flex-wrap gap-4">
             <div>
               <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-white/20 mb-3">
-                ABONNEMENT ACTIF
+                {isActive ? "ABONNEMENT ACTIF" : "EN ATTENTE DE VALIDATION"}
               </span>
               <h2 className="text-2xl font-extrabold mb-1">Cabinet &amp; Groupement</h2>
               <p className="text-blue-200 text-sm">Accès illimité au tableau de bord agence</p>
@@ -76,32 +76,12 @@ export default async function FacturationPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            {portalUrl ? (
-              <a
-                href={portalUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors"
-                style={{ color: "#1e3a5f" }}
-              >
-                Gérer mon abonnement →
-              </a>
-            ) : (
-              <a
-                href="https://app.lemonsqueezy.com/my-orders"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors"
-                style={{ color: "#1e3a5f" }}
-              >
-                Gérer mon abonnement →
-              </a>
-            )}
             <a
               href="mailto:support@devis-flow.fr"
-              className="inline-flex items-center gap-2 bg-white/10 text-white font-semibold text-sm px-5 py-2.5 rounded-xl hover:bg-white/20 transition-colors"
+              className="inline-flex items-center gap-2 bg-white font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-blue-50 transition-colors"
+              style={{ color: "#1e3a5f" }}
             >
-              Contacter le support
+              Contacter le support →
             </a>
           </div>
         </div>
@@ -152,21 +132,19 @@ export default async function FacturationPage() {
         </div>
       </div>
 
-      {/* Invoice history placeholder */}
+      {/* Invoice history */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h3 className="font-bold text-gray-900 mb-4">Historique des factures</h3>
         <div className="py-8 text-center">
           <p className="text-3xl mb-3">🧾</p>
-          <p className="text-gray-500 text-sm mb-1">Les factures sont gérées par Lemon Squeezy</p>
-          <p className="text-gray-400 text-xs mb-4">Accédez à votre portail client pour télécharger vos factures</p>
+          <p className="text-gray-500 text-sm mb-1">Facturation gérée manuellement par notre équipe</p>
+          <p className="text-gray-400 text-xs mb-4">Vos factures vous sont envoyées par email chaque mois</p>
           <a
-            href={portalUrl || "https://app.lemonsqueezy.com/my-orders"}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:support@devis-flow.fr"
             className="inline-flex items-center gap-2 text-white font-semibold text-sm px-5 py-2.5 rounded-xl"
             style={{ backgroundColor: "#f97316" }}
           >
-            Voir mes factures →
+            Demander une facture →
           </a>
         </div>
       </div>
