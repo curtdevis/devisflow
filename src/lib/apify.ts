@@ -2,9 +2,11 @@
 // run-sync-get-dataset-items endpoint — runs the actor and returns the scraped
 // items in a single blocking HTTP call, no polling needed.
 //
-// NOTE: field names below match the actor's documented output as of writing.
-// Verify against a real run (Apify Console > Actor > Runs) on first use —
-// scraper actors occasionally rename fields across major versions.
+// Field names and the "scrapeContacts" input option (the real name of the
+// email-enrichment add-on, confirmed against the actor's input schema and a
+// live run's raw dataset output on 2026-07-28) — a prior "scrapeContactDetails"
+// param name was silently ignored by the actor, so no place ever got an
+// `emails` array and every prospect was filtered out downstream.
 
 const ACTOR_ID = "compass~crawler-google-places";
 const APIFY_API_BASE = "https://api.apify.com/v2";
@@ -29,8 +31,8 @@ interface RawApifyPlace {
   totalScore?: number | null;
   reviewsCount?: number | null;
   description?: string | null;
-  // Present when the actor's "scrapeContactDetails" input option is enabled —
-  // it visits the linked website and extracts contact info.
+  // Present when the actor's "scrapeContacts" input option is enabled — it
+  // visits the linked website and extracts contact info.
   emails?: string[];
 }
 
@@ -51,7 +53,7 @@ export async function scrapeGoogleMapsCategory(
         locationQuery: "Île-de-France, France",
         maxCrawledPlacesPerSearch: maxResults,
         language: "fr",
-        scrapeContactDetails: true,
+        scrapeContacts: true,
       }),
     }
   );
