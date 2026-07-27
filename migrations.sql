@@ -45,3 +45,8 @@ CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON invoices(user_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_devis_id ON invoices(devis_id);
 CREATE INDEX IF NOT EXISTS idx_clients_user_id ON clients(user_id);
 CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(user_id, name);
+
+-- Partial index for reminder cron — only scans rows where reminders are due
+CREATE INDEX IF NOT EXISTS idx_devis_reminder_next_date
+  ON devis(reminder_next_date)
+  WHERE reminder_enabled = true;

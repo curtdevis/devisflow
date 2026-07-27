@@ -1,33 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { createSupabaseServer, createSupabaseAdmin, requirePaidAgence } from "@/lib/supabase-server";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+async function getAuthenticatedUser() {
+  const supabase = await createSupabaseServer();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
 // PATCH — resend an invitation
 export async function PATCH(request: NextRequest) {
+  const user = await getAuthenticatedUser();
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+  if (!(await requirePaidAgence(user.id))) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
-  const { token, agenceId, agenceName, email } = body as {
+  const { token, agenceName, email } = body as {
     token: string;
-    agenceId: string;
     agenceName: string;
     email: string;
   };
 
-  if (!token || !agenceId || !email) {
+  if (!token || !email) {
     return NextResponse.json({ error: "Paramètres manquants" }, { status: 400 });
   }
 
   const admin = createSupabaseAdmin();
+
+  // Verify the invitation belongs to this user
+  const { data: inv } = await admin
+    .from("agence_invitations")
+    .select("id")
+    .eq("token", token)
+    .eq("agence_id", user.id)
+    .single();
+
+  if (!inv) return NextResponse.json({ error: "Invitation introuvable" }, { status: 404 });
 
   // Reset created_at so it doesn't appear expired
   const { error: updateError } = await admin
     .from("agence_invitations")
     .update({ created_at: new Date().toISOString() })
     .eq("token", token)
-    .eq("agence_id", agenceId);
+    .eq("agence_id", user.id);
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
@@ -67,6 +89,13 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE — cancel an invitation
 export async function DELETE(request: NextRequest) {
+  const user = await getAuthenticatedUser();
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+  if (!(await requirePaidAgence(user.id))) {
+    return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
+  }
+
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Invalid body" }, { status: 400 });
 
@@ -77,7 +106,8 @@ export async function DELETE(request: NextRequest) {
   const { error } = await admin
     .from("agence_invitations")
     .delete()
-    .eq("token", token);
+    .eq("token", token)
+    .eq("agence_id", user.id); // ownership enforced
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

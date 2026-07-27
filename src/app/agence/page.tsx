@@ -1,16 +1,20 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { createSupabaseServer } from "@/lib/supabase-server";
-import OverviewClient from "./_components/OverviewClient";
 import { KPICard, EmptyState } from "./_components/OverviewCards";
 import { getOverviewData } from "./getOverviewData";
+
+// recharts is heavy and only needed here — dynamic import keeps it out of
+// the shared bundle that public marketing pages would otherwise inherit.
+const OverviewClient = dynamic(() => import("./_components/OverviewClient"));
 
 export default async function AgenceOverviewPage() {
   const supabase = await createSupabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/auth/login");
+  if (!user) redirect("/auth/login"); // layout already guards this, belt-and-suspenders
 
   const {
     artisanList,
@@ -20,6 +24,8 @@ export default async function AgenceOverviewPage() {
     kpiVolumePrev,
     activeArtisansThisMonth,
     activeArtisansPrevMonth,
+    kpiAcceptance,
+    kpiAcceptancePrev,
     chartData,
     topArtisans,
     recentDevis,
@@ -63,12 +69,11 @@ export default async function AgenceOverviewPage() {
         />
         <KPICard
           label="Taux d'acceptation"
-          value={0}
-          prev={0}
+          value={kpiAcceptance}
+          prev={kpiAcceptancePrev}
           isPercent
           icon="✅"
           color="#6366f1"
-          comingSoon
         />
       </div>
 

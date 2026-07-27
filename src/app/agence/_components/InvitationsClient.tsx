@@ -38,7 +38,7 @@ export default function InvitationsClient({
         const res = await fetch("/api/invite-artisan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: trimmed, agenceId, agenceName }),
+          body: JSON.stringify({ email: trimmed, agenceName }),
         });
         if (res.ok) {
           successCount++;
@@ -78,7 +78,7 @@ export default function InvitationsClient({
       const res = await fetch("/api/agence/invitations", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, agenceId, agenceName, email: invEmail }),
+        body: JSON.stringify({ token, agenceName, email: invEmail }),
       });
       if (res.ok) {
         toast.success("Invitation renvoyée !");

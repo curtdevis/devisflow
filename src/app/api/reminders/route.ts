@@ -7,6 +7,10 @@ const anthropic = new Anthropic();
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr";
 
+function esc(s: string | number | null | undefined): string {
+  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 // Called by Vercel cron — daily at 9:00 AM Europe/Paris (07:00 UTC)
 export async function GET(request: NextRequest) {
   // Verify cron secret (Vercel sets this automatically)
@@ -22,7 +26,7 @@ export async function GET(request: NextRequest) {
   const { data: dueDevis, error } = await admin
     .from("devis")
     .select(
-      "id, devis_number, artisan_name, artisan_email, client_name, client_email, total_ttc, reminder_frequency_days, reminder_max_count, reminder_count, reminder_tone"
+      "id, devis_number, artisan_name, artisan_email, client_name, client_email, total_ttc, reminder_frequency_days, reminder_max_count, reminder_count, reminder_tone, result_json"
     )
     .eq("reminder_enabled", true)
     .lte("reminder_next_date", now)
@@ -47,7 +51,7 @@ export async function GET(request: NextRequest) {
   let sent = 0;
   let errors = 0;
 
-  for (const devis of eligible) {
+  for (const devis of eligible as ReminderDevis[]) {
     try {
       const emailHtml = await generateReminderEmail(devis);
       const subject = buildSubject(devis.reminder_tone, devis.artisan_name, devis.reminder_count + 1);
@@ -101,15 +105,24 @@ function buildSubject(tone: string | null, artisanName: string, attempt: number)
   return `Relance devis — ${artisanName}`;
 }
 
-async function generateReminderEmail(devis: {
+interface ReminderDevis {
+  id: string;
   devis_number: string | null;
   artisan_name: string;
   artisan_email: string | null;
   client_name: string;
+  client_email: string;
   total_ttc: number | null;
   reminder_tone: string | null;
   reminder_count: number;
-}): Promise<string> {
+  reminder_frequency_days: number | null;
+  reminder_max_count: number | null;
+  result_json: {
+    lines?: Array<{ description: string; quantity: number; unitPrice: number; total: number }>;
+  } | null;
+}
+
+async function generateReminderEmail(devis: ReminderDevis): Promise<string> {
   const toneMap: Record<string, string> = {
     professionnel: "professionnel et courtois",
     amical: "chaleureux et amical",
@@ -130,17 +143,56 @@ Informations :
 Génère UNIQUEMENT 2-3 phrases de corps d'email en HTML simple (balises <p> uniquement, pas de html/head/body).
 L'email commence par "Bonjour ${devis.client_name}," et finit par "Cordialement," suivi du nom de l'artisan.`;
 
+  const linesTable = buildLinesTable(devis);
+
   try {
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-haiku-4-6",
       max_tokens: 256,
       messages: [{ role: "user", content: prompt }],
     });
     const body = message.content[0].type === "text" ? message.content[0].text : fallbackBody(devis);
-    return wrapTemplate(body, devis.artisan_name, devis.artisan_email);
+    return wrapTemplate(body, linesTable, devis.artisan_name, devis.artisan_email);
   } catch {
-    return wrapTemplate(fallbackBody(devis), devis.artisan_name, devis.artisan_email);
+    return wrapTemplate(fallbackBody(devis), linesTable, devis.artisan_name, devis.artisan_email);
   }
+}
+
+function buildLinesTable(devis: ReminderDevis): string {
+  const lines = devis.result_json?.lines;
+  if (!lines || lines.length === 0) return "";
+
+  const rows = lines
+    .slice(0, 5)
+    .map(
+      (l) =>
+        `<tr>
+          <td style="padding:6px 12px;font-size:12px;color:#374151;border-bottom:1px solid #f3f4f6;">${esc(l.description)}</td>
+          <td style="padding:6px 12px;font-size:12px;color:#6b7280;text-align:right;border-bottom:1px solid #f3f4f6;">${esc(l.quantity)}</td>
+          <td style="padding:6px 12px;font-size:12px;font-weight:600;color:#111827;text-align:right;border-bottom:1px solid #f3f4f6;">${l.total.toFixed(2)} €</td>
+        </tr>`
+    )
+    .join("");
+
+  return `
+<div style="margin:16px 0;background:#ffffff;border-radius:8px;border:1px solid #e5e7eb;overflow:hidden;">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr style="background:#1e3a5f;">
+        <th style="padding:8px 12px;text-align:left;font-size:10px;color:#fff;text-transform:uppercase;letter-spacing:0.5px;">Prestation</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;color:#fff;text-transform:uppercase;letter-spacing:0.5px;width:40px;">Qté</th>
+        <th style="padding:8px 12px;text-align:right;font-size:10px;color:#fff;text-transform:uppercase;letter-spacing:0.5px;width:90px;">Total HT</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr style="background:#f9fafb;">
+        <td colspan="2" style="padding:8px 12px;font-size:13px;font-weight:700;color:#1e3a5f;">Total TTC</td>
+        <td style="padding:8px 12px;font-size:13px;font-weight:700;color:#1e3a5f;text-align:right;">${devis.total_ttc ? `${devis.total_ttc.toFixed(2)} €` : "—"}</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>`;
 }
 
 function fallbackBody(devis: {
@@ -149,24 +201,25 @@ function fallbackBody(devis: {
   artisan_name: string;
   total_ttc: number | null;
 }): string {
-  return `<p>Bonjour ${devis.client_name},</p>
-<p>Je me permets de revenir vers vous au sujet du devis <strong>${devis.devis_number ?? ""}</strong>${devis.total_ttc ? ` d'un montant de ${devis.total_ttc.toFixed(2)} € TTC` : ""} que je vous ai adressé récemment.</p>
+  return `<p>Bonjour ${esc(devis.client_name)},</p>
+<p>Je me permets de revenir vers vous au sujet du devis <strong>${esc(devis.devis_number)}</strong>${devis.total_ttc ? ` d'un montant de ${devis.total_ttc.toFixed(2)} € TTC` : ""} que je vous ai adressé récemment.</p>
 <p>N'hésitez pas à me contacter pour toute question.</p>
-<p>Cordialement,<br>${devis.artisan_name}</p>`;
+<p>Cordialement,<br>${esc(devis.artisan_name)}</p>`;
 }
 
-function wrapTemplate(body: string, artisanName: string, artisanEmail: string | null): string {
+function wrapTemplate(body: string, linesTable: string, artisanName: string, artisanEmail: string | null): string {
   return `
-<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
+<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
   <p style="font-size:20px;font-weight:900;color:#1e3a5f;margin:0 0 24px;">
     Devis<span style="color:#f97316;">Flow</span>
   </p>
-  <div style="background:#ffffff;border-radius:12px;padding:24px;margin-bottom:24px;line-height:1.7;color:#374151;">
+  <div style="background:#ffffff;border-radius:12px;padding:24px;margin-bottom:16px;line-height:1.7;color:#374151;">
     ${body}
+    ${linesTable}
   </div>
   <hr style="border:none;border-top:2px solid #f97316;margin:0 0 16px;" />
   <p style="color:#6b7280;font-size:13px;margin:0;">
-    ${artisanName}${artisanEmail ? ` &nbsp;·&nbsp; <a href="mailto:${artisanEmail}" style="color:#f97316;text-decoration:none;">${artisanEmail}</a>` : ""}
+    ${esc(artisanName)}${artisanEmail ? ` &nbsp;·&nbsp; <a href="mailto:${esc(artisanEmail)}" style="color:#f97316;text-decoration:none;">${esc(artisanEmail)}</a>` : ""}
   </p>
   <p style="color:#9ca3af;font-size:11px;margin-top:16px;">
     Cet email a été envoyé via <a href="${SITE_URL}" style="color:#9ca3af;">DevisFlow</a>

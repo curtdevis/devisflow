@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
-export const LS_CHECKOUT =
-  "https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5";
+const TRIAL_DAYS = 7;
+
+// @supabase/supabase-js is ~54KB gzip — dynamic import keeps it out of the
+// shared marketing-page bundle, fetched only when this button is clicked.
+async function getSupabaseClient() {
+  const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+  return createSupabaseBrowser();
+}
 
 interface Props {
   className?: string;
@@ -15,27 +20,74 @@ interface Props {
 
 export default function CheckoutButton({ className, style, children }: Props) {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    createSupabaseBrowser()
-      .auth.getUser()
-      .then(({ data: { user } }) => setUserId(user?.id ?? null));
-  }, []);
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const supabase = await getSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-  function handleClick() {
-    if (userId) {
-      // Pass user_id as custom data so the webhook can link the payment to the account
-      const url = `${LS_CHECKOUT}?checkout[custom][user_id]=${userId}`;
+      // Not logged in → register
+      if (!user) {
+        router.push("/auth/register");
+        return;
+      }
+
+      // Check plan + trial status from profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("plan, created_at")
+        .eq("id", user.id)
+        .single();
+
+      const plan = profile?.plan ?? "free";
+
+      // Already paid → go straight to the app
+      if (plan === "paid") {
+        router.push("/devis");
+        return;
+      }
+
+      // Trial still active → go to the app
+      const createdAt = profile?.created_at ?? user.created_at;
+      const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
+      if (daysSince <= TRIAL_DAYS) {
+        router.push("/devis");
+        return;
+      }
+
+      // Trial expired → open checkout
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Erreur lors de l'ouverture du paiement. Réessayez.");
+        return;
+      }
+
+      const { url } = await res.json();
       window.open(url, "_blank", "noopener,noreferrer");
-    } else {
-      router.push("/auth/register?redirect=checkout");
+    } catch {
+      alert("Une erreur est survenue. Réessayez.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <button type="button" onClick={handleClick} className={className} style={style}>
-      {children}
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className={className}
+      style={style}
+    >
+      {loading ? "Chargement…" : children}
     </button>
   );
 }

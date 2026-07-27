@@ -10,6 +10,8 @@ export interface OverviewData {
   kpiVolumePrev: number;
   activeArtisansThisMonth: number;
   activeArtisansPrevMonth: number;
+  kpiAcceptance: number;
+  kpiAcceptancePrev: number;
   chartData: { date: string; label: string; count: number }[];
   topArtisans: ArtisanStat[];
   recentDevis: DevisRow[];
@@ -40,7 +42,7 @@ export async function getOverviewData(agenceUserId: string): Promise<OverviewDat
     artisanIds.length > 0
       ? await admin
           .from("devis")
-          .select("id, created_at, devis_number, artisan_name, client_name, total_ttc, profession, user_id")
+          .select("id, created_at, devis_number, artisan_name, client_name, total_ttc, profession, user_id, signed_at")
           .in("user_id", artisanIds)
           .order("created_at", { ascending: false })
           .limit(500)
@@ -61,6 +63,13 @@ export async function getOverviewData(agenceUserId: string): Promise<OverviewDat
 
   const activeArtisansThisMonth = new Set(devisThisMonth.map((d) => d.user_id)).size;
   const activeArtisansPrevMonth = new Set(devisPrevMonth.map((d) => d.user_id)).size;
+
+  const kpiAcceptance = devisThisMonth.length > 0
+    ? Math.round((devisThisMonth.filter((d) => d.signed_at).length / devisThisMonth.length) * 100)
+    : 0;
+  const kpiAcceptancePrev = devisPrevMonth.length > 0
+    ? Math.round((devisPrevMonth.filter((d) => d.signed_at).length / devisPrevMonth.length) * 100)
+    : 0;
 
   // ── Chart: devis per day last 30 days ─────────────────────────────────────
   const chartData = Array.from({ length: 30 }, (_, i) => {
@@ -113,6 +122,8 @@ export async function getOverviewData(agenceUserId: string): Promise<OverviewDat
     kpiVolumePrev,
     activeArtisansThisMonth,
     activeArtisansPrevMonth,
+    kpiAcceptance,
+    kpiAcceptancePrev,
     chartData,
     topArtisans,
     recentDevis,

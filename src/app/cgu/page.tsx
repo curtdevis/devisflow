@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Conditions Générales d'Utilisation — DevisFlow",
   description: "Conditions Générales d'Utilisation du logiciel DevisFlow.",
+  alternates: { canonical: "/cgu" },
 };
 
 export default function CguPage() {
@@ -55,8 +56,8 @@ export default function CguPage() {
           <section>
             <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>3. Accès au service et essai gratuit</h2>
             <p>
-              DevisFlow propose une période d&apos;essai gratuite de <strong>7 jours</strong> sans
-              carte bancaire requise. À l&apos;issue de la période d&apos;essai, l&apos;accès aux
+              DevisFlow propose une période d&apos;essai gratuite de <strong>7 jours</strong>.
+              À l&apos;issue de la période d&apos;essai, l&apos;accès aux
               fonctionnalités premium nécessite la souscription à un abonnement payant.
             </p>
             <p className="mt-2">

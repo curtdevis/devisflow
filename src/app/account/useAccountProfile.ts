@@ -41,6 +41,11 @@ export function useAccountProfile() {
   const [savingPwd, setSavingPwd] = useState(false);
   const [pwdMsg, setPwdMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
+  // Delete account
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [showDeleteSection, setShowDeleteSection] = useState(false);
+
   useEffect(() => {
     async function load() {
       const supabase = createSupabaseBrowser();
@@ -144,6 +149,25 @@ export function useAccountProfile() {
     setUploadingAvatar(false);
   }
 
+  async function deleteAccount() {
+    if (deleteConfirm !== "SUPPRIMER") return;
+    setDeletingAccount(true);
+    try {
+      const res = await fetch("/api/account/delete", { method: "DELETE" });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        alert(d.error ?? "Erreur lors de la suppression.");
+        setDeletingAccount(false);
+        return;
+      }
+      await createSupabaseBrowser().auth.signOut();
+      router.push("/?deleted=1");
+    } catch {
+      alert("Une erreur est survenue.");
+      setDeletingAccount(false);
+    }
+  }
+
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
     setPwdMsg(null);
@@ -199,5 +223,11 @@ export function useAccountProfile() {
     savingPwd,
     pwdMsg,
     changePassword,
+    deleteConfirm,
+    setDeleteConfirm,
+    deletingAccount,
+    showDeleteSection,
+    setShowDeleteSection,
+    deleteAccount,
   };
 }

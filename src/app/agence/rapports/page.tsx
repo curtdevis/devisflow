@@ -1,8 +1,12 @@
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
 import type { MonthlyData, ArtisanRapport } from "@/types/agence";
-import RapportsClient from "../_components/RapportsClient";
+
+// recharts is heavy and only needed here — dynamic import keeps it out of
+// the shared bundle that public marketing pages would otherwise inherit.
+const RapportsClient = dynamic(() => import("../_components/RapportsClient"));
 
 export default async function RapportsPage() {
   const supabase = await createSupabaseServer();

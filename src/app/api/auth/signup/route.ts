@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -23,29 +24,71 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Champs obligatoires manquants" }, { status: 400 });
   }
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!EMAIL_RE.test(email)) {
+    return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
+  }
+  if (password.length < 8) {
+    return NextResponse.json({ error: "Le mot de passe doit contenir au moins 8 caractères." }, { status: 400 });
+  }
+  if (fullName.trim().length < 2 || fullName.length > 100) {
+    return NextResponse.json({ error: "Le nom doit contenir entre 2 et 100 caractères." }, { status: 400 });
+  }
+  if (!["artisan", "agence"].includes(accountType)) {
+    return NextResponse.json({ error: "Type de compte invalide." }, { status: 400 });
+  }
+
   const admin = createSupabaseAdmin();
 
   // Generate signup link — creates user + returns confirmation URL (no default Supabase email sent)
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: "signup",
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-        account_type: accountType,
-        invite_token: inviteToken ?? null,
-        redirect_after: redirectAfter ?? null,
-        artisan_count: artisanCount ?? null,
+  // Retried once on a transient JWT signature error: Supabase's Auth API
+  // intermittently rejects with "bad_jwt" unrelated to this request
+  // (reproduced directly against their Admin API, outside our app) — an
+  // immediate retry resolves it almost every time.
+  type GenerateLinkResult = Awaited<ReturnType<typeof admin.auth.admin.generateLink>>;
+  let linkData: GenerateLinkResult["data"] | null = null;
+  let linkError: GenerateLinkResult["error"] | null = null;
+  let retriedAfterJwtError = false;
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const result = await admin.auth.admin.generateLink({
+      type: "signup",
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          account_type: accountType,
+          invite_token: inviteToken ?? null,
+          redirect_after: redirectAfter ?? null,
+          artisan_count: artisanCount ?? null,
+        },
+        redirectTo: `${SITE_URL}/auth/callback`,
       },
-      redirectTo: `${SITE_URL}/auth/callback`,
-    },
-  });
+    });
+    linkData = result.data;
+    linkError = result.error;
+
+    // "bad_jwt" is Supabase's stable error code for the transient signature
+    // failure — more robust than matching on their message text.
+    const isTransientJwtError = linkError?.code === "bad_jwt";
+    if (!linkError || !isTransientJwtError || attempt === 2) break;
+    retriedAfterJwtError = true;
+    await new Promise((resolve) => setTimeout(resolve, 300));
+  }
 
   if (linkError) {
-    const msg = linkError.message.includes("already registered")
-      ? "Cet email est déjà utilisé. Connectez-vous."
-      : linkError.message;
+    const isDuplicate = linkError.message.includes("already registered");
+    // If "already registered" only shows up after our own JWT retry, the
+    // first attempt may have created the account before failing to return a
+    // token — that's not the same as a genuine pre-existing account, so
+    // don't tell the user to just log in with a password they never set.
+    const msg =
+      isDuplicate && retriedAfterJwtError
+        ? "Un problème temporaire est survenu. Réessayez dans quelques instants ou contactez le support si ça persiste."
+        : isDuplicate
+        ? "Cet email est déjà utilisé. Connectez-vous."
+        : linkError.message;
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 
@@ -100,6 +143,13 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+
+  notifyAdmin(
+    `Nouvel utilisateur DevisFlow — ${email}`,
+    `<p><strong>Nom :</strong> ${escapeHtml(fullName)}</p>
+     <p><strong>Email :</strong> ${escapeHtml(email)}</p>
+     <p><strong>Type de compte :</strong> ${escapeHtml(accountType)}</p>`
+  );
 
   return NextResponse.json({ success: true });
 }

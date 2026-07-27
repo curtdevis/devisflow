@@ -21,6 +21,7 @@ export type DevisRow = {
   total_ttc: number | null;
   profession: string | null;
   user_id: string;
+  signed_at: string | null;
 };
 
 export type ArtisanFull = {

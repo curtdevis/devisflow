@@ -134,6 +134,46 @@ const DRAFT_KEY = "devisflow_draft_v2";
 
 const inputClass = "w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1e3a5f] focus:border-transparent transition-shadow text-sm";
 
+// ── Trial banner ───────────────────────────────────────────────────────────────
+
+function TrialBanner({ plan }: { plan: string | null }) {
+  const [daysLeft, setDaysLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (plan === "paid") return;
+    createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      const daysSince = (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24);
+      const left = Math.max(0, Math.ceil(TRIAL_DAYS - daysSince));
+      setDaysLeft(left);
+    });
+  }, [plan]);
+
+  if (plan === "paid" || daysLeft === null) return null;
+
+  return (
+    <div className={`mb-6 rounded-xl px-4 py-3 text-sm flex items-center justify-between gap-4 flex-wrap ${daysLeft <= 1 ? "bg-red-50 border border-red-200" : "bg-orange-50 border border-orange-200"}`}>
+      <span style={{ color: daysLeft <= 1 ? "#b91c1c" : "#9a3412" }}>
+        {daysLeft <= 1
+          ? "⚠️ Dernier jour d'essai ! Passez à Artisan Solo pour continuer."
+          : `⏳ Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? "s" : ""} restant${daysLeft > 1 ? "s" : ""}`}
+      </span>
+      <a
+        href="#"
+        onClick={(e) => {
+          e.preventDefault();
+          createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
+            if (user) window.open(`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`, "_blank", "noopener,noreferrer");
+          });
+        }}
+        className="text-xs font-bold px-3 py-1.5 rounded-lg text-white whitespace-nowrap"
+        style={{ backgroundColor: "#f97316" }}
+      >
+        Passer à Artisan Solo →
+      </a>
+    </div>
+  );
+}
+
 // ── Progress bar ───────────────────────────────────────────────────────────────
 
 function ProgressBar({ step }: { step: number }) {
@@ -176,10 +216,14 @@ function ProgressBar({ step }: { step: number }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
+const TRIAL_DAYS = 7;
+
 export default function DevisPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [profession, setProfession] = useState("");
+  const [trialExpired, setTrialExpired] = useState(false);
+  const [userPlan, setUserPlan] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>({
     clientName: "", clientAddress: "", clientPhone: "", clientEmail: "",
     workDescription: "", materials: [{ ...EMPTY_MATERIAL }],
@@ -199,6 +243,15 @@ export default function DevisPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
 
+  // ── API intégrations ─────────────────────────────────────────────────────────
+  const [clientAddrSuggestions, setClientAddrSuggestions] = useState<string[]>([]);
+  const [showClientAddr, setShowClientAddr] = useState(false);
+  const [artisanAddrSuggestions, setArtisanAddrSuggestions] = useState<string[]>([]);
+  const [showArtisanAddr, setShowArtisanAddr] = useState(false);
+  const [siretLoading, setSiretLoading] = useState(false);
+  const [siretFound, setSiretFound] = useState<boolean | null>(null);
+  const [holidayWarning, setHolidayWarning] = useState<string | null>(null);
+
   // Load draft first (sync) then profile — profile only fills artisan fields that are still empty
   useEffect(() => {
     // 1. Restore draft from localStorage
@@ -215,14 +268,33 @@ export default function DevisPage() {
     async function init() {
       const supabase = createSupabaseBrowser();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+
+      // Require login before generating a quote
+      if (!user) {
+        router.push("/auth/register?redirect=devis");
+        return;
+      }
+
       const type = user.user_metadata?.account_type;
       setDashboardHref(type === "agence" ? "/agence" : "/dashboard");
 
+      type ProfileRow = { full_name: string | null; siret: string | null; phone: string | null; address: string | null; email: string | null; plan: string | null };
       const [{ data: profile }, clientsRes] = await Promise.all([
-        supabase.from("profiles").select("full_name,siret,phone,address,email").eq("id", user.id).single(),
+        supabase.from("profiles").select("full_name,siret,phone,address,email,plan").eq("id", user.id).single<ProfileRow>(),
         fetch("/api/clients"),
       ]);
+
+      const plan = profile?.plan ?? "free";
+      setUserPlan(plan);
+
+      // Trial enforcement: free users get TRIAL_DAYS days from account creation
+      if (plan !== "paid") {
+        const createdAt = new Date(user.created_at).getTime();
+        const daysSince = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+        if (daysSince > TRIAL_DAYS) {
+          setTrialExpired(true);
+        }
+      }
 
       if (profile) {
         setForm(prev => ({
@@ -263,6 +335,77 @@ export default function DevisPage() {
     const filtered = clients.filter(c => c.name.toLowerCase().includes(q));
     setClientSuggestions(filtered.slice(0, 5));
   }, [form.clientName, clients]);
+
+  // API Adresse — client address autocomplete (api-adresse.data.gouv.fr)
+  useEffect(() => {
+    if (form.clientAddress.length < 4) { setClientAddrSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(form.clientAddress)}&limit=5`);
+        const data = await res.json();
+        setClientAddrSuggestions(data.features?.map((f: { properties: { label: string } }) => f.properties.label) ?? []);
+      } catch { setClientAddrSuggestions([]); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [form.clientAddress]);
+
+  // API Adresse — artisan address autocomplete
+  useEffect(() => {
+    if (form.artisanAddress.length < 4) { setArtisanAddrSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(form.artisanAddress)}&limit=5`);
+        const data = await res.json();
+        setArtisanAddrSuggestions(data.features?.map((f: { properties: { label: string } }) => f.properties.label) ?? []);
+      } catch { setArtisanAddrSuggestions([]); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [form.artisanAddress]);
+
+  // recherche-entreprises.api.gouv.fr — SIRET lookup → autofill artisan info
+  useEffect(() => {
+    const siret = form.artisanSiret.replace(/[\s.]/g, "");
+    if (siret.length !== 14) { setSiretFound(null); setSiretLoading(false); return; }
+    setSiretLoading(true);
+    setSiretFound(null);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${siret}&per_page=1`);
+        const data = await res.json();
+        const first = data.results?.[0];
+        if (first) {
+          const nom = first.nom_raison_sociale || first.nom_complet || "";
+          const addr = [first.siege?.adresse, first.siege?.code_postal, first.siege?.libelle_commune].filter(Boolean).join(" ");
+          setForm(prev => ({
+            ...prev,
+            artisanName: prev.artisanName || nom,
+            artisanAddress: prev.artisanAddress || addr,
+          }));
+          setSiretFound(true);
+        } else {
+          setSiretFound(false);
+        }
+      } catch { setSiretFound(false); }
+      finally { setSiretLoading(false); }
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [form.artisanSiret]);
+
+  // Nager.Date — public holiday warning on validity end date
+  useEffect(() => {
+    if (!form.validityDays) { setHolidayWarning(null); return; }
+    const end = new Date();
+    end.setDate(end.getDate() + parseInt(form.validityDays));
+    const year = end.getFullYear();
+    const dateStr = `${year}-${String(end.getMonth() + 1).padStart(2, "0")}-${String(end.getDate()).padStart(2, "0")}`;
+    fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/FR`)
+      .then(r => r.json())
+      .then((holidays: Array<{ date: string; localName: string }>) => {
+        const match = holidays.find(h => h.date === dateStr);
+        setHolidayWarning(match ? match.localName : null);
+      })
+      .catch(() => setHolidayWarning(null));
+  }, [form.validityDays]);
 
   // Real-time totals
   const materialsTotal = calculateMaterialsSubtotal(
@@ -369,6 +512,43 @@ export default function DevisPage() {
     return <DevisPreview result={result} onReset={() => router.push(dashboardHref)} />;
   }
 
+  // Trial expired wall — show upgrade prompt instead of form
+  if (trialExpired && userPlan !== "paid") {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#f9fafb" }}>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-md w-full p-8 text-center">
+          <div className="text-5xl mb-4">⏳</div>
+          <h1 className="text-2xl font-extrabold mb-2" style={{ color: "#1e3a5f" }}>
+            Votre essai gratuit est terminé
+          </h1>
+          <p className="text-gray-500 text-sm mb-6 leading-relaxed">
+            Vous avez profité de {TRIAL_DAYS} jours d'accès gratuit. Passez à l'abonnement Artisan Solo pour continuer à générer des devis sans limite.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
+                if (user) {
+                  window.open(`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`, "_blank", "noopener,noreferrer");
+                }
+              });
+            }}
+            className="w-full py-4 rounded-xl text-white font-extrabold text-base shadow-md transition-all hover:scale-[1.02] active:scale-95 mb-3"
+            style={{ backgroundColor: "#f97316" }}
+          >
+            Passer à Artisan Solo — 29 €/mois →
+          </button>
+          <Link
+            href="/dashboard"
+            className="block text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ← Retour au tableau de bord
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const quickItems = QUICK_ITEMS[profession] ?? [];
 
   return (
@@ -396,6 +576,9 @@ export default function DevisPage() {
           <h1 className="text-2xl font-extrabold mb-1" style={{ color: "var(--navy)" }}>Nouveau devis</h1>
           <p className="text-gray-500 text-sm">Complétez les 3 étapes — votre devis IA sera prêt en 30 secondes.</p>
         </div>
+
+        {/* Trial banner for free users */}
+        <TrialBanner plan={userPlan} />
 
         <ProgressBar step={step} />
 
@@ -442,18 +625,37 @@ export default function DevisPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">SIRET *</label>
-                    <input type="text" required placeholder="123 456 789 00012" value={form.artisanSiret}
-                      onChange={e => updateField("artisanSiret", e.target.value)} className={inputClass} />
+                    <div className="relative">
+                      <input type="text" required placeholder="123 456 789 00012" value={form.artisanSiret}
+                        onChange={e => updateField("artisanSiret", e.target.value)} className={`${inputClass} pr-20`} />
+                      {siretLoading && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 animate-pulse pointer-events-none">Recherche…</span>}
+                      {siretFound === true && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-green-600 pointer-events-none">✓ Trouvé</span>}
+                      {siretFound === false && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-red-400 pointer-events-none">✗ Inconnu</span>}
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                     <input type="tel" placeholder="06 12 34 56 78" value={form.artisanPhone}
                       onChange={e => updateField("artisanPhone", e.target.value)} className={inputClass} />
                   </div>
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 relative">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Adresse</label>
                     <input type="text" placeholder="12 rue des Artisans, 75011 Paris" value={form.artisanAddress}
-                      onChange={e => updateField("artisanAddress", e.target.value)} className={inputClass} />
+                      onChange={e => { updateField("artisanAddress", e.target.value); setShowArtisanAddr(true); }}
+                      onFocus={() => setShowArtisanAddr(true)}
+                      onBlur={() => setTimeout(() => setShowArtisanAddr(false), 150)}
+                      className={inputClass} autoComplete="off" />
+                    {showArtisanAddr && artisanAddrSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-20 mt-1 overflow-hidden">
+                        {artisanAddrSuggestions.map(addr => (
+                          <button key={addr} type="button"
+                            onClick={() => { updateField("artisanAddress", addr); setArtisanAddrSuggestions([]); setShowArtisanAddr(false); }}
+                            className="suggestion-item w-full text-left px-4 py-2.5 text-sm text-gray-700 border-b border-gray-50 last:border-0">
+                            📍 {addr}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Email professionnel</label>
@@ -519,10 +721,24 @@ export default function DevisPage() {
                     )}
                   </div>
 
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 relative">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
                     <input type="text" required placeholder="12 rue des Fleurs, 75001 Paris" value={form.clientAddress}
-                      onChange={e => updateField("clientAddress", e.target.value)} className={inputClass} />
+                      onChange={e => { updateField("clientAddress", e.target.value); setShowClientAddr(true); }}
+                      onFocus={() => setShowClientAddr(true)}
+                      onBlur={() => setTimeout(() => setShowClientAddr(false), 150)}
+                      className={inputClass} autoComplete="off" />
+                    {showClientAddr && clientAddrSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-20 mt-1 overflow-hidden">
+                        {clientAddrSuggestions.map(addr => (
+                          <button key={addr} type="button"
+                            onClick={() => { updateField("clientAddress", addr); setClientAddrSuggestions([]); setShowClientAddr(false); }}
+                            className="suggestion-item w-full text-left px-4 py-2.5 text-sm text-gray-700 border-b border-gray-50 last:border-0">
+                            📍 {addr}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
@@ -650,6 +866,9 @@ export default function DevisPage() {
                       <option value="60">60 jours</option>
                       <option value="90">90 jours</option>
                     </select>
+                    {holidayWarning && (
+                      <p className="mt-1.5 text-xs text-amber-600 font-medium">⚠️ La date d&apos;expiration tombe un jour férié ({holidayWarning})</p>
+                    )}
                   </div>
                 </div>
               </section>

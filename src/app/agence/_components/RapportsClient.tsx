@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "sonner";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, Cell,
@@ -24,7 +23,72 @@ export default function RapportsClient({
   const [activeChart, setActiveChart] = useState<"devis" | "volume">("devis");
 
   function exportPDF() {
-    toast.info("Export PDF en préparation... Fonctionnalité bientôt disponible.");
+    const now = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+    const totalVolumeStr = totalVolume.toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+
+    const monthRows = monthlyData.map((m) => `
+      <tr>
+        <td>${m.label}</td>
+        <td style="text-align:right">${m.devisCount}</td>
+        <td style="text-align:right">${m.volume.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €</td>
+      </tr>`).join("");
+
+    const artisanRows = artisanRapports.map((a) => `
+      <tr>
+        <td>${a.name}</td>
+        <td>${a.profession ?? "—"}</td>
+        <td style="text-align:right">${a.devisTotal}</td>
+        <td style="text-align:right">${a.volumeTotal.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €</td>
+      </tr>`).join("");
+
+    const profRows = professionData.map((p) => `
+      <tr>
+        <td>${p.name}</td>
+        <td style="text-align:right">${p.count}</td>
+        <td style="text-align:right">${p.volume.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €</td>
+      </tr>`).join("");
+
+    const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<title>Rapport DevisFlow — ${now}</title>
+<style>
+  body{font-family:Arial,sans-serif;color:#1e3a5f;padding:32px;font-size:13px}
+  h1{font-size:22px;margin-bottom:4px}
+  h2{font-size:15px;margin:28px 0 8px;border-bottom:2px solid #f97316;padding-bottom:4px;color:#f97316}
+  .meta{color:#6b7280;font-size:12px;margin-bottom:24px}
+  .kpis{display:flex;gap:24px;margin-bottom:8px}
+  .kpi{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:12px 20px}
+  .kpi-val{font-size:20px;font-weight:800;color:#1e3a5f}
+  .kpi-lbl{font-size:11px;color:#9ca3af}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#1e3a5f;color:#fff;padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  td{padding:7px 12px;border-bottom:1px solid #f3f4f6}
+  tr:nth-child(even){background:#f9fafb}
+  @media print{body{padding:16px}}
+</style></head><body>
+<h1>Rapport de performance — DevisFlow</h1>
+<p class="meta">Généré le ${now} · 12 derniers mois</p>
+<div class="kpis">
+  <div class="kpi"><div class="kpi-val">${totalDevis}</div><div class="kpi-lbl">Devis générés</div></div>
+  <div class="kpi"><div class="kpi-val">${totalVolumeStr} €</div><div class="kpi-lbl">Volume TTC total</div></div>
+  ${bestMonth && bestMonth.volume > 0 ? `<div class="kpi"><div class="kpi-val">${bestMonth.label}</div><div class="kpi-lbl">Meilleur mois · ${bestMonth.volume.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €</div></div>` : ""}
+</div>
+<h2>Évolution mensuelle</h2>
+<table><thead><tr><th>Mois</th><th style="text-align:right">Devis</th><th style="text-align:right">Volume TTC</th></tr></thead>
+<tbody>${monthRows}</tbody></table>
+<h2>Performance par artisan</h2>
+<table><thead><tr><th>Artisan</th><th>Métier</th><th style="text-align:right">Devis</th><th style="text-align:right">Volume TTC</th></tr></thead>
+<tbody>${artisanRows}</tbody></table>
+<h2>Répartition par métier</h2>
+<table><thead><tr><th>Métier</th><th style="text-align:right">Devis</th><th style="text-align:right">Volume TTC</th></tr></thead>
+<tbody>${profRows}</tbody></table>
+</body></html>`;
+
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
   }
 
   const totalDevis = monthlyData.reduce((s, m) => s + m.devisCount, 0);

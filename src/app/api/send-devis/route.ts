@@ -1,7 +1,12 @@
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+function esc(s: string | number | null | undefined): string {
+  return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 
 interface DevisLine {
   description: string;
@@ -13,10 +18,11 @@ interface DevisLine {
 interface SendDevisRequest {
   recipientEmail: string;
   devis: {
+    id?: string | null;
     devisNumber: string;
     date: string;
     validUntil: string;
-    artisan: { name: string; siret: string };
+    artisan: { name: string; siret: string; email?: string };
     client: { name: string; address: string; phone: string; email: string };
     lines: DevisLine[];
     subtotalHT: number;
@@ -42,12 +48,52 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Données manquantes." }, { status: 400 });
   }
 
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!EMAIL_REGEX.test(recipientEmail)) {
+    return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
+  }
+
+  // Verify ownership: if devis has an ID, check it exists; if no ID, require auth (prevent email relay)
+  if (devis.id) {
+    const { data: devisExists } = await createSupabaseAdmin()
+      .from("devis")
+      .select("id")
+      .eq("id", devis.id)
+      .single();
+    if (!devisExists) {
+      return NextResponse.json({ error: "Devis introuvable." }, { status: 404 });
+    }
+  } else {
+    const supabaseServer = await createSupabaseServer();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+    }
+  }
+
+  // Rate limit: max 10 email sends per hour for authenticated users
+  try {
+    const supabaseServer = await createSupabaseServer();
+    const { data: { user } } = await supabaseServer.auth.getUser();
+    if (user) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await createSupabaseAdmin()
+        .from("devis")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("created_at", oneHourAgo);
+      if ((count ?? 0) >= 10) {
+        return NextResponse.json({ error: "Limite atteinte : 10 envois par heure." }, { status: 429 });
+      }
+    }
+  } catch { /* non-authenticated send — allowed */ }
+
   const linesRows = devis.lines
     .map(
       (line, i) => `
       <tr style="background: ${i % 2 === 0 ? "#f9fafb" : "#ffffff"};">
-        <td style="padding: 10px 14px; color: #374151; font-size: 13px; border-bottom: 1px solid #e5e7eb;">${line.description}</td>
-        <td style="padding: 10px 14px; text-align: right; color: #6b7280; font-size: 13px; border-bottom: 1px solid #e5e7eb;">${line.quantity}</td>
+        <td style="padding: 10px 14px; color: #374151; font-size: 13px; border-bottom: 1px solid #e5e7eb;">${esc(line.description)}</td>
+        <td style="padding: 10px 14px; text-align: right; color: #6b7280; font-size: 13px; border-bottom: 1px solid #e5e7eb;">${esc(line.quantity)}</td>
         <td style="padding: 10px 14px; text-align: right; color: #6b7280; font-size: 13px; border-bottom: 1px solid #e5e7eb;">${line.unitPrice.toFixed(2)} €</td>
         <td style="padding: 10px 14px; text-align: right; font-weight: 600; color: #111827; font-size: 13px; border-bottom: 1px solid #e5e7eb;">${line.total.toFixed(2)} €</td>
       </tr>`
@@ -57,7 +103,7 @@ export async function POST(req: NextRequest) {
   const notesBlock = devis.notes
     ? `<div style="margin: 24px 0; padding: 14px 18px; background: #f3f4f6; border-left: 4px solid #1e3a5f; border-radius: 4px;">
         <p style="margin: 0 0 4px; font-size: 11px; font-weight: 700; color: #1e3a5f; text-transform: uppercase; letter-spacing: 0.05em;">Notes</p>
-        <p style="margin: 0; font-size: 13px; color: #4b5563; line-height: 1.6;">${devis.notes}</p>
+        <p style="margin: 0; font-size: 13px; color: #4b5563; line-height: 1.6;">${esc(devis.notes)}</p>
        </div>`
     : "";
 
@@ -78,9 +124,9 @@ export async function POST(req: NextRequest) {
 
     <!-- Intro -->
     <div style="padding: 28px 36px 0;">
-      <p style="font-size: 15px; color: #111827; margin: 0 0 6px;">Bonjour <strong>${devis.client.name}</strong>,</p>
+      <p style="font-size: 15px; color: #111827; margin: 0 0 6px;">Bonjour <strong>${esc(devis.client.name)}</strong>,</p>
       <p style="font-size: 14px; color: #6b7280; line-height: 1.6; margin: 0 0 24px;">
-        Veuillez trouver ci-dessous votre devis <strong>N° ${devis.devisNumber}</strong> établi par <strong>${devis.artisan.name}</strong>,
+        Veuillez trouver ci-dessous votre devis <strong>N° ${esc(devis.devisNumber)}</strong> établi par <strong>${esc(devis.artisan.name)}</strong>,
         d'un montant total de <strong style="color: #1e3a5f;">${devis.totalTTC.toFixed(2)} € TTC</strong>.
       </p>
 
@@ -88,11 +134,11 @@ export async function POST(req: NextRequest) {
       <div style="display: flex; gap: 24px; margin-bottom: 28px; flex-wrap: wrap;">
         <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; flex: 1; min-width: 140px;">
           <p style="margin: 0 0 2px; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Émis le</p>
-          <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111827;">${devis.date}</p>
+          <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111827;">${esc(devis.date)}</p>
         </div>
         <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 18px; flex: 1; min-width: 140px;">
           <p style="margin: 0 0 2px; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Valable jusqu'au</p>
-          <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111827;">${devis.validUntil}</p>
+          <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111827;">${esc(devis.validUntil)}</p>
         </div>
         <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 12px 18px; flex: 1; min-width: 140px;">
           <p style="margin: 0 0 2px; font-size: 11px; color: #c2410c; text-transform: uppercase; letter-spacing: 0.05em;">Total TTC</p>
@@ -140,15 +186,16 @@ export async function POST(req: NextRequest) {
     </div>
 
     <!-- Signature -->
-    <div style="padding: 24px 36px; margin: 0 36px 28px; border: 1px dashed #d1d5db; border-radius: 8px; background: #fafafa;">
-      <p style="margin: 0 0 8px; font-size: 11px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em;">Bon pour accord — Signature client</p>
-      <p style="margin: 0; font-size: 13px; color: #6b7280;">Pour accepter ce devis, veuillez répondre à cet email avec la mention <strong>« Bon pour accord »</strong> ou signer et retourner ce document.</p>
+    <div style="padding: 24px 36px; margin: 0 36px 28px; border: 2px solid #f97316; border-radius: 12px; background: #fff7ed; text-align: center;">
+      <p style="margin: 0 0 12px; font-size: 13px; color: #374151;">Pour accepter ce devis, cliquez sur le bouton ci-dessous :</p>
+      ${devis.id ? `<a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}" style="display:inline-block;background:#f97316;color:#ffffff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">✍️ Signer le devis en ligne →</a>` : `<p style="margin:0;font-size:13px;color:#6b7280;">Répondez à cet email avec la mention <strong>« Bon pour accord »</strong>.</p>`}
+      ${devis.id ? `<p style="margin: 12px 0 0; font-size: 11px; color: #9ca3af;">Ou copiez ce lien : ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}</p>` : ""}
     </div>
 
     <!-- Legal -->
     <div style="padding: 0 36px 28px;">
       <p style="font-size: 11px; color: #9ca3af; line-height: 1.6; border-top: 1px solid #e5e7eb; padding-top: 16px; margin: 0;">
-        ${devis.legalMentions}
+        ${esc(devis.legalMentions)}
       </p>
     </div>
 
@@ -163,17 +210,14 @@ export async function POST(req: NextRequest) {
 </html>`;
 
   try {
-    const response = await resend.emails.send({
+    await resend.emails.send({
       from: "DevisFlow <noreply@devis-flow.fr>",
       to: recipientEmail,
-      replyTo: devis.artisan.name
-        ? undefined
-        : undefined,
+      replyTo: devis.artisan.email ?? undefined,
       subject: `Votre devis N° ${devis.devisNumber} — ${devis.totalTTC.toFixed(2)} € TTC`,
       html: emailHtml,
     });
 
-    console.log("[send-devis] Email sent:", response);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[send-devis] Resend error:", err);

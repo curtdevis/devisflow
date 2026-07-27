@@ -48,15 +48,32 @@ export function DevisPreview({ result, onReset }: { result: DevisResult; onReset
   }
 
   function openWhatsApp() {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    const text = encodeURIComponent(`Bonjour ${result.client.name}, voici votre devis DevisFlow : ${url}`);
-    window.open(`https://wa.me/?text=${text}`, "_blank");
+    const siteUrl = "https://devis-flow.fr";
+    const signLink = result.id ? `${siteUrl}/sign/${result.id}` : siteUrl;
+    const text = encodeURIComponent(
+      `Bonjour ${result.client.name},\n\nVeuillez trouver ci-joint votre devis N° ${result.devisNumber} d'un montant de ${result.totalTTC.toFixed(2)} € TTC, établi par ${result.artisan.name}.\n\nValable jusqu'au ${result.validUntil}.\n\nPour visualiser et signer en ligne : ${signLink}`
+    );
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   }
 
-  function handleSign(dataUrl: string) {
+  async function handleSign(dataUrl: string) {
+    const now = new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
     setSignatureData(dataUrl);
-    setSignedAt(new Date().toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }));
+    setSignedAt(now);
     setShowSignature(false);
+
+    // Persist signature to DB if devis has an id
+    if (result.id) {
+      try {
+        await fetch(`/api/devis/${result.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ signature_data: dataUrl, signed_at: new Date().toISOString(), status: "signed" }),
+        });
+      } catch {
+        // Non-blocking — signature is still visible locally
+      }
+    }
   }
 
   async function convertToInvoice() {
@@ -138,7 +155,7 @@ export function DevisPreview({ result, onReset }: { result: DevisResult; onReset
                 ✍️ <span className="hidden sm:inline">Signer</span>
               </button>
             )}
-            {!invoiceNumber && result.id && (
+            {!invoiceNumber && result.id && signatureData && (
               <button onClick={convertToInvoice} disabled={convertingInvoice}
                 className="text-sm font-semibold px-3 py-2 rounded-lg text-white disabled:opacity-60" style={{ backgroundColor: "#7c3aed" }}>
                 {convertingInvoice ? "…" : "🧾 Facture"}
@@ -267,7 +284,7 @@ export function DevisPreview({ result, onReset }: { result: DevisResult; onReset
           <div className="grid sm:grid-cols-2 gap-8 mt-10 pt-8 border-t border-gray-200">
             <div>
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-3">Bon pour accord — Signature client</p>
-              {signatureData ? (
+              {signatureData?.startsWith("data:image/png;base64,") ? (
                 <div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={signatureData} alt="Signature client" className="max-h-20 border border-gray-100 rounded" />

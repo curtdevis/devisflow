@@ -1,6 +1,6 @@
 import Link from "next/link";
 import NavAuth from "./_components/NavAuth";
-import CheckoutButton, { LS_CHECKOUT } from "./_components/CheckoutButton";
+import CheckoutButton from "./_components/CheckoutButton";
 
 const LOCK_ICON = (
   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -32,7 +32,7 @@ const PLANS = [
       "Conformité e-facture 2026",
     ],
     cta: "Commencer l'essai gratuit 7 jours",
-    href: LS_CHECKOUT,
+    href: "checkout",
     highlighted: true,
     badge: "Le plus populaire",
     showLsNote: true,
@@ -55,61 +55,52 @@ const PLANS = [
     highlighted: false,
     badge: null,
     showLsNote: false,
+    learnMoreHref: "/cabinets-experts-comptables",
   },
 ];
 
 const FAQS = [
-  { q: "Comment fonctionne l'essai gratuit ?", a: "L'essai gratuit de 7 jours vous donne accès à toutes les fonctionnalités de DevisFlow. Aucune carte bancaire requise. Vous pouvez annuler à tout moment, sans engagement." },
+  { q: "Comment fonctionne l'essai gratuit ?", a: "Créez votre compte gratuitement en 30 secondes. Vous accédez à toutes les fonctionnalités pendant 7 jours. À l'issue de l'essai, un abonnement à 29 €/mois est proposé pour continuer. Vous choisissez librement, sans engagement." },
   { q: "Mes devis sont-ils conformes à la réglementation 2026 ?", a: "Oui. Tous les devis générés par DevisFlow sont au format professionnel PDF structuré, prêts pour la réglementation de facturation électronique 2026." },
-  { q: "Comment fonctionne la relance automatique ?", a: "Si votre client n'a pas répondu à votre devis, DevisFlow lui envoie automatiquement un email de relance à J+3 puis à J+7. Personnalisable ou désactivable à tout moment." },
+  { q: "Comment fonctionne la relance automatique ?", a: "Si votre client n'a pas répondu, DevisFlow lui envoie automatiquement des emails de relance selon la fréquence que vous choisissez (tous les 2, 3, 5 ou 7 jours). Nombre de relances et ton (professionnel, amical, urgent) configurables. Désactivable à tout moment." },
   { q: "Puis-je utiliser DevisFlow depuis mon téléphone ?", a: "Absolument. DevisFlow est conçu mobile-first. Créez un devis depuis le chantier en 30 secondes, envoyez-le par WhatsApp directement." },
   { q: "L'IA comprend-elle mon métier ?", a: "Oui. DevisFlow est formé sur les métiers du BTP : plomberie, électricité, peinture, maçonnerie, menuiserie, chauffage, carrelage. Il connaît les prix du marché et les mentions légales spécifiques." },
   { q: "Puis-je convertir un devis en facture ?", a: "Oui. En un clic depuis votre tableau de bord, transformez n'importe quel devis accepté en facture professionnelle, avec numérotation automatique." },
 ];
 
+const FEATURES = [
+  {
+    num: "01",
+    accent: "#f97316",
+    bg: "rgba(249,115,22,0.08)",
+    title: "Vitesse × 22",
+    sub: "30 s vs 2 heures",
+    desc: "L'IA génère un devis complet — lignes, TVA, mentions légales — en moins de 30 secondes. Vous répondez avant vos concurrents.",
+    badge: "Les clients choisissent souvent le premier artisan qui répond",
+  },
+  {
+    num: "02",
+    accent: "#3b82f6",
+    bg: "rgba(59,130,246,0.08)",
+    title: "IA de métier",
+    sub: "Formée sur le BTP français",
+    desc: "Plomberie, électricité, peinture, maçonnerie… DevisFlow connaît vos prix, vos unités et vos mentions légales.",
+    badge: "8 corps de métier, prix du marché intégrés",
+  },
+  {
+    num: "03",
+    accent: "#10b981",
+    bg: "rgba(16,185,129,0.08)",
+    title: "Depuis le chantier",
+    sub: "100 % mobile",
+    desc: "Créez et envoyez votre devis depuis votre téléphone. Le client reçoit un lien pour signer en ligne immédiatement.",
+    badge: "Signature électronique + WhatsApp en 1 tap",
+  },
+];
+
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes typewriter {
-          0%,20% { width: 0; }
-          60%,100% { width: 100%; }
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-        @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(30px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes pulse-soft {
-          0%,100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-        @keyframes scan {
-          0% { top: 0; opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
-        .animate-fadein { animation: fadeInUp 0.7s ease both; }
-        .animate-fadein-d1 { animation: fadeInUp 0.7s 0.15s ease both; }
-        .animate-fadein-d2 { animation: fadeInUp 0.7s 0.3s ease both; }
-        .animate-fadein-d3 { animation: fadeInUp 0.7s 0.45s ease both; }
-        .mockup-line { animation: fadeInUp 0.5s ease both; }
-        .hero-glow {
-          background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(249,115,22,0.18) 0%, transparent 70%),
-                      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(96,165,250,0.12) 0%, transparent 60%);
-        }
-        .comparison-check { color: #10b981; font-size: 18px; }
-        .comparison-cross { color: #ef4444; font-size: 18px; }
-        .comparison-partial { color: #f59e0b; font-size: 18px; }
-        .video-play:hover { transform: scale(1.08); }
-        .video-play { transition: transform 0.2s; }
-        .feature-card:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(15,23,42,0.12); }
-        .feature-card { transition: transform 0.2s, box-shadow 0.2s; }
-        .stat-number { font-variant-numeric: tabular-nums; }
-      `}</style>
 
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
@@ -117,17 +108,18 @@ export default function HomePage() {
           <Link href="/" className="text-xl font-extrabold tracking-tight" style={{ color: "var(--navy)" }}>
             Devis<span style={{ color: "var(--orange)" }}>Flow</span>
           </Link>
-          <div className="hidden md:flex items-center gap-7 text-sm text-gray-500 font-medium">
-            <a href="#pourquoi" className="hover:text-gray-900 transition-colors">Pourquoi DevisFlow</a>
-            <a href="#comment" className="hover:text-gray-900 transition-colors">Comment ça marche</a>
+          <div className="hidden md:flex items-center gap-6 text-sm text-gray-500 font-medium">
+            <a href="#pourquoi" className="hover:text-gray-900 transition-colors">Pourquoi</a>
+            <a href="#demo" className="hover:text-gray-900 transition-colors">Démo</a>
             <a href="#tarifs" className="hover:text-gray-900 transition-colors">Tarifs</a>
             <a href="#faq" className="hover:text-gray-900 transition-colors">FAQ</a>
-            <Link href="/contact" className="hover:text-gray-900 transition-colors">Agences</Link>
+            <Link href="/comparatif" className="hover:text-gray-900 transition-colors">Comparatif</Link>
+            <Link href="/cabinets-experts-comptables" className="hover:text-gray-900 transition-colors">Agences</Link>
           </div>
           <div className="flex items-center gap-3">
             <NavAuth />
             <CheckoutButton
-              className="text-sm font-bold text-white px-5 py-2.5 rounded-xl shadow-sm transition-all hover:shadow-md hover:scale-105"
+              className="text-sm font-bold text-white px-4 py-2 rounded-lg shadow-sm transition-all hover:opacity-90 active:scale-95"
               style={{ backgroundColor: "var(--orange)" }}
             >
               Essai gratuit →
@@ -137,109 +129,66 @@ export default function HomePage() {
       </nav>
 
       <main className="flex-1">
+
         {/* ── Hero ── */}
         <section className="relative overflow-hidden" style={{ backgroundColor: "var(--navy)" }}>
+          {/* Glow + grid */}
           <div className="absolute inset-0 hero-glow" />
-          {/* Subtle grid */}
-          <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-20 sm:py-28 lg:py-32">
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-16 sm:py-24 lg:py-28">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
 
-              {/* Left: copy */}
+              {/* Copy */}
               <div className="animate-fadein">
-                <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-7" style={{ backgroundColor: "rgba(249,115,22,0.15)", color: "var(--orange)" }}>
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-6" style={{ backgroundColor: "rgba(249,115,22,0.15)", color: "var(--orange)" }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-                  Nouveau — IA spécialisée BTP
+                  IA spécialisée BTP · Conforme 2026
                 </div>
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.08] tracking-tight mb-6">
-                  Votre devis pro<br />
-                  en <span style={{ color: "var(--orange)" }}>30 secondes</span><br />
-                  avec l&apos;IA
+
+                {/* H1 */}
+                <h1 className="text-white mb-5" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", lineHeight: 1.1, fontWeight: 800, letterSpacing: "-0.02em" }}>
+                  Votre devis pro en{" "}
+                  <span style={{ color: "var(--orange)" }}>30 secondes</span>
+                  <br />avec l&apos;IA
                 </h1>
-                <p className="text-lg text-blue-200 leading-relaxed mb-8 max-w-lg">
-                  DevisFlow génère des devis professionnels pour votre métier — depuis votre téléphone, sur le chantier.
-                  Envoyez, relancez, signez. Sans tableur. Sans effort.
+
+                <p className="text-blue-200 leading-relaxed mb-8 max-w-md" style={{ fontSize: "clamp(0.95rem, 2vw, 1.1rem)" }}>
+                  Générez, envoyez et signez des devis professionnels depuis votre téléphone — sur le chantier, en moins d&apos;une minute.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
+
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row gap-3">
                   <CheckoutButton
-                    className="inline-flex items-center justify-center gap-2 text-white font-bold text-lg px-8 py-4 rounded-xl shadow-lg transition-all hover:scale-105 hover:shadow-xl active:scale-95"
-                    style={{ backgroundColor: "var(--orange)" }}
+                    className="btn-orange inline-flex items-center justify-center font-bold text-white px-7 py-3.5 rounded-xl shadow-lg transition-all hover:opacity-90 hover:shadow-xl active:scale-95"
+                    style={{ backgroundColor: "var(--orange)", fontSize: "1rem" }}
                   >
                     Essai gratuit 7 jours →
                   </CheckoutButton>
-                  <a href="#comment" className="inline-flex items-center justify-center gap-2 text-white font-semibold text-base px-8 py-4 rounded-xl border border-white/25 hover:bg-white/10 transition-colors">
+                  <a href="#comment" className="inline-flex items-center justify-center font-semibold text-white px-7 py-3.5 rounded-xl border border-white/20 hover:bg-white/10 transition-colors text-sm">
                     Voir comment ça marche
                   </a>
                 </div>
-                <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-blue-300">
-                  <span className="flex items-center gap-1.5">{LOCK_ICON} Sans CB requise</span>
-                  <span>·</span>
-                  <span>Annulation à tout moment</span>
-                  <span>·</span>
-                  <span>Accès immédiat</span>
-                </div>
+
+                <p className="mt-4 text-sm text-blue-300/80">Sans carte bancaire · Annulation à tout moment</p>
               </div>
 
-              {/* Right: animated devis mockup */}
+              {/* Video mockup — desktop only */}
               <div className="animate-fadein-d1 hidden lg:block">
                 <div className="relative">
-                  {/* Glow behind card */}
-                  <div className="absolute -inset-4 rounded-3xl opacity-30" style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.4) 0%, transparent 70%)" }} />
-
-                  {/* Mockup card */}
-                  <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden border border-white/10">
-                    {/* Card header */}
-                    <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between" style={{ backgroundColor: "var(--navy)" }}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-400 opacity-80" />
-                        <div className="w-3 h-3 rounded-full bg-yellow-400 opacity-80" />
-                        <div className="w-3 h-3 rounded-full bg-green-400 opacity-80" />
-                      </div>
-                      <span className="text-xs text-blue-300 font-mono">devis-flow.fr/devis</span>
-                      <div />
-                    </div>
-
-                    {/* Fake form → devis transition */}
-                    <div className="p-6 space-y-3 bg-gray-50">
-                      {/* AI generation indicator */}
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: "var(--orange)" }}>✦</div>
-                        <span className="text-xs font-semibold text-gray-500">IA génère votre devis…</span>
-                        <span className="flex gap-0.5">
-                          {[0,1,2].map(i => <span key={i} className="w-1.5 h-1.5 rounded-full bg-orange-400" style={{ animation: `pulse-soft 1.2s ${i*0.2}s ease infinite` }} />)}
-                        </span>
-                      </div>
-
-                      {/* Fake devis lines appearing */}
-                      {[
-                        { label: "DEVIS", sub: "N° DEV-202601-4872", style: { animation: "fadeInUp 0.4s 0.2s both" } },
-                        { label: "Remplacement chauffe-eau 200L", sub: "1 × 450,00 €", style: { animation: "fadeInUp 0.4s 0.5s both" } },
-                        { label: "Main d'œuvre — 4h", sub: "4 × 55,00 €", style: { animation: "fadeInUp 0.4s 0.8s both" } },
-                        { label: "Raccordements et évacuations", sub: "1 × 80,00 €", style: { animation: "fadeInUp 0.4s 1.1s both" } },
-                      ].map((item, i) => (
-                        <div key={i} className="bg-white rounded-xl px-4 py-3 border border-gray-100 flex justify-between items-center" style={item.style}>
-                          <div>
-                            <p className="text-xs font-bold text-gray-800">{item.label}</p>
-                            <p className="text-xs text-gray-400">{item.sub}</p>
-                          </div>
-                          {i === 0 && <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: "var(--navy)" }}>Pro ✓</span>}
-                        </div>
-                      ))}
-
-                      {/* Total */}
-                      <div className="rounded-xl px-4 py-3 text-white flex justify-between items-center" style={{ animation: "fadeInUp 0.4s 1.4s both", backgroundColor: "var(--navy)" }}>
-                        <span className="text-sm font-bold">Total TTC</span>
-                        <span className="text-lg font-extrabold">750,00 €</span>
-                      </div>
-
-                      {/* Send button */}
-                      <div style={{ animation: "fadeInUp 0.4s 1.7s both" }}>
-                        <div className="w-full py-2.5 rounded-xl text-white text-sm font-bold text-center" style={{ backgroundColor: "var(--orange)" }}>
-                          📧 Envoyer au client →
-                        </div>
+                  <div className="absolute -inset-6 rounded-3xl opacity-30" style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.5) 0%, transparent 70%)" }} />
+                  <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                    <div className="flex items-center gap-1.5 px-4 py-2.5" style={{ backgroundColor: "rgba(15,23,42,0.95)" }}>
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-400/80" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-yellow-400/80" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-400/80" />
+                      <div className="flex-1 mx-3 h-5 rounded bg-white/10 flex items-center px-2">
+                        <span className="text-xs text-blue-300 font-mono">devis-flow.fr/devis</span>
                       </div>
                     </div>
+                    {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                    <video autoPlay muted loop playsInline preload="metadata" className="w-full block" style={{ maxHeight: "400px", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
+                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md tracking-wide">DÉMO IA</div>
                   </div>
                 </div>
               </div>
@@ -248,94 +197,57 @@ export default function HomePage() {
         </section>
 
         {/* ── Stats bar ── */}
-        <section className="border-b border-gray-100" style={{ backgroundColor: "var(--navy-dark)" }}>
-          <div className="max-w-5xl mx-auto px-4 py-5">
-            <div className="flex flex-wrap justify-center gap-8 sm:gap-16 text-center">
+        <div style={{ backgroundColor: "var(--navy-dark)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="max-w-4xl mx-auto px-4 py-5">
+            <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 sm:gap-x-16">
               {[
-                { value: "800+", label: "artisans actifs" },
-                { value: "30 s", label: "génération en moyenne" },
-                { value: "4,9/5", label: "satisfaction client" },
-                { value: "98%", label: "conformité e-facture 2026" },
+                { v: "30 s", l: "génération moyenne" },
+                { v: "7 jours", l: "essai gratuit" },
+                { v: "0€", l: "sans carte bancaire" },
+                { v: "29€", l: "par mois" },
               ].map(s => (
-                <div key={s.label}>
-                  <p className="text-2xl font-extrabold stat-number" style={{ color: "var(--orange)" }}>{s.value}</p>
-                  <p className="text-xs text-blue-300 mt-0.5">{s.label}</p>
+                <div key={s.l} className="text-center">
+                  <p className="text-2xl sm:text-3xl font-extrabold stat-number leading-none" style={{ color: "var(--orange)" }}>{s.v}</p>
+                  <p className="text-xs text-blue-300/70 mt-1 uppercase tracking-wider">{s.l}</p>
                 </div>
               ))}
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* ── Social proof avatars ── */}
-        <section className="py-5 px-4 bg-white border-b border-gray-100">
-          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-10 text-center">
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {["M","S","J","K","P"].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: "var(--navy)" }}>{i}</div>
-                ))}
-              </div>
-              <p className="text-sm text-gray-600"><strong className="text-gray-900">800+ artisans</strong> font confiance à DevisFlow</p>
-            </div>
-            <div className="hidden sm:block w-px h-8 bg-gray-200" />
-            <div className="flex items-center gap-2">
-              <span className="text-orange-400">★★★★★</span>
-              <p className="text-sm text-gray-600"><strong className="text-gray-900">4,9/5</strong> — 200+ avis vérifiés</p>
-            </div>
-            <div className="hidden sm:block w-px h-8 bg-gray-200" />
-            <p className="text-sm text-gray-600"><strong className="text-gray-900">15 000+</strong> devis générés</p>
+        {/* ── Social proof ── */}
+        <div className="bg-white border-b border-gray-100 py-3 px-4">
+          <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm text-gray-600">
+            <span><strong className="text-gray-900">Conforme e-facture 2026</strong></span>
+            <span className="text-gray-200 hidden sm:inline">|</span>
+            <span><strong className="text-gray-900">Données hébergées en UE</strong> (Supabase)</span>
+            <span className="text-gray-200 hidden sm:inline">|</span>
+            <span><strong className="text-gray-900">Paiement sécurisé</strong> par Lemon Squeezy</span>
           </div>
-        </section>
+        </div>
 
         {/* ── Pourquoi DevisFlow ── */}
-        <section id="pourquoi" className="py-24 px-4 bg-white">
+        <section id="pourquoi" className="py-16 sm:py-20 px-4 bg-white">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Pourquoi DevisFlow</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 leading-tight" style={{ color: "var(--navy)" }}>
+            <div className="text-center mb-12">
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--orange)" }}>Pourquoi DevisFlow</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold mb-3" style={{ color: "var(--navy)" }}>
                 L&apos;avantage IA pour les artisans
               </h2>
-              <p className="text-gray-500 text-lg max-w-xl mx-auto">
-                Conçu pour les artisans qui veulent gagner en efficacité sans sacrifier le professionnalisme.
+              <p className="text-gray-500 max-w-lg mx-auto text-sm sm:text-base">
+                Conçu pour gagner en efficacité sans sacrifier le professionnalisme.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-3 gap-8">
-              {[
-                {
-                  icon: "⚡",
-                  color: "#f97316",
-                  title: "Vitesse × 22",
-                  sub: "30 secondes vs 2 heures",
-                  desc: "Notre IA génère un devis complet, avec le détail des lignes, les calculs TVA et les mentions légales, en moins de 30 secondes. Vous répondez avant vos concurrents.",
-                  highlight: "73% des clients choisissent le premier artisan qui répond",
-                },
-                {
-                  icon: "🧠",
-                  color: "#3b82f6",
-                  title: "IA de métier",
-                  sub: "Formée sur le BTP français",
-                  desc: "Plomberie, électricité, peinture, maçonnerie, menuiserie — DevisFlow connaît vos prix, vos unités, vos mentions légales. Une bibliothèque de prestations clé en main.",
-                  highlight: "8 corps de métier couverts, prix du marché intégrés",
-                },
-                {
-                  icon: "📱",
-                  color: "#10b981",
-                  title: "Depuis le chantier",
-                  sub: "100% mobile, zéro paperasse",
-                  desc: "Créez et envoyez votre devis depuis votre téléphone pendant que vous êtes sur place. Le client reçoit un lien pour signer en ligne immédiatement.",
-                  highlight: "Signature électronique incluse, envoi WhatsApp en 1 tap",
-                },
-              ].map(f => (
-                <div key={f.title} className="feature-card bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6" style={{ backgroundColor: `${f.color}15` }}>
-                    {f.icon}
-                  </div>
-                  <h3 className="text-xl font-extrabold mb-1" style={{ color: "var(--navy)" }}>{f.title}</h3>
-                  <p className="text-sm font-semibold mb-4" style={{ color: f.color }}>{f.sub}</p>
-                  <p className="text-gray-500 text-sm leading-relaxed mb-5">{f.desc}</p>
-                  <div className="rounded-xl px-4 py-3 text-xs font-semibold text-white" style={{ backgroundColor: f.color }}>
-                    {f.highlight}
+            <div className="grid sm:grid-cols-3 gap-5">
+              {FEATURES.map(f => (
+                <div key={f.num} className="card-lift bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                  <div className="h-[3px]" style={{ backgroundColor: f.accent }} />
+                  <div className="p-6">
+                    <h3 className="text-base font-extrabold mb-0.5" style={{ color: "var(--navy)" }}>{f.title}</h3>
+                    <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: f.accent }}>{f.sub}</p>
+                    <p className="text-gray-500 text-sm leading-relaxed mb-4">{f.desc}</p>
+                    <p className="text-xs font-semibold px-3 py-2 rounded-lg" style={{ backgroundColor: f.bg, color: f.accent }}>{f.badge}</p>
                   </div>
                 </div>
               ))}
@@ -344,43 +256,40 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA 1 ── */}
-        <div className="py-10 px-4 text-center bg-gray-50 border-y border-gray-100">
-          <p className="text-gray-700 font-semibold mb-4">Prêt à gagner 14h par mois sur votre administratif ?</p>
-          <CheckoutButton className="inline-block text-white font-bold px-8 py-3.5 rounded-xl shadow transition-transform hover:scale-105 text-base" style={{ backgroundColor: "var(--orange)" }}>
+        <div className="py-8 px-4 text-center bg-gray-50 border-y border-gray-100">
+          <p className="text-gray-700 font-semibold mb-3 text-sm sm:text-base">Prêt à gagner 14h par mois sur votre administratif ?</p>
+          <CheckoutButton className="btn-orange inline-flex items-center text-white font-bold px-7 py-3 rounded-xl shadow transition-all hover:opacity-90 text-sm" style={{ backgroundColor: "var(--orange)" }}>
             Commencer l&apos;essai gratuit 7 jours →
           </CheckoutButton>
         </div>
 
         {/* ── How it works ── */}
-        <section id="comment" className="py-24 px-4" style={{ backgroundColor: "rgba(30,58,95,0.03)" }}>
+        <section id="comment" className="py-16 sm:py-20 px-4" style={{ backgroundColor: "rgba(30,58,95,0.03)" }}>
           <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Simple comme bonjour</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>
+            <div className="text-center mb-12">
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--orange)" }}>Simple comme bonjour</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold" style={{ color: "var(--navy)" }}>
                 Un devis professionnel en 3 étapes
               </h2>
             </div>
-            <div className="grid sm:grid-cols-3 gap-10">
+            <div className="grid sm:grid-cols-3 gap-8">
               {[
-                { step: "1", title: "Sélectionnez votre métier", desc: "Choisissez parmi 8 corps de métier. DevisFlow affiche immédiatement les prestations types de votre profession, prêtes à cliquer.", time: "< 30 secondes" },
-                { step: "2", title: "Renseignez le client", desc: "Nom, adresse, email. Si c'est un client existant, l'autocomplétation le retrouve en une lettre. Saisie unique, retrouvé partout.", time: "< 1 minute" },
-                { step: "3", title: "Envoyez et signez", desc: "PDF généré, envoyé par email ou WhatsApp. Le client signe électroniquement depuis son téléphone. Retrouvez tout dans votre tableau de bord.", time: "Instantané" },
+                { step: "1", title: "Sélectionnez votre métier", desc: "Choisissez parmi 8 corps de métier. DevisFlow affiche immédiatement les prestations types de votre profession.", time: "< 30 s" },
+                { step: "2", title: "Renseignez le client", desc: "Nom, adresse, email. L'autocomplétation retrouve vos clients existants en une lettre.", time: "< 1 min" },
+                { step: "3", title: "Envoyez et signez", desc: "PDF généré, envoyé par email ou WhatsApp. Le client signe depuis son téléphone en 10 secondes.", time: "Instantané" },
               ].map(s => (
-                <div key={s.step} className="relative">
-                  {/* Step connector */}
-                  <div className="flex flex-col items-center sm:items-start gap-4">
-                    <div className="flex items-center gap-4 w-full">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-xl text-white shrink-0" style={{ backgroundColor: "var(--orange)" }}>
-                        {s.step}
-                      </div>
-                      <span className="text-xs font-bold px-3 py-1 rounded-full border" style={{ color: "var(--navy)", borderColor: "var(--navy)", backgroundColor: "rgba(30,58,95,0.06)" }}>
-                        {s.time}
-                      </span>
+                <div key={s.step} className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-extrabold text-lg text-white shrink-0" style={{ backgroundColor: "var(--orange)" }}>
+                      {s.step}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-extrabold mb-2" style={{ color: "var(--navy)" }}>{s.title}</h3>
-                      <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
-                    </div>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full border" style={{ color: "var(--navy)", borderColor: "rgba(30,58,95,0.2)", backgroundColor: "rgba(30,58,95,0.05)" }}>
+                      {s.time}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-extrabold mb-1.5" style={{ color: "var(--navy)" }}>{s.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
                   </div>
                 </div>
               ))}
@@ -389,49 +298,43 @@ export default function HomePage() {
         </section>
 
         {/* ── Comparison table ── */}
-        <section className="py-24 px-4 bg-white">
+        <section className="py-16 sm:py-20 px-4 bg-white">
           <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-14">
-              <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Comparatif</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>
-                DevisFlow vs les alternatives
+            <div className="text-center mb-10">
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--orange)" }}>Comparatif</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold mb-2" style={{ color: "var(--navy)" }}>
+                DevisFlow vs Obat, Henrri et Excel
               </h2>
-              <p className="text-gray-500 max-w-lg mx-auto">Pourquoi 800+ artisans ont choisi DevisFlow plutôt qu&apos;Excel ou un logiciel traditionnel.</p>
+              <p className="text-gray-500 max-w-md mx-auto text-sm">Pourquoi les artisans choisissent DevisFlow.</p>
             </div>
 
             <div className="overflow-x-auto rounded-2xl border border-gray-100 shadow-sm">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[520px]">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-6 py-4 text-gray-500 font-medium w-2/5">Fonctionnalité</th>
-                    <th className="px-4 py-4 text-center font-extrabold rounded-t-xl" style={{ color: "white", backgroundColor: "var(--navy)" }}>DevisFlow</th>
+                    <th className="text-left px-5 py-4 text-gray-500 font-medium w-2/5">Fonctionnalité</th>
+                    <th className="px-4 py-4 text-center font-extrabold text-white" style={{ backgroundColor: "var(--navy)" }}>DevisFlow</th>
+                    <th className="px-4 py-4 text-center text-gray-500 font-medium bg-gray-50">Obat / Henrri</th>
                     <th className="px-4 py-4 text-center text-gray-500 font-medium">Excel / Word</th>
-                    <th className="px-4 py-4 text-center text-gray-500 font-medium">Logiciels trad.</th>
                   </tr>
                 </thead>
                 <tbody>
                   {[
-                    ["Génération en 30 secondes", "✓", "✗", "✗"],
-                    ["IA adaptée au métier BTP", "✓", "✗", "✗"],
-                    ["Depuis le téléphone", "✓", "~", "~"],
-                    ["Relances automatiques", "✓", "✗", "~"],
-                    ["Signature électronique", "✓", "✗", "~"],
-                    ["Conformité e-facture 2026", "✓", "✗", "✓"],
-                    ["Conversion devis → facture", "✓", "Manuelle", "✓"],
-                    ["Base clients intégrée", "✓", "✗", "✓"],
-                    ["Prix / mois", "29€", "0€ (mais 2h/devis)", "60-200€"],
+                    ["Génération IA en 30 secondes", "✓", "✗", "✗"],
+                    ["IA spécialisée BTP", "✓", "✗", "✗"],
+                    ["Mobile — depuis le chantier", "✓", "~", "~"],
+                    ["Relances automatiques", "✓", "~", "✗"],
+                    ["Signature électronique", "✓", "~", "✗"],
+                    ["Conformité e-facture 2026", "✓", "✓", "✗"],
+                    ["Conversion devis → facture", "✓", "✓", "Manuelle"],
+                    ["Base clients intégrée", "✓", "✓", "✗"],
+                    ["Prix / mois", "29€", "40-89€", "0€ (2h/devis)"],
                   ].map(([feat, a, b, c]) => (
-                    <tr key={feat} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-gray-700 font-medium">{feat}</td>
-                      <td className="px-4 py-4 text-center font-bold" style={{ color: a === "✓" ? "#10b981" : "var(--navy)" }}>
-                        {a === "✓" ? "✓" : a}
-                      </td>
-                      <td className="px-4 py-4 text-center" style={{ color: b === "✗" ? "#ef4444" : b === "~" ? "#f59e0b" : "#6b7280" }}>
-                        {b}
-                      </td>
-                      <td className="px-4 py-4 text-center" style={{ color: c === "✗" ? "#ef4444" : c === "~" ? "#f59e0b" : "#6b7280" }}>
-                        {c}
-                      </td>
+                    <tr key={feat} className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors">
+                      <td className="px-5 py-3.5 text-gray-700 font-medium text-sm">{feat}</td>
+                      <td className="px-4 py-3.5 text-center font-bold text-sm" style={{ color: a === "✓" ? "#10b981" : "var(--navy)" }}>{a}</td>
+                      <td className="px-4 py-3.5 text-center text-sm bg-gray-50/50" style={{ color: b === "✗" ? "#ef4444" : b === "~" ? "#f59e0b" : "#6b7280" }}>{b}</td>
+                      <td className="px-4 py-3.5 text-center text-sm" style={{ color: c === "✗" ? "#ef4444" : c === "~" ? "#f59e0b" : "#6b7280" }}>{c}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -440,58 +343,52 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ── Video placeholder ── */}
-        <section className="py-20 px-4" style={{ backgroundColor: "rgba(30,58,95,0.04)" }}>
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Démo</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold mb-4" style={{ color: "var(--navy)" }}>Voir DevisFlow en action</h2>
-            <p className="text-gray-500 mb-10 max-w-lg mx-auto">De la description des travaux au PDF envoyé — regardez le flux complet en moins de 2 minutes.</p>
-
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-gray-900 aspect-video max-w-3xl mx-auto cursor-pointer group">
-              {/* Fake thumbnail with gradient */}
-              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1e40af 100%)" }} />
-              {/* Grid pattern */}
-              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-
-              {/* Play button */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                <div className="video-play w-20 h-20 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20" style={{ backgroundColor: "var(--orange)" }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="white">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                </div>
-                <p className="text-white font-semibold text-lg">Voir la démo complète</p>
-                <p className="text-blue-300 text-sm">1 min 47 sec — Devis plombier de A à Z</p>
-              </div>
-
-              {/* Duration badge */}
-              <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs font-mono px-2 py-1 rounded">1:47</div>
+        {/* ── Video démo ── */}
+        <section id="demo" className="py-16 sm:py-20 px-4" style={{ backgroundColor: "rgba(30,58,95,0.04)" }}>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--orange)" }}>Démo complète</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold mb-2" style={{ color: "var(--navy)" }}>Voyez DevisFlow en action</h2>
+              <p className="text-gray-500 text-sm">Du formulaire au PDF signé en moins de 2 minutes.</p>
+            </div>
+            <div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200 bg-black">
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <video controls muted loop playsInline preload="none" className="w-full block" style={{ maxHeight: "65vh", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
+            </div>
+            <div className="mt-6 text-center">
+              <CheckoutButton className="btn-orange inline-flex items-center text-white font-bold px-7 py-3.5 rounded-xl shadow-lg transition-all hover:opacity-90 text-sm" style={{ backgroundColor: "var(--orange)" }}>
+                Essayer gratuitement — 7 jours →
+              </CheckoutButton>
+              <p className="mt-2 text-xs text-gray-400">Sans carte bancaire · Accès immédiat</p>
             </div>
           </div>
         </section>
 
         {/* ── Testimonials ── */}
-        <section className="py-24 px-4 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>Témoignages</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold" style={{ color: "var(--navy)" }}>
+        <section className="py-16 sm:py-20 px-4 bg-white">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-10">
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--orange)" }}>Témoignages</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold" style={{ color: "var(--navy)" }}>
                 Ils ont adopté DevisFlow
               </h2>
             </div>
-            <div className="grid sm:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-3 gap-5">
               {TESTIMONIALS.map(t => (
-                <div key={t.name} className="feature-card bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
-                  <div className="flex mb-4">
-                    {Array.from({length: t.stars}).map((_, i) => (
-                      <svg key={i} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#f97316" stroke="none">
-                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                <div key={t.name} className="card-lift bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col">
+                  {/* Stars */}
+                  <div className="flex gap-0.5 mb-4">
+                    {Array.from({ length: t.stars }).map((_, i) => (
+                      <svg key={i} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#f97316" stroke="none">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                       </svg>
                     ))}
                   </div>
-                  <p className="text-gray-600 italic mb-6 leading-relaxed text-sm">&ldquo;{t.quote}&rdquo;</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0" style={{ backgroundColor: "var(--navy)" }}>
+                  {/* Quote */}
+                  <p className="text-gray-600 text-sm leading-relaxed flex-1 mb-5">&ldquo;{t.quote}&rdquo;</p>
+                  {/* Author */}
+                  <div className="flex items-center gap-3 pt-4 border-t border-gray-100">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-extrabold shrink-0" style={{ backgroundColor: "var(--navy)" }}>
                       {t.name[0]}
                     </div>
                     <div>
@@ -506,60 +403,63 @@ export default function HomePage() {
         </section>
 
         {/* ── CTA 2 ── */}
-        <section className="py-12 px-4 border-y border-gray-100 bg-gray-50">
-          <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+        <section className="relative overflow-hidden py-14 px-4" style={{ backgroundColor: "var(--navy)" }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 100% at 100% 50%, rgba(249,115,22,0.15) 0%, transparent 70%)" }} />
+          <div className="relative max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
             <div>
-              <p className="text-xl font-extrabold" style={{ color: "var(--navy)" }}>Essai gratuit 7 jours</p>
-              <p className="text-gray-500 text-sm mt-1">Sans carte bancaire — annulation en 1 clic</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
+                Prêt à gagner 14h par mois ?
+              </h2>
+              <p className="text-blue-300 text-sm">Essai gratuit 7 jours · Annulation en 1 clic · Sans CB</p>
             </div>
-            <CheckoutButton className="shrink-0 inline-block text-white font-bold px-8 py-4 rounded-xl shadow-lg transition-transform hover:scale-105" style={{ backgroundColor: "var(--orange)" }}>
+            <CheckoutButton className="btn-orange shrink-0 inline-flex items-center text-white font-bold px-7 py-3.5 rounded-xl shadow-lg transition-all hover:opacity-90 whitespace-nowrap text-sm sm:text-base" style={{ backgroundColor: "var(--orange)" }}>
               Commencer gratuitement →
             </CheckoutButton>
           </div>
         </section>
 
         {/* ── Pricing ── */}
-        <section id="tarifs" className="py-24 px-4" style={{ backgroundColor: "var(--navy)" }}>
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-14">
-              <p className="text-sm font-bold uppercase tracking-widest mb-3 text-orange-400">Tarifs</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">Simple et transparent</h2>
-              <p className="text-blue-200 text-lg">Essai gratuit 7 jours — annulation à tout moment</p>
+        <section id="tarifs" className="py-16 sm:py-20 px-4" style={{ backgroundColor: "var(--navy)" }}>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-10">
+              <p className="text-xs font-bold uppercase tracking-widest mb-2 text-orange-400">Tarifs</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">Simple et transparent</h2>
+              <p className="text-blue-200 text-sm">Essai gratuit 7 jours — annulation à tout moment</p>
             </div>
-            <div className="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
               {PLANS.map(plan => (
-                <div key={plan.name} className={`rounded-2xl p-8 ${plan.highlighted ? "bg-white" : "bg-white/10 border border-white/20"}`}>
+                <div key={plan.name} className={`rounded-2xl p-7 ${plan.highlighted ? "bg-white shadow-xl" : "bg-white/8 border border-white/15"}`}>
                   {plan.badge && (
                     <span className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4 text-white" style={{ backgroundColor: plan.highlighted ? "var(--orange)" : "rgba(255,255,255,0.2)" }}>
                       {plan.badge}
                     </span>
                   )}
-                  <h3 className={`text-xl font-bold mb-1 ${plan.highlighted ? "" : "text-white"}`} style={plan.highlighted ? { color: "var(--navy)" } : {}}>
+                  <h3 className={`text-lg font-bold mb-1 ${plan.highlighted ? "" : "text-white"}`} style={plan.highlighted ? { color: "var(--navy)" } : {}}>
                     {plan.name}
                   </h3>
-                  <p className={`text-sm mb-6 ${plan.highlighted ? "text-gray-500" : "text-blue-200"}`}>{plan.description}</p>
-                  <div className="mb-8 flex items-end gap-1">
-                    <span className={`text-5xl font-extrabold ${plan.highlighted ? "" : "text-white"}`} style={plan.highlighted ? { color: "var(--navy)" } : {}}>
+                  <p className={`text-sm mb-5 ${plan.highlighted ? "text-gray-500" : "text-blue-300"}`}>{plan.description}</p>
+                  <div className="mb-6 flex items-end gap-1">
+                    <span className={`font-extrabold ${plan.highlighted ? "" : "text-white"}`} style={{ fontSize: "2.75rem", lineHeight: 1, ...(plan.highlighted ? { color: "var(--navy)" } : {}) }}>
                       {plan.priceLabel}
                     </span>
-                    {plan.period && <span className={`text-lg mb-1 ${plan.highlighted ? "text-gray-400" : "text-blue-200"}`}>{plan.period}</span>}
+                    {plan.period && <span className={`text-base mb-1 ${plan.highlighted ? "text-gray-400" : "text-blue-300"}`}>{plan.period}</span>}
                   </div>
-                  <ul className="space-y-3 mb-8">
+                  <ul className="space-y-2.5 mb-7">
                     {plan.features.map(f => (
-                      <li key={f} className={`flex items-center gap-3 text-sm ${plan.highlighted ? "text-gray-600" : "text-blue-100"}`}>
-                        <span style={{ color: "var(--orange)" }}>✓</span>{f}
+                      <li key={f} className={`flex items-start gap-2.5 text-sm ${plan.highlighted ? "text-gray-600" : "text-blue-100"}`}>
+                        <span className="shrink-0 mt-0.5" style={{ color: "var(--orange)" }}>✓</span>{f}
                       </li>
                     ))}
                   </ul>
-                  {plan.href === LS_CHECKOUT ? (
+                  {plan.href === "checkout" ? (
                     <CheckoutButton
-                      className={`block w-full text-center font-bold py-3.5 rounded-xl transition-colors ${plan.highlighted ? "text-white" : "text-white border border-white/30 hover:bg-white/10"}`}
+                      className={`btn-orange block w-full text-center font-bold py-3 rounded-xl transition-all ${plan.highlighted ? "text-white hover:opacity-90" : "text-white border border-white/25 hover:bg-white/10"}`}
                       style={plan.highlighted ? { backgroundColor: "var(--orange)" } : {}}
                     >
                       {plan.cta}
                     </CheckoutButton>
                   ) : (
-                    <Link href={plan.href} className={`block w-full text-center font-bold py-3.5 rounded-xl transition-colors text-white border border-white/30 hover:bg-white/10`}>
+                    <Link href={plan.href} className="block w-full text-center font-bold py-3 rounded-xl text-white border border-white/25 hover:bg-white/10 transition-colors text-sm">
                       {plan.cta}
                     </Link>
                   )}
@@ -568,6 +468,11 @@ export default function HomePage() {
                       {LOCK_ICON} Paiement sécurisé par Lemon Squeezy
                     </p>
                   )}
+                  {plan.learnMoreHref && (
+                    <Link href={plan.learnMoreHref} className="block mt-3 text-center text-xs text-blue-300 hover:text-white transition-colors underline">
+                      En savoir plus sur l&apos;offre Cabinet &amp; Groupement →
+                    </Link>
+                  )}
                 </div>
               ))}
             </div>
@@ -575,61 +480,96 @@ export default function HomePage() {
         </section>
 
         {/* ── FAQ ── */}
-        <section id="faq" className="py-24 px-4 bg-white">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-14">
-              <p className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: "var(--orange)" }}>FAQ</p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold" style={{ color: "var(--navy)" }}>Questions fréquentes</h2>
+        <section id="faq" className="py-16 sm:py-20 px-4 bg-white">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-10">
+              <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--orange)" }}>FAQ</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold" style={{ color: "var(--navy)" }}>Questions fréquentes</h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {FAQS.map(faq => (
-                <details key={faq.q} className="group bg-white border border-gray-100 rounded-2xl shadow-sm hover:border-gray-200 transition-colors">
-                  <summary className="flex items-center justify-between gap-4 cursor-pointer px-6 py-5 font-semibold text-gray-800 list-none text-sm sm:text-base">
+                <details key={faq.q} className="group border border-gray-100 rounded-xl shadow-sm hover:border-gray-200 transition-colors bg-white">
+                  <summary className="flex items-center justify-between gap-4 cursor-pointer px-5 py-4 font-semibold text-gray-800 list-none text-sm">
                     {faq.q}
-                    <span className="text-gray-400 group-open:rotate-45 transition-transform shrink-0 text-xl font-light">+</span>
+                    <span className="text-gray-400 group-open:rotate-45 transition-transform shrink-0 text-xl font-light leading-none">+</span>
                   </summary>
-                  <p className="px-6 pb-5 text-gray-500 leading-relaxed text-sm">{faq.a}</p>
+                  <p className="px-5 pb-4 text-gray-500 leading-relaxed text-sm">{faq.a}</p>
                 </details>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── SEO Guide ── */}
-        <section className="py-20 px-4 border-y border-gray-100" style={{ backgroundColor: "rgba(30,58,95,0.03)" }}>
+        {/* ── Devis par métier ── */}
+        <section className="py-14 px-4 bg-white">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-center mb-10" style={{ color: "var(--navy)" }}>
-              Guide du devis professionnel artisan
+            <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-8" style={{ color: "var(--navy)" }}>
+              Devis par métier
             </h2>
-            <div className="grid sm:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { title: "Comment créer un devis professionnel rapidement ?", body: "Un bon devis artisan doit inclure vos coordonnées, celles du client, le détail des travaux, le coût de la main d'œuvre et des matériaux. Avec DevisFlow, l'IA génère tout en 30 secondes depuis votre téléphone. Idéal pour plombiers, électriciens, peintres et maçons." },
-                { title: "Facturation électronique 2026 : ce qu'il faut savoir", body: "Dès septembre 2026, la facturation électronique est obligatoire pour toutes les entreprises françaises. DevisFlow génère des devis au format structuré conforme, vous prépare sans effort supplémentaire à cette évolution réglementaire." },
-                { title: "Comment relancer un client après un devis ?", body: "73% des devis non signés ne le sont pas par désintérêt, mais parce que le client a oublié. DevisFlow envoie des relances automatiques à J+3 et J+7. Vous vous concentrez sur votre chantier, DevisFlow gère le suivi commercial." },
-              ].map(a => (
-                <article key={a.title} className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-                  <h3 className="text-base font-bold mb-3" style={{ color: "var(--navy)" }}>{a.title}</h3>
-                  <p className="text-gray-500 text-sm leading-relaxed">{a.body}</p>
-                </article>
+                { label: "Devis plombier", href: "/devis-plombier" },
+                { label: "Devis électricien", href: "/devis-electricien" },
+                { label: "Devis peintre", href: "/devis-peintre" },
+                { label: "Devis maçon", href: "/devis-macon" },
+                { label: "Devis carreleur", href: "/devis-carreleur" },
+                { label: "DevisFlow vs Obat / Henrri", href: "/comparatif" },
+              ].map(m => (
+                <Link
+                  key={m.href}
+                  href={m.href}
+                  className="text-center text-sm font-semibold rounded-xl border border-gray-100 py-3 px-2 hover:border-gray-300 transition-colors"
+                  style={{ color: "var(--navy)" }}
+                >
+                  {m.label}
+                </Link>
               ))}
             </div>
           </div>
         </section>
 
+        {/* ── SEO articles ── */}
+        <section className="py-14 px-4 border-y border-gray-100" style={{ backgroundColor: "rgba(30,58,95,0.03)" }}>
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-8" style={{ color: "var(--navy)" }}>
+              Guide du devis professionnel artisan
+            </h2>
+            <div className="grid sm:grid-cols-3 gap-5">
+              {[
+                { title: "Comment créer un devis professionnel rapidement ?", body: "Un bon devis artisan doit inclure vos coordonnées, celles du client, le détail des travaux, le coût de la main d'œuvre et des matériaux. Avec DevisFlow, l'IA génère tout en 30 secondes depuis votre téléphone.", href: null },
+                { title: "Facturation électronique 2026 : ce qu'il faut savoir", body: "Dès septembre 2026, la facturation électronique est obligatoire pour toutes les entreprises françaises. DevisFlow génère des devis au format structuré conforme, sans effort supplémentaire.", href: "/facture-electronique-artisan-2026" },
+                { title: "Comment relancer un client après un devis ?", body: "Un devis non signé n'est souvent pas un refus : le client a simplement oublié d'y revenir. DevisFlow envoie des relances automatiques à J+3 et J+7 — vous gérez votre chantier, DevisFlow gère le suivi.", href: null },
+              ].map(a => {
+                const Card = (
+                  <article className="bg-white rounded-xl shadow-sm p-5 border border-gray-100 h-full hover:border-gray-200 transition-colors">
+                    <h3 className="text-sm font-bold mb-2" style={{ color: "var(--navy)" }}>{a.title}</h3>
+                    <p className="text-gray-500 text-sm leading-relaxed">{a.body}</p>
+                  </article>
+                );
+                return a.href ? (
+                  <Link key={a.title} href={a.href}>{Card}</Link>
+                ) : (
+                  <div key={a.title}>{Card}</div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         {/* ── Final CTA ── */}
-        <section className="py-24 px-4 text-center" style={{ background: "linear-gradient(135deg, var(--navy) 0%, #1e40af 100%)" }}>
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4">
+        <section className="py-20 px-4 text-center" style={{ background: "linear-gradient(135deg, var(--navy) 0%, #1e3a8a 100%)" }}>
+          <div className="max-w-xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-3">
               Prêt à prendre l&apos;avantage IA ?
             </h2>
-            <p className="text-blue-200 text-lg mb-10">
-              Rejoignez 800+ artisans qui ont transformé leur gestion des devis.
+            <p className="text-blue-200 text-sm sm:text-base mb-8">
+              Essai gratuit 7 jours, sans carte bancaire.
             </p>
-            <CheckoutButton className="inline-block text-white font-bold text-lg px-12 py-5 rounded-xl shadow-xl transition-transform hover:scale-105" style={{ backgroundColor: "var(--orange)" }}>
+            <CheckoutButton className="btn-orange inline-flex items-center text-white font-bold text-base px-10 py-4 rounded-xl shadow-xl transition-all hover:opacity-90 hover:scale-105 active:scale-95" style={{ backgroundColor: "var(--orange)" }}>
               Commencer mon essai gratuit →
             </CheckoutButton>
             <p className="mt-4 flex items-center justify-center gap-1.5 text-xs text-blue-400">
-              {LOCK_ICON} Sans CB · Essai 7 jours · Annulation à tout moment
+              {LOCK_ICON} Essai 7 jours · Annulation à tout moment
             </p>
           </div>
         </section>
@@ -640,20 +580,12 @@ export default function HomePage() {
         "@context": "https://schema.org", "@type": "FAQPage",
         mainEntity: FAQS.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
       })}} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        "@context": "https://schema.org", "@type": "SoftwareApplication",
-        name: "DevisFlow", applicationCategory: "BusinessApplication", operatingSystem: "Web",
-        url: "https://devis-flow.fr",
-        description: "Générateur de devis professionnels par IA pour artisans et TPE françaises. Conformité e-facture 2026.",
-        offers: { "@type": "Offer", price: "29", priceCurrency: "EUR", priceSpecification: { "@type": "UnitPriceSpecification", price: "29", priceCurrency: "EUR", unitText: "MONTH" } },
-        aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", bestRating: "5", worstRating: "1", ratingCount: "200" },
-      })}} />
 
       {/* ── Footer ── */}
-      <footer className="py-12 px-4 text-center text-sm text-blue-200" style={{ backgroundColor: "var(--navy-dark)" }}>
+      <footer className="py-10 px-4 text-center text-sm text-blue-200" style={{ backgroundColor: "var(--navy-dark)" }}>
         <p className="font-extrabold text-white text-lg mb-1">Devis<span style={{ color: "var(--orange)" }}>Flow</span></p>
-        <p className="mb-6 text-blue-300 text-sm">Le générateur de devis IA pour les artisans français</p>
-        <div className="flex flex-wrap justify-center gap-6 text-xs text-blue-400 mb-6">
+        <p className="mb-5 text-blue-300 text-sm">Le générateur de devis IA pour les artisans français</p>
+        <div className="flex flex-wrap justify-center gap-5 text-xs text-blue-400 mb-5">
           <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
           <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
           <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>

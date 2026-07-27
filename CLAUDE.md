@@ -3,7 +3,7 @@
 # DevisFlow — Générateur de devis IA pour artisans français
 
 ## Projet
-Application SaaS de génération de devis professionnels par IA, ciblant les artisans et TPE/PME françaises avant la deadline réglementation e-facture septembre 2026.
+SaaS de génération de devis professionnels par IA, ciblant les artisans et TPE/PME françaises avant la deadline e-facture septembre 2026.
 
 ## Segments cibles
 - Low ticket : artisans indépendants (plombiers, électriciens, peintres) — 29€/mois
@@ -28,6 +28,43 @@ Application SaaS de génération de devis professionnels par IA, ciblant les art
 - Mobile first — les artisans travaillent sur téléphone
 
 ## Monétisation
-- Essai gratuit 14 jours
-- Paiement via Lemon Squeezy
-- Pas de CB requise pour l'essai
+- Essai gratuit 7 jours
+- Paiement via Lemon Squeezy (agent centralisé : src/lib/lemon-squeezy.ts)
+- Checkout en mode LIVE forcé via l'API LS (test_mode: false)
+- Route checkout : POST /api/billing/checkout
+- Route portail client : GET /api/billing/portal
+
+<important if="writing or modifying API routes">
+- Always validate inputs at the route boundary — never trust req.body blindly
+- Use the server Supabase client (not browser client) for all DB writes
+- Never expose SUPABASE_SERVICE_ROLE_KEY to the client side
+- Add rate limiting on public routes (/api/generate-devis, /api/send-devis)
+</important>
+
+<important if="touching payments, checkout, or Lemon Squeezy">
+- Checkout always uses LIVE mode (test_mode: false) — never flip this without explicit instruction
+- Webhook signature must be verified before processing any event
+- After a successful webhook, update the DB and return 200 immediately — never delay
+</important>
+
+<important if="touching auth, redirects, or protected pages">
+- Free trial gate: if created_at > 7 days AND plan = free → redirect to upgrade wall, not login
+- Auth gate on /devis and /dashboard — redirect to /auth/register?redirect=<page>
+- Sign page (/sign/[id]) is PUBLIC — must work without a session
+</important>
+
+## Gotchas (known failure points in this project)
+- **next/image with remote URLs** — must add domain to next.config.ts `images.remotePatterns` or it breaks in prod
+- **Supabase RLS** — client-side queries silently return [] when RLS blocks — always test with admin client to distinguish "no data" from "blocked"
+- **Lemon Squeezy webhook replay** — webhooks can fire twice; make DB updates idempotent
+- **Vercel cron timezone** — crons run in UTC; D+3/D+7 reminders must account for French timezone offset
+- **Tailwind v4** — JIT config syntax changed; don't copy v3 patterns from docs/training data
+- **Claude API streaming** — never use streaming on Vercel Edge functions with a timeout < 30s; use Node.js runtime instead
+
+## Agents disponibles
+- `senior-dev` — revue de code + validation avant déploiement
+- `qa-coherence` — détecte les incohérences marketing/code
+- `browser-tester` — E2E sur les flux critiques
+- `competitor-analysis` — veille concurrentielle hebdomadaire
+- `token-optimizer` — compression contexte pour longues sessions
+- `master` — agent autonome 24/7 (scrute, corrige, déploie)

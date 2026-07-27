@@ -22,7 +22,7 @@ export default function InviteForm({ agenceId, agenceName }: Props) {
     const res = await fetch("/api/invite-artisan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, agenceId, agenceName }),
+      body: JSON.stringify({ email, agenceName }),
     });
 
     if (!res.ok) {

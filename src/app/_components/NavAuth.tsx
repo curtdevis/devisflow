@@ -3,9 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
 type State = "loading" | "loggedIn" | "loggedOut";
+
+// @supabase/supabase-js is ~54KB gzip and was leaking into the shared
+// marketing-page bundle via a static import here — dynamic import keeps it
+// out of the initial page load, fetched only once this component mounts.
+async function getSupabaseClient() {
+  const { createSupabaseBrowser } = await import("@/lib/supabase-browser");
+  return createSupabaseBrowser();
+}
 
 export default function NavAuth() {
   const router = useRouter();
@@ -15,9 +22,11 @@ export default function NavAuth() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    createSupabaseBrowser()
-      .auth.getUser()
+    let cancelled = false;
+    getSupabaseClient()
+      .then((supabase) => supabase.auth.getUser())
       .then(({ data: { user } }) => {
+        if (cancelled) return;
         if (user) {
           setDisplayName(
             user.user_metadata?.full_name ||
@@ -30,6 +39,9 @@ export default function NavAuth() {
           setState("loggedOut");
         }
       });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Close on outside click
@@ -42,7 +54,8 @@ export default function NavAuth() {
   }, []);
 
   async function handleLogout() {
-    await createSupabaseBrowser().auth.signOut();
+    const supabase = await getSupabaseClient();
+    await supabase.auth.signOut();
     setOpen(false);
     router.push("/");
     router.refresh();
