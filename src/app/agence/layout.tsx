@@ -86,7 +86,6 @@ export default async function AgenceLayout({
         <AgenceHeader
           agenceName={agenceName}
           userEmail={user.email ?? ""}
-          userId={user.id}
         />
         <main className="pt-16 min-h-screen">{children}</main>
       </div>

@@ -1,22 +1,8 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
+import type { MonthlyData, ArtisanRapport } from "@/types/agence";
 import RapportsClient from "../_components/RapportsClient";
-
-export type MonthlyData = {
-  month: string;
-  label: string;
-  devisCount: number;
-  volume: number;
-};
-
-export type ArtisanRapport = {
-  id: string;
-  name: string;
-  devisTotal: number;
-  volumeTotal: number;
-  profession: string | null;
-};
 
 export default async function RapportsPage() {
   const supabase = await createSupabaseServer();

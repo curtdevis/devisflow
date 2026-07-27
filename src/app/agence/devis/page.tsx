@@ -2,22 +2,8 @@ import { redirect } from "next/navigation";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
 import { Suspense } from "react";
+import type { AgenceDevisRow, ArtisanOption } from "@/types/agence";
 import DevisTableClient from "../_components/DevisTableClient";
-
-export type AgenceDevisRow = {
-  id: string;
-  created_at: string;
-  devis_number: string | null;
-  artisan_name: string | null;
-  artisan_id: string;
-  artisan_display: string;
-  client_name: string | null;
-  client_email: string | null;
-  total_ttc: number | null;
-  profession: string | null;
-};
-
-export type ArtisanOption = { id: string; label: string };
 
 export default async function AllDevisPage() {
   const supabase = await createSupabaseServer();

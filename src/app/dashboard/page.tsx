@@ -3,7 +3,8 @@ import Link from "next/link";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
 import LogoutButton from "./LogoutButton";
-import DevisTable, { type DevisRow } from "./DevisTable";
+import DevisTable from "./DevisTable";
+import type { DevisRow } from "@/lib/devis-document";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServer();

@@ -2,18 +2,19 @@
 
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function RegisterForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const inviteToken = params.get("invite");
   const redirectAfter = params.get("redirect");
   const typeParam = params.get("type");
 
-  const [accountType, setAccountType] = useState<"artisan" | "agence">(
+  const [selectedAccountType, setAccountType] = useState<"artisan" | "agence">(
     typeParam === "agence" ? "agence" : "artisan"
   );
+  // Invite token always forces an artisan account, regardless of the toggle below.
+  const accountType = inviteToken ? "artisan" : selectedAccountType;
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +27,6 @@ function RegisterForm() {
   // If an invite token is present, lock account type to artisan and show agency name
   useEffect(() => {
     if (!inviteToken) return;
-    setAccountType("artisan");
     async function resolveInvite() {
       const res = await fetch(`/api/invite-artisan?token=${inviteToken}`);
       if (res.ok) {

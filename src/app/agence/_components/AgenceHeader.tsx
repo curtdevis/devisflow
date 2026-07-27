@@ -8,11 +8,9 @@ import { createSupabaseBrowser } from "@/lib/supabase-browser";
 export default function AgenceHeader({
   agenceName,
   userEmail,
-  userId,
 }: {
   agenceName: string;
   userEmail: string;
-  userId: string;
 }) {
   const router = useRouter();
   const [accountOpen, setAccountOpen] = useState(false);

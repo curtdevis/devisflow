@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 
 export default async function FacturationPage() {
@@ -29,7 +28,6 @@ export default async function FacturationPage() {
 
   const devisCount = (devisThisMonth as unknown as { count: number } | null)?.count ?? 0;
 
-  const plan = (profile as { plan?: string } | null)?.plan ?? "free";
   const portalUrl = (profile as { lemon_squeezy_customer_portal?: string } | null)?.lemon_squeezy_customer_portal ?? "";
 
   const ARTISAN_LIMIT = 50;

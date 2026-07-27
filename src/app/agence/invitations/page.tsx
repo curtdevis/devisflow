@@ -1,15 +1,7 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import type { Invitation } from "@/types/agence";
 import InvitationsClient from "../_components/InvitationsClient";
-
-export type Invitation = {
-  id: string;
-  token: string;
-  email: string;
-  agence_name: string;
-  accepted_at: string | null;
-  created_at: string;
-};
 
 export default async function InvitationsPage() {
   const supabase = await createSupabaseServer();

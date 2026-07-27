@@ -24,8 +24,8 @@ export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
-  const [devis, setDevis] = useState<DevisRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [devis, setDevis] = useState<DevisRow[] | null>(null);
+  const loading = authed && devis === null;
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -39,15 +39,13 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!authed) return;
-    setLoading(true);
     supabase
       .from("devis")
       .select("*")
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
         if (error) console.error(error);
-        else setDevis(data ?? []);
-        setLoading(false);
+        setDevis(data ?? []);
       });
   }, [authed]);
 
@@ -81,7 +79,8 @@ export default function AdminPage() {
     );
   }
 
-  const uniqueArtisans = new Set(devis.map((d) => d.artisan_email ?? d.artisan_name)).size;
+  const devisList = devis ?? [];
+  const uniqueArtisans = new Set(devisList.map((d) => d.artisan_email ?? d.artisan_name)).size;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-6">
@@ -102,7 +101,7 @@ export default function AdminPage() {
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div className="bg-white rounded-2xl shadow p-6">
             <p className="text-sm text-gray-500 mb-1">Total devis générés</p>
-            <p className="text-4xl font-bold text-[#1e3a5f]">{devis.length}</p>
+            <p className="text-4xl font-bold text-[#1e3a5f]">{devisList.length}</p>
           </div>
           <div className="bg-white rounded-2xl shadow p-6">
             <p className="text-sm text-gray-500 mb-1">Artisans uniques</p>
@@ -114,7 +113,7 @@ export default function AdminPage() {
         <div className="bg-white rounded-2xl shadow overflow-hidden">
           {loading ? (
             <div className="p-10 text-center text-gray-400">Chargement…</div>
-          ) : devis.length === 0 ? (
+          ) : devisList.length === 0 ? (
             <div className="p-10 text-center text-gray-400">
               Aucun devis pour l&apos;instant.
             </div>
@@ -132,7 +131,7 @@ export default function AdminPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {devis.map((d) => (
+                  {devisList.map((d) => (
                     <tr key={d.id} className="hover:bg-gray-50 transition">
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">
                         {new Date(d.created_at).toLocaleDateString("fr-FR", {

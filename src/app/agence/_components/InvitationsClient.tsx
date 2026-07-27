@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Invitation } from "../invitations/page";
+import type { Invitation } from "@/types/agence";
 
 const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
 

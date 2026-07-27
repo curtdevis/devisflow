@@ -1,23 +1,8 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import type { Profile } from "@/lib/supabase-server";
+import type { ArtisanFull } from "@/types/agence";
 import ArtisansClient from "../_components/ArtisansClient";
-
-export type ArtisanFull = {
-  id: string;
-  full_name: string | null;
-  company_name: string | null;
-  email: string | null;
-  phone: string | null;
-  siret: string | null;
-  profession: string | null;
-  devisThisMonth: number;
-  volumeThisMonth: number;
-  devisTotal: number;
-  volumeTotal: number;
-  lastActivity: string | null;
-  isActive: boolean;
-};
 
 export default async function ArtisansPage() {
   const supabase = await createSupabaseServer();
@@ -27,7 +12,7 @@ export default async function ArtisansPage() {
   const admin = createSupabaseAdmin();
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
   const { data: artisans } = await admin
     .from("profiles")
@@ -85,7 +70,7 @@ export default async function ArtisansPage() {
           </p>
         </div>
       </div>
-      <ArtisansClient artisans={artisansFull} agenceId={user.id} />
+      <ArtisansClient artisans={artisansFull} />
     </div>
   );
 }

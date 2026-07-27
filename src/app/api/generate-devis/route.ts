@@ -1,6 +1,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import {
+  calculateDevisTotals,
+  calculateLaborCost,
+  calculateMaterialsSubtotal,
+  sumLineTotals,
+} from "@/lib/devis-calculations";
 
 const client = new Anthropic();
 
@@ -129,12 +135,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const laborCost = parseFloat(laborHours) * parseFloat(hourlyRate);
-  const materialsCost = materials
-    .filter((m) => m.description && m.unitPrice)
-    .reduce((acc, m) => acc + parseFloat(m.quantity || "1") * parseFloat(m.unitPrice), 0);
-
+  const laborCost = calculateLaborCost(parseFloat(laborHours), parseFloat(hourlyRate));
   const validMaterials = materials.filter((m) => m.description && m.unitPrice);
+  const materialsCost = calculateMaterialsSubtotal(
+    validMaterials.map((m) => ({ quantity: parseFloat(m.quantity || "1"), unitPrice: parseFloat(m.unitPrice) }))
+  );
 
   const prompt = `Tu es un assistant spécialisé dans la génération de devis professionnels pour les artisans français.
 
@@ -220,10 +225,9 @@ Retourne UNIQUEMENT ce JSON, sans aucun autre texte :
   }
 
   // Recalculate totals from lines to ensure consistency
-  const subtotalHT = claudeLines.reduce((acc, l) => acc + l.total, 0);
+  const subtotalHT = sumLineTotals(claudeLines);
   const tvaRateNum = parseInt(tvaRate, 10);
-  const tvaAmount = subtotalHT * (tvaRateNum / 100);
-  const totalTTC = subtotalHT + tvaAmount;
+  const { tvaAmount, totalTTC } = calculateDevisTotals(subtotalHT, tvaRateNum);
 
   const now = new Date();
   const result: DevisResult = {

@@ -27,7 +27,7 @@ export default function AgenceSidebar({
     return pathname.startsWith(href);
   };
 
-  const SidebarContent = () => (
+  const sidebarContent = (
     <>
       {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-white/10 shrink-0">
@@ -80,7 +80,7 @@ export default function AgenceSidebar({
         className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-60 z-30"
         style={{ backgroundColor: "#1e3a5f" }}
       >
-        <SidebarContent />
+        {sidebarContent}
       </aside>
 
       {/* Mobile hamburger button */}
@@ -114,7 +114,7 @@ export default function AgenceSidebar({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            <SidebarContent />
+            {sidebarContent}
           </aside>
         </div>
       )}

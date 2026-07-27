@@ -3,14 +3,12 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import type { ArtisanFull } from "../artisans/page";
+import type { ArtisanFull } from "@/types/agence";
 
 export default function ArtisansClient({
   artisans,
-  agenceId,
 }: {
   artisans: ArtisanFull[];
-  agenceId: string;
 }) {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");

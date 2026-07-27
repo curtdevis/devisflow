@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import type { AgenceDevisRow, ArtisanOption } from "../devis/page";
+import type { AgenceDevisRow, ArtisanOption } from "@/types/agence";
 
 const PAGE_SIZE = 20;
 
@@ -15,8 +15,9 @@ export default function DevisTableClient({
   artisanOptions: ArtisanOption[];
 }) {
   const searchParams = useSearchParams();
+  const urlArtisan = searchParams.get("artisan");
   const [search, setSearch] = useState("");
-  const [artisanFilter, setArtisanFilter] = useState(searchParams.get("artisan") ?? "");
+  const [artisanFilter, setArtisanFilter] = useState(urlArtisan ?? "");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [amountMin, setAmountMin] = useState("");
@@ -24,10 +25,15 @@ export default function DevisTableClient({
   const [page, setPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    const a = searchParams.get("artisan");
-    if (a) { setArtisanFilter(a); setShowFilters(true); }
-  }, [searchParams]);
+  // Re-sync the artisan filter when the URL's ?artisan= param changes underneath us.
+  const [lastUrlArtisan, setLastUrlArtisan] = useState(urlArtisan);
+  if (urlArtisan !== lastUrlArtisan) {
+    setLastUrlArtisan(urlArtisan);
+    if (urlArtisan) {
+      setArtisanFilter(urlArtisan);
+      setShowFilters(true);
+    }
+  }
 
   const filtered = useMemo(() => {
     return devis.filter((d) => {

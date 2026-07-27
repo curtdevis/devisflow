@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, Cell,
 } from "recharts";
-import type { MonthlyData, ArtisanRapport } from "../rapports/page";
+import type { MonthlyData, ArtisanRapport } from "@/types/agence";
 
 type ProfessionData = { name: string; count: number; volume: number };
 

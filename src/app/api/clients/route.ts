@@ -15,7 +15,7 @@ export async function GET() {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data ?? []);
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data, { status: 201 });
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }
