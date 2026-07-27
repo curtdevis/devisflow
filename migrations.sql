@@ -50,3 +50,26 @@ CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(user_id, name);
 CREATE INDEX IF NOT EXISTS idx_devis_reminder_next_date
   ON devis(reminder_next_date)
   WHERE reminder_enabled = true;
+
+-- 5. Prospecting — weekly outreach automation (scripts/weekly-prospecting.ts)
+-- Internal system tables: no end-user owns these rows, so RLS is enabled with
+-- no policies — only the Supabase admin client (service role) can read/write.
+CREATE TABLE IF NOT EXISTS prospecting_sent (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email        TEXT NOT NULL UNIQUE,
+  category     TEXT NOT NULL,
+  company_name TEXT,
+  sent_at      TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE prospecting_sent ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS prospecting_blacklist (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      TEXT NOT NULL UNIQUE,
+  reason     TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE prospecting_blacklist ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_prospecting_sent_email ON prospecting_sent(email);
+CREATE INDEX IF NOT EXISTS idx_prospecting_blacklist_email ON prospecting_blacklist(email);

@@ -81,6 +81,6 @@ export const config = {
     // API routes handle their own auth (createSupabaseServer().auth.getUser()
     // inside each route) — none of the proxy's redirect logic below applies
     // to them, so they don't need to go through this session refresh at all.
-    "/((?!api|_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api|_next/static|_next/image|favicon\\.ico|\\.well-known/workflow|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
