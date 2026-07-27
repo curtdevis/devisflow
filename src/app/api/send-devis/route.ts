@@ -211,7 +211,7 @@ export async function POST(req: NextRequest) {
 
   try {
     await resend.emails.send({
-      from: "DevisFlow <noreply@devis-flow.fr>",
+      from: "DevisFlow <equipe@devis-flow.fr>",
       to: recipientEmail,
       replyTo: devis.artisan.email ?? undefined,
       subject: `Votre devis N° ${devis.devisNumber} — ${devis.totalTTC.toFixed(2)} € TTC`,

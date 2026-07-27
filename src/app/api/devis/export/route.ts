@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import { buildCsv } from "@/lib/csv-export";
 
 interface DevisExportRow {
   devis_number: string | null;
@@ -8,18 +9,6 @@ interface DevisExportRow {
   total_ttc: number;
   signed_at: string | null;
   client_email: string | null;
-}
-
-function escapeCsvField(value: string): string {
-  // Prevent CSV injection: prefix formula-starting characters with a single quote.
-  // Affected characters: = + - @ (all interpreted as formula starters by Excel/Calc).
-  if (value.length > 0 && /^[=+\-@\t\r]/.test(value)) {
-    value = "'" + value;
-  }
-  if (value.includes('"') || value.includes(",") || value.includes("\n") || value.includes(";")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
 }
 
 function formatDate(iso: string | null): string {
@@ -65,26 +54,17 @@ export async function GET() {
 
   const rows = (devis ?? []) as DevisExportRow[];
 
-  // Build CSV with UTF-8 BOM for Excel français
-  const BOM = "\uFEFF";
-  const SEPARATOR = ";"; // French Excel default
-
-  const headers = ["Numéro", "Client", "Date", "Montant TTC", "Statut", "Email client"];
-  const headerLine = headers.map(escapeCsvField).join(SEPARATOR);
-
-  const dataLines = rows.map((row) => {
-    const cols = [
+  const csvContent = buildCsv(
+    ["Numéro", "Client", "Date", "Montant TTC", "Statut", "Email client"],
+    rows.map((row) => [
       row.devis_number ?? "",
       row.client_name ?? "",
       formatDate(row.created_at),
       formatAmount(row.total_ttc),
       getStatus(row),
       row.client_email ?? "",
-    ];
-    return cols.map(escapeCsvField).join(SEPARATOR);
-  });
-
-  const csvContent = BOM + [headerLine, ...dataLines].join("\r\n");
+    ])
+  );
 
   const today = new Date().toISOString().slice(0, 10);
   const filename = `devis-export-${today}.csv`;

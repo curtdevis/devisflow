@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
   // Send custom confirmation email via Resend
   const { error: emailError } = await resend.emails.send({
-    from: "noreply@devis-flow.fr",
+    from: "DevisFlow <equipe@devis-flow.fr>",
     to: email,
     subject: "Bienvenue sur DevisFlow — Confirmez votre email",
     html: `

@@ -1,17 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { getHtml, type DevisRow as BaseDevisRow } from "@/lib/devis-html";
+import { printHtmlDocument } from "@/lib/print-html";
+import { buildCsv } from "@/lib/csv-export";
 
-interface DevisRow {
-  id: string;
-  created_at: string;
-  artisan_name: string;
-  artisan_email: string | null;
-  artisan_phone: string | null;
-  client_name: string;
-  total_ttc: number;
-  profession: string | null;
-}
+type DevisRow = BaseDevisRow & { artisan_phone: string | null };
 
 interface AgenceRow {
   id: string;
@@ -20,6 +14,32 @@ interface AgenceRow {
   company_name: string | null;
   plan: string | null;
   created_at: string;
+}
+
+type DateFilter = "all" | "week" | "month";
+
+function startOfWeek(now: Date): Date {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = d.getDay(); // 0 = Sunday
+  const diffToMonday = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diffToMonday);
+  return d;
+}
+
+function startOfMonth(now: Date): Date {
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
+function downloadCsv(csvContent: string, filename: string) {
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export default function AdminClient({
@@ -33,6 +53,8 @@ export default function AdminClient({
 }) {
   const [agenceList, setAgenceList] = useState(agences);
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
 
   async function handleLogout() {
     await fetch("/api/admin/login", { method: "DELETE" });
@@ -56,6 +78,51 @@ export default function AdminClient({
     } finally {
       setPendingId(null);
     }
+  }
+
+  const filteredDevis = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const now = new Date();
+    const weekStart = startOfWeek(now);
+    const monthStart = startOfMonth(now);
+
+    return devis.filter((d) => {
+      const matchSearch =
+        !q ||
+        d.artisan_name?.toLowerCase().includes(q) ||
+        (d.artisan_email ?? "").toLowerCase().includes(q) ||
+        d.client_name.toLowerCase().includes(q) ||
+        (d.client_email ?? "").toLowerCase().includes(q);
+
+      const createdAt = new Date(d.created_at);
+      const matchDate =
+        dateFilter === "all"
+          ? true
+          : dateFilter === "week"
+          ? createdAt >= weekStart
+          : createdAt >= monthStart;
+
+      return matchSearch && matchDate;
+    });
+  }, [devis, search, dateFilter]);
+
+  function exportAllCsv() {
+    const csv = buildCsv(
+      ["Date", "Artisan", "Email artisan", "Téléphone", "Métier", "Client", "Email client", "Total TTC", "Statut"],
+      filteredDevis.map((d) => [
+        new Date(d.created_at).toLocaleDateString("fr-FR"),
+        d.artisan_name ?? "",
+        d.artisan_email ?? "",
+        d.artisan_phone ?? "",
+        d.profession ?? "",
+        d.client_name,
+        d.client_email ?? "",
+        d.total_ttc.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+        d.signed_at ? "Signé" : "En attente",
+      ])
+    );
+    const today = new Date().toISOString().slice(0, 10);
+    downloadCsv(csv, `admin-devis-${today}.csv`);
   }
 
   const uniqueArtisans = new Set(devis.map((d) => d.artisan_email ?? d.artisan_name)).size;
@@ -168,9 +235,36 @@ export default function AdminClient({
         </div>
 
         <div className="bg-white rounded-2xl shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-bold text-[#1e3a5f]">Tous les devis ({devis.length})</h2>
-            <p className="text-xs text-gray-400">500 derniers</p>
+          <div className="px-6 py-4 border-b border-gray-100 flex flex-col gap-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h2 className="font-bold text-[#1e3a5f]">
+                Tous les devis ({filteredDevis.length}{filteredDevis.length !== devis.length ? ` / ${devis.length}` : ""})
+              </h2>
+              <button
+                onClick={exportAllCsv}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-[#1e3a5f] transition-colors"
+              >
+                ⬇ Exporter tout en CSV
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher par artisan, email ou client…"
+                className="flex-1 min-w-[220px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value as DateFilter)}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              >
+                <option value="all">Toutes les dates</option>
+                <option value="week">Cette semaine</option>
+                <option value="month">Ce mois</option>
+              </select>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -182,30 +276,47 @@ export default function AdminClient({
                   <th className="text-left px-4 py-3 hidden md:table-cell">Métier</th>
                   <th className="text-left px-4 py-3">Client</th>
                   <th className="text-right px-4 py-3">Total TTC</th>
+                  <th className="text-right px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {devis.map((d) => (
-                  <tr key={d.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
-                      {new Date(d.created_at).toLocaleDateString("fr-FR", {
-                        day: "2-digit", month: "2-digit", year: "2-digit",
-                        hour: "2-digit", minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-[#1e3a5f]">{d.artisan_name}</td>
-                    <td className="px-4 py-3 text-gray-500 hidden sm:table-cell text-xs">{d.artisan_email ?? "—"}</td>
-                    <td className="px-4 py-3 hidden md:table-cell">
-                      {d.profession ? (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{d.profession}</span>
-                      ) : <span className="text-gray-400">—</span>}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{d.client_name}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-[#f97316]">
-                      {d.total_ttc.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                {filteredDevis.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                      Aucun devis ne correspond à ces critères
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredDevis.map((d) => (
+                    <tr key={d.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+                        {new Date(d.created_at).toLocaleDateString("fr-FR", {
+                          day: "2-digit", month: "2-digit", year: "2-digit",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-[#1e3a5f]">{d.artisan_name}</td>
+                      <td className="px-4 py-3 text-gray-500 hidden sm:table-cell text-xs">{d.artisan_email ?? "—"}</td>
+                      <td className="px-4 py-3 hidden md:table-cell">
+                        {d.profession ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{d.profession}</span>
+                        ) : <span className="text-gray-400">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{d.client_name}</td>
+                      <td className="px-4 py-3 text-right font-semibold text-[#f97316]">
+                        {d.total_ttc.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => printHtmlDocument(getHtml(d))}
+                          className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-[#1e3a5f] transition-colors whitespace-nowrap"
+                        >
+                          Télécharger PDF
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

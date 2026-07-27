@@ -14,7 +14,7 @@ export function escapeHtml(value: string): string {
 export function notifyAdmin(subject: string, bodyHtml: string) {
   resend.emails
     .send({
-      from: "noreply@devis-flow.fr",
+      from: "DevisFlow <equipe@devis-flow.fr>",
       to: ADMIN_EMAIL,
       subject,
       html: `<div style="font-family:Arial,sans-serif;font-size:14px;color:#1e3a5f;line-height:1.6;">${bodyHtml}</div>`,

@@ -110,7 +110,7 @@ export const PROSPECTING_HTML = `<!DOCTYPE html>
                   <td style="vertical-align:middle;">
                     <p style="margin:0;font-size:15px;font-weight:bold;color:#1e3a5f;">Nathan Makambo | Fondateur — DevisFlow</p>
                     <p style="margin:2px 0 0 0;font-size:13px;color:#666666;">
-                      <a href="mailto:noreply@devis-flow.fr" style="color:#f97316;text-decoration:none;">noreply@devis-flow.fr</a>
+                      <a href="mailto:equipe@devis-flow.fr" style="color:#f97316;text-decoration:none;">equipe@devis-flow.fr</a>
                       &nbsp;|&nbsp;
                       <a href="https://devis-flow.fr" style="color:#f97316;text-decoration:none;">devis-flow.fr</a>
                     </p>

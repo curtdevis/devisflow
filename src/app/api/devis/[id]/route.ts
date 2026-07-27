@@ -160,7 +160,7 @@ export async function PATCH(
 </div>`;
 
     resend.emails.send({
-      from: "DevisFlow <noreply@devis-flow.fr>",
+      from: "DevisFlow <equipe@devis-flow.fr>",
       to: current.artisan_email,
       subject: `✅ Devis signé — ${current.client_name} a accepté votre devis ${current.devis_number}`,
       html: notificationHtml,

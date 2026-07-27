@@ -18,9 +18,10 @@ export default async function AdminPage() {
   const [{ data: devis }, { count: userCount }, { data: agences }] = await Promise.all([
     admin
       .from("devis")
-      .select("id, created_at, artisan_name, artisan_email, artisan_phone, client_name, total_ttc, profession")
-      .order("created_at", { ascending: false })
-      .limit(500),
+      .select(
+        "id, created_at, devis_number, artisan_name, artisan_email, artisan_phone, artisan_siret, client_name, client_email, total_ttc, profession, result_json, signed_at"
+      )
+      .order("created_at", { ascending: false }),
     admin.from("profiles").select("id", { count: "exact", head: true }),
     admin
       .from("profiles")

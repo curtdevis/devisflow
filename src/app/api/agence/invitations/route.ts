@@ -58,7 +58,7 @@ export async function PATCH(request: NextRequest) {
   const registerUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/auth/register?invite=${token}`;
 
   const { error: emailError } = await resend.emails.send({
-    from: "noreply@devis-flow.fr",
+    from: "DevisFlow <equipe@devis-flow.fr>",
     to: email,
     subject: `Rappel — ${agenceName} vous invite sur DevisFlow`,
     html: `

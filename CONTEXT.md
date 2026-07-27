@@ -334,7 +334,7 @@ npm run lint
 
 ## Contact / Support
 
-- **Email**: noreply@devis-flow.fr
+- **Email**: equipe@devis-flow.fr
 - **Fondateur**: Nathan Makambo
 - **Site**: https://devis-flow.fr
 

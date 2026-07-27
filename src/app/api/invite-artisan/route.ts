@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
 
   // Send invitation email
   const { error: emailError } = await resend.emails.send({
-    from: "noreply@devis-flow.fr",
+    from: "DevisFlow <equipe@devis-flow.fr>",
     to: email,
     subject: `${agenceName} vous invite sur DevisFlow`,
     html: `

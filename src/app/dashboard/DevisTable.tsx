@@ -3,25 +3,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { buildDevisHtml, buildSummaryHtml, getHtml, h, pdfTitle, type DevisRow } from "@/lib/devis-html";
+import { printHtmlDocument } from "@/lib/print-html";
 
 // ── Print via hidden iframe ───────────────────────────────────────────────────
 
 function printRow(row: DevisRow) {
-  const html = getHtml(row);
-  const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  const iframe = document.createElement("iframe");
-  iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;";
-  iframe.src = url;
-  iframe.onload = () => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-      URL.revokeObjectURL(url);
-    }, 3000);
-  };
-  document.body.appendChild(iframe);
+  printHtmlDocument(getHtml(row));
 }
 
 function printMultiple(rows: DevisRow[]) {
@@ -45,20 +32,7 @@ function printMultiple(rows: DevisRow[]) {
 @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style>
 </head><body>${pages}</body></html>`;
 
-  const blob = new Blob([html], { type: "text/html" });
-  const url = URL.createObjectURL(blob);
-  const iframe = document.createElement("iframe");
-  iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;";
-  iframe.src = url;
-  iframe.onload = () => {
-    iframe.contentWindow?.focus();
-    iframe.contentWindow?.print();
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-      URL.revokeObjectURL(url);
-    }, 3000);
-  };
-  document.body.appendChild(iframe);
+  printHtmlDocument(html);
 }
 
 // ── Preview Modal ─────────────────────────────────────────────────────────────

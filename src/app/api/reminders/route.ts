@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       const subject = buildSubject(devis.reminder_tone, devis.artisan_name, devis.reminder_count + 1);
 
       const { error: emailError } = await resend.emails.send({
-        from: "noreply@devis-flow.fr",
+        from: "DevisFlow <equipe@devis-flow.fr>",
         to: devis.client_email,
         replyTo: devis.artisan_email ?? undefined,
         subject,
