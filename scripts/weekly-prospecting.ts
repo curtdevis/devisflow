@@ -53,18 +53,28 @@ async function scrapeCategoryStep(category: string): Promise<ApifyPlace[]> {
   }
 }
 
-/** Blocks a send if the email already received an outreach or replied STOP. */
-async function checkGateStep(email: string): Promise<{ allowed: boolean; reason?: string }> {
+/**
+ * Blocks a send if this email (or this company, under a possibly different
+ * email) already received an outreach, or if the email replied STOP.
+ * The company-name check matters because Apify can surface the same
+ * business with a slightly different scraped email across weekly runs.
+ */
+async function checkGateStep(
+  email: string,
+  companyName: string
+): Promise<{ allowed: boolean; reason?: string }> {
   "use step";
   const admin = createSupabaseAdmin();
 
-  const [{ data: blacklisted }, { data: alreadySent }] = await Promise.all([
+  const [{ data: blacklisted }, { data: sentToEmail }, { data: sentToCompany }] = await Promise.all([
     admin.from("prospecting_blacklist").select("id").eq("email", email).maybeSingle(),
     admin.from("prospecting_sent").select("id").eq("email", email).maybeSingle(),
+    admin.from("prospecting_sent").select("id").ilike("company_name", companyName).maybeSingle(),
   ]);
 
   if (blacklisted) return { allowed: false, reason: "blacklisted" };
-  if (alreadySent) return { allowed: false, reason: "already_sent" };
+  if (sentToEmail) return { allowed: false, reason: "already_sent_email" };
+  if (sentToCompany) return { allowed: false, reason: "already_sent_company" };
   return { allowed: true };
 }
 
@@ -81,6 +91,13 @@ async function personalizeStep(place: ApifyPlace): Promise<string | null> {
   }
 }
 
+// NOTE: STOP replies are not auto-processed yet — that requires Resend
+// Inbound on a dedicated receiving subdomain (Pro plan), not set up as of
+// writing. The instruction is still shown to prospects (required either
+// way); until inbound is wired up, STOP replies must be blacklisted by hand
+// via an insert into prospecting_blacklist. Duplicate protection in
+// checkGateStep (by email AND company name) is what actually prevents
+// re-contacting someone in the meantime.
 async function sendEmailStep(
   place: ApifyPlace,
   message: string
@@ -162,7 +179,7 @@ export async function weeklyProspectingWorkflow() {
         continue;
       }
 
-      const gate = await checkGateStep(place.email);
+      const gate = await checkGateStep(place.email, place.companyName);
       if (!gate.allowed) {
         results.push({ category, companyName: place.companyName, email: place.email, status: "skipped", reason: gate.reason });
         continue;
