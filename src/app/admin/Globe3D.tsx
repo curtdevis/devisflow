@@ -33,6 +33,11 @@ export default function Globe3D({ visits }: { visits: GlobeVisit[] }) {
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    // Read the width synchronously on mount rather than waiting for the
+    // ResizeObserver's first callback — some environments never fire it for
+    // an element whose size hasn't changed since it was already correctly
+    // sized at observe() time. The observer still handles later resizes.
+    setWidth(el.offsetWidth);
     const observer = new ResizeObserver((entries) => {
       const w = entries[0]?.contentRect.width;
       if (w) setWidth(w);
