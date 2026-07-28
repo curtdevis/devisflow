@@ -1,8 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic();
-
 const MAX_SITE_TEXT_LENGTH = 6000;
+
+// Personalization temporarily runs on Gemini instead of Claude — the
+// Anthropic account is out of credit. Swap back to @anthropic-ai/sdk once
+// credits are restored; the prompt and call site are unchanged either way.
+const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 /** Fetches a company website and strips it down to readable text for the LLM prompt. */
 export async function fetchWebsiteText(url: string): Promise<string | null> {
@@ -46,15 +48,30 @@ Réponds uniquement avec l'email, sans explication.
 ${siteText}`;
 }
 
-/** Returns null if Claude can't produce a genuinely personalized email (e.g. thin/empty site content). */
+/** Returns null if the model can't produce a genuinely personalized email (e.g. thin/empty site content). */
 export async function personalizeEmail(url: string, siteText: string): Promise<string | null> {
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 500,
-    messages: [{ role: "user", content: buildPrompt(url, siteText) }],
-  });
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY manquant");
 
-  const block = message.content.find((b) => b.type === "text");
-  const email = block && block.type === "text" ? block.text.trim() : "";
+  const res = await fetch(
+    `${GEMINI_API_BASE}/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: buildPrompt(url, siteText) }] }],
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Gemini request failed (${res.status}): ${text.slice(0, 500)}`);
+  }
+
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const email = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
   return email.length > 0 ? email : null;
 }
