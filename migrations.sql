@@ -99,3 +99,9 @@ ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
 ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS device_type TEXT;
 ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS browser TEXT;
 ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS os TEXT;
+
+-- 8. Temps passe sur la page (pour voir sur quelles pages les visiteurs
+-- s'attardent). Rempli via un beacon envoye au changement de page ou a la
+-- fermeture de l'onglet — reste NULL si la visite n'a pas ete "fermee"
+-- proprement (rare, sendBeacon est fiable sur pagehide).
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS duration_ms INTEGER;

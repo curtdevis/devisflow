@@ -6,6 +6,7 @@ import { printHtmlDocument } from "@/lib/print-html";
 import { buildCsv } from "@/lib/csv-export";
 import LiveActivity from "./LiveActivity";
 import TrafficChart from "./TrafficChart";
+import PageEngagement from "./PageEngagement";
 
 type DevisRow = BaseDevisRow & { artisan_phone: string | null };
 
@@ -196,8 +197,13 @@ export default function AdminClient({
           <LiveActivity />
         </div>
 
-        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 mb-6 sm:mb-8">
-          <TrafficChart />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6 sm:mb-8">
+          <div className="lg:col-span-3 bg-white rounded-2xl shadow p-4 sm:p-6">
+            <TrafficChart />
+          </div>
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow p-4 sm:p-6">
+            <PageEngagement />
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow overflow-hidden mb-6 sm:mb-8">

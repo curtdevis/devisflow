@@ -43,19 +43,29 @@ export async function POST(request: NextRequest) {
   const { deviceType, browser, os } = parseUserAgent(headers.get("user-agent") ?? "");
 
   const admin = createSupabaseAdmin();
-  await admin.from("site_visits").insert({
-    session_id: sessionId,
-    path,
-    referrer: typeof referrer === "string" ? referrer.slice(0, MAX_TEXT_LENGTH) : null,
-    country: countryName(countryCode),
-    country_code: countryCode,
-    city: city ? decodeURIComponent(city) : null,
-    latitude: parseFloatHeader(headers.get("x-vercel-ip-latitude")),
-    longitude: parseFloatHeader(headers.get("x-vercel-ip-longitude")),
-    device_type: deviceType,
-    browser,
-    os,
-  });
+  const { data, error } = await admin
+    .from("site_visits")
+    .insert({
+      session_id: sessionId,
+      path,
+      referrer: typeof referrer === "string" ? referrer.slice(0, MAX_TEXT_LENGTH) : null,
+      country: countryName(countryCode),
+      country_code: countryCode,
+      city: city ? decodeURIComponent(city) : null,
+      latitude: parseFloatHeader(headers.get("x-vercel-ip-latitude")),
+      longitude: parseFloatHeader(headers.get("x-vercel-ip-longitude")),
+      device_type: deviceType,
+      browser,
+      os,
+    })
+    .select("id")
+    .single();
 
-  return NextResponse.json({ ok: true });
+  if (error) {
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
+
+  // The id is returned so the client can later report time-on-page for this
+  // exact row via /api/track/duration when the visitor leaves.
+  return NextResponse.json({ ok: true, id: data.id });
 }
