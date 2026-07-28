@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getHtml, type DevisRow as BaseDevisRow } from "@/lib/devis-html";
 import { printHtmlDocument } from "@/lib/print-html";
 import { buildCsv } from "@/lib/csv-export";
@@ -55,6 +55,27 @@ export default function AdminClient({
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function poll() {
+      try {
+        const res = await fetch("/api/admin/live-visitors");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setLiveVisitors(data.liveVisitors);
+      } catch {
+        // Silent — the widget just keeps showing the last known value.
+      }
+    }
+    poll();
+    const interval = setInterval(poll, 10_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   async function handleLogout() {
     await fetch("/api/admin/login", { method: "DELETE" });
@@ -141,7 +162,17 @@ export default function AdminClient({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
+          <div className="bg-white rounded-2xl shadow p-6">
+            <p className="text-sm text-gray-500 mb-1 flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              Visiteurs en ligne
+            </p>
+            <p className="text-3xl font-bold text-green-600">{liveVisitors ?? "—"}</p>
+          </div>
           {[
             { label: "Devis générés", value: devis.length, color: "#1e3a5f" },
             { label: "Artisans uniques", value: uniqueArtisans, color: "#f97316" },

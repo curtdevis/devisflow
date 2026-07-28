@@ -73,3 +73,17 @@ ALTER TABLE prospecting_blacklist ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX IF NOT EXISTS idx_prospecting_sent_email ON prospecting_sent(email);
 CREATE INDEX IF NOT EXISTS idx_prospecting_blacklist_email ON prospecting_blacklist(email);
+
+-- 6. Suivi des visites du site (compteur "visiteurs en ligne" du dashboard admin).
+-- Aucun identifiant persistant cote client (pas de cookie) : session_id est
+-- genere en memoire a chaque chargement de page, donc pas de suivi entre
+-- visites — uniquement un decompte des pages vues actives sur une fenetre glissante.
+CREATE TABLE IF NOT EXISTS site_visits (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id TEXT NOT NULL,
+  path       TEXT NOT NULL,
+  referrer   TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE site_visits ENABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS idx_site_visits_created_at ON site_visits(created_at);
