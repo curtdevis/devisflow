@@ -2,7 +2,7 @@ import { sleep } from "workflow";
 import { Resend } from "resend";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import { scrapeGoogleMapsCategory, type ApifyPlace } from "@/lib/apify";
-import { fetchWebsiteText, personalizeEmail } from "@/lib/prospecting-personalize";
+import { fetchWebsiteText, personalizeEmail, buildEmailHtml } from "@/lib/prospecting-personalize";
 import { appendSheetRow } from "@/lib/google-sheets";
 
 const CATEGORIES = [
@@ -111,7 +111,7 @@ async function sendEmailStep(
       replyTo: "equipe@devis-flow.fr",
       subject: `${place.companyName}, une question rapide`,
       text: message,
-      html: message.replace(/\n/g, "<br>"),
+      html: buildEmailHtml(message),
       headers: {
         "List-Unsubscribe": "<mailto:equipe@devis-flow.fr?subject=STOP>",
       },
