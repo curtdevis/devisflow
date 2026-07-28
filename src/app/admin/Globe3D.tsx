@@ -22,7 +22,7 @@ interface GlobePoint {
   color: string;
 }
 
-const GLOBE_IMAGE_URL = "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg";
+const GLOBE_IMAGE_URL = "/globe-dots.png";
 const HEIGHT = 420;
 
 export default function Globe3D({ visits }: { visits: GlobeVisit[] }) {
@@ -74,7 +74,7 @@ export default function Globe3D({ visits }: { visits: GlobeVisit[] }) {
     <div
       ref={containerRef}
       style={{ height: HEIGHT }}
-      className="flex items-center justify-center overflow-hidden rounded-xl bg-[#050d1a]"
+      className="flex items-center justify-center overflow-hidden rounded-xl bg-white"
     >
       {width > 0 && (
         <Globe
@@ -82,17 +82,16 @@ export default function Globe3D({ visits }: { visits: GlobeVisit[] }) {
           width={width}
           height={HEIGHT}
           globeImageUrl={GLOBE_IMAGE_URL}
-          backgroundColor="#050d1a"
-          showAtmosphere
-          atmosphereColor="#f97316"
-          atmosphereAltitude={0.2}
+          showGlobe
+          showAtmosphere={false}
+          backgroundColor="#ffffff"
           pointsData={points}
           pointLat="lat"
           pointLng="lng"
           pointLabel="label"
           pointColor="color"
           pointRadius="size"
-          pointAltitude={0.01}
+          pointAltitude={0.015}
           pointsMerge={false}
           pointResolution={12}
         />

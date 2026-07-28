@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import { isAdminAuthed } from "@/lib/admin-auth";
 
-const WINDOW_MS = 60 * 60 * 1000; // last hour — recent enough to feel "live", wide enough to have data
+const WINDOW_MS = 24 * 60 * 60 * 1000; // last 24h — entries stay visible through the full day instead of vanishing after an hour
 const MAX_ROWS = 500;
 
 export async function GET() {
