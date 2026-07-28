@@ -105,3 +105,25 @@ ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS os TEXT;
 -- fermeture de l'onglet — reste NULL si la visite n'a pas ete "fermee"
 -- proprement (rare, sendBeacon est fiable sur pagehide).
 ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS duration_ms INTEGER;
+
+-- 9. Reinitialisation des compteurs du dashboard admin (Devis generes,
+-- Artisans uniques, Volume TTC total) SANS toucher aux devis reels : le
+-- dashboard ne compte que les devis crees apres reset_at pour ces 3 cartes.
+-- Le tableau "Tous les devis" plus bas reste, lui, toujours complet.
+-- admin_stats_snapshots garde un historique des valeurs juste avant chaque
+-- reset, pour ne rien perdre.
+CREATE TABLE IF NOT EXISTS admin_stats_reset (
+  id         INTEGER PRIMARY KEY DEFAULT 1,
+  reset_at   TIMESTAMPTZ NOT NULL,
+  CONSTRAINT admin_stats_reset_single_row CHECK (id = 1)
+);
+ALTER TABLE admin_stats_reset ENABLE ROW LEVEL SECURITY;
+
+CREATE TABLE IF NOT EXISTS admin_stats_snapshots (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  devis_count    INTEGER NOT NULL,
+  artisans_count INTEGER NOT NULL,
+  volume_ttc     NUMERIC NOT NULL,
+  created_at     TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE admin_stats_snapshots ENABLE ROW LEVEL SECURITY;

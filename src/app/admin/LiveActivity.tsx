@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import WorldMap from "./WorldMap";
+import Globe3D from "./Globe3D";
 
 interface Visit {
   session_id: string;
@@ -59,7 +59,7 @@ export default function LiveActivity() {
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
       <div className="lg:col-span-3 bg-white rounded-2xl shadow p-4 sm:p-6">
         <h2 className="font-bold text-[#1e3a5f] mb-3">Visiteurs en direct dans le monde</h2>
-        <WorldMap visits={visits} />
+        <Globe3D visits={visits} />
       </div>
       <div className="lg:col-span-2 bg-white rounded-2xl shadow overflow-hidden flex flex-col max-h-[420px]">
         <div className="px-4 sm:px-6 py-4 border-b border-gray-100">

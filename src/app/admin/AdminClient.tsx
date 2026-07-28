@@ -45,20 +45,33 @@ function downloadCsv(csvContent: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+interface StatsSnapshot {
+  id: string;
+  devis_count: number;
+  artisans_count: number;
+  volume_ttc: number;
+  created_at: string;
+}
+
 export default function AdminClient({
   devis,
   userCount,
   agences,
+  statsResetAt,
 }: {
   devis: DevisRow[];
   userCount: number;
   agences: AgenceRow[];
+  statsResetAt: string | null;
 }) {
   const [agenceList, setAgenceList] = useState(agences);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
+  const [resetting, setResetting] = useState(false);
+  const [showSnapshots, setShowSnapshots] = useState(false);
+  const [snapshots, setSnapshots] = useState<StatsSnapshot[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,6 +92,44 @@ export default function AdminClient({
       clearInterval(interval);
     };
   }, []);
+
+  async function handleResetStats() {
+    if (
+      !confirm(
+        "Réinitialiser les compteurs (Devis générés, Artisans uniques, Volume TTC) ? Les devis eux-mêmes ne sont pas touchés — les valeurs actuelles sont sauvegardées avant réinitialisation."
+      )
+    ) {
+      return;
+    }
+    setResetting(true);
+    try {
+      const res = await fetch("/api/admin/stats/reset", { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Erreur lors de la réinitialisation.");
+        return;
+      }
+      window.location.reload();
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  async function toggleSnapshots() {
+    const next = !showSnapshots;
+    setShowSnapshots(next);
+    if (next && snapshots === null) {
+      try {
+        const res = await fetch("/api/admin/stats/snapshots");
+        if (res.ok) {
+          const data = await res.json();
+          setSnapshots(data.snapshots ?? []);
+        }
+      } catch {
+        setSnapshots([]);
+      }
+    }
+  }
 
   async function handleLogout() {
     await fetch("/api/admin/login", { method: "DELETE" });
@@ -149,8 +200,11 @@ export default function AdminClient({
     downloadCsv(csv, `admin-devis-${today}.csv`);
   }
 
-  const uniqueArtisans = new Set(devis.map((d) => d.artisan_email ?? d.artisan_name)).size;
-  const totalVolume = devis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
+  // The 3 stat cards only count devis created after the last reset (if any);
+  // the devis table below always shows everything, unaffected by resets.
+  const statsDevis = statsResetAt ? devis.filter((d) => new Date(d.created_at) > new Date(statsResetAt)) : devis;
+  const uniqueArtisans = new Set(statsDevis.map((d) => d.artisan_email ?? d.artisan_name)).size;
+  const totalVolume = statsDevis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] p-3 sm:p-6">
@@ -177,7 +231,7 @@ export default function AdminClient({
             <p className="text-2xl sm:text-3xl font-bold text-green-600">{liveVisitors ?? "—"}</p>
           </div>
           {[
-            { label: "Devis générés", value: devis.length, color: "#1e3a5f" },
+            { label: "Devis générés", value: statsDevis.length, color: "#1e3a5f" },
             { label: "Artisans uniques", value: uniqueArtisans, color: "#f97316" },
             { label: "Utilisateurs total", value: userCount, color: "#10b981" },
             {
@@ -192,6 +246,68 @@ export default function AdminClient({
             </div>
           ))}
         </div>
+
+        <div className="flex flex-wrap items-center gap-3 mb-6 sm:mb-8 -mt-3 sm:-mt-5">
+          {statsResetAt && (
+            <p className="text-xs text-gray-400">
+              Compteurs réinitialisés le{" "}
+              {new Date(statsResetAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+            </p>
+          )}
+          <button
+            onClick={handleResetStats}
+            disabled={resetting}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
+          >
+            {resetting ? "…" : "Réinitialiser les compteurs"}
+          </button>
+          <button
+            onClick={toggleSnapshots}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-[#1e3a5f] transition-colors"
+          >
+            {showSnapshots ? "Masquer l'historique" : "Voir l'historique des réinitialisations"}
+          </button>
+        </div>
+
+        {showSnapshots && (
+          <div className="bg-white rounded-2xl shadow overflow-hidden mb-6 sm:mb-8">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+              <h2 className="font-bold text-[#1e3a5f]">Historique des réinitialisations</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                    <th className="text-left px-4 py-3">Réinitialisé le</th>
+                    <th className="text-right px-4 py-3">Devis générés</th>
+                    <th className="text-right px-4 py-3">Artisans uniques</th>
+                    <th className="text-right px-4 py-3">Volume TTC</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {snapshots === null ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">Chargement…</td></tr>
+                  ) : snapshots.length === 0 ? (
+                    <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-400">Aucune réinitialisation pour l&apos;instant</td></tr>
+                  ) : (
+                    snapshots.map((s) => (
+                      <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                          {new Date(s.created_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium text-[#1e3a5f]">{s.devis_count}</td>
+                        <td className="px-4 py-3 text-right font-medium text-[#f97316]">{s.artisans_count}</td>
+                        <td className="px-4 py-3 text-right font-medium text-[#6366f1]">
+                          {s.volume_ttc.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} €
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         <div className="mb-6 sm:mb-8">
           <LiveActivity />
