@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { getHtml, type DevisRow as BaseDevisRow } from "@/lib/devis-html";
 import { printHtmlDocument } from "@/lib/print-html";
 import { buildCsv } from "@/lib/csv-export";
+import LiveActivity from "./LiveActivity";
+import TrafficChart from "./TrafficChart";
 
 type DevisRow = BaseDevisRow & { artisan_phone: string | null };
 
@@ -150,10 +152,10 @@ export default function AdminClient({
   const totalVolume = devis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] p-6">
+    <div className="min-h-screen bg-[#f8fafc] p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-[#1e3a5f]">Dashboard Admin</h1>
+        <div className="flex items-center justify-between mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1e3a5f]">Dashboard Admin</h1>
           <button
             onClick={handleLogout}
             className="text-sm text-gray-500 hover:text-gray-700 underline"
@@ -162,16 +164,16 @@ export default function AdminClient({
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-2xl shadow p-6">
-            <p className="text-sm text-gray-500 mb-1 flex items-center gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
+          <div className="bg-white rounded-2xl shadow p-4 sm:p-6">
+            <p className="text-xs sm:text-sm text-gray-500 mb-1 flex items-center gap-1.5">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
               </span>
               Visiteurs en ligne
             </p>
-            <p className="text-3xl font-bold text-green-600">{liveVisitors ?? "—"}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-green-600">{liveVisitors ?? "—"}</p>
           </div>
           {[
             { label: "Devis générés", value: devis.length, color: "#1e3a5f" },
@@ -183,15 +185,23 @@ export default function AdminClient({
               color: "#6366f1",
             },
           ].map((s) => (
-            <div key={s.label} className="bg-white rounded-2xl shadow p-6">
-              <p className="text-sm text-gray-500 mb-1">{s.label}</p>
-              <p className="text-3xl font-bold" style={{ color: s.color }}>{s.value}</p>
+            <div key={s.label} className="bg-white rounded-2xl shadow p-4 sm:p-6">
+              <p className="text-xs sm:text-sm text-gray-500 mb-1">{s.label}</p>
+              <p className="text-2xl sm:text-3xl font-bold" style={{ color: s.color }}>{s.value}</p>
             </div>
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl shadow overflow-hidden mb-8">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <div className="mb-6 sm:mb-8">
+          <LiveActivity />
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 mb-6 sm:mb-8">
+          <TrafficChart />
+        </div>
+
+        <div className="bg-white rounded-2xl shadow overflow-hidden mb-6 sm:mb-8">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <h2 className="font-bold text-[#1e3a5f]">Comptes Cabinet &amp; Groupement ({agenceList.length})</h2>
             <p className="text-xs text-gray-400">Vente sur devis — activez l&apos;accès après paiement confirmé</p>
           </div>
@@ -266,7 +276,7 @@ export default function AdminClient({
         </div>
 
         <div className="bg-white rounded-2xl shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex flex-col gap-3">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col gap-3">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h2 className="font-bold text-[#1e3a5f]">
                 Tous les devis ({filteredDevis.length}{filteredDevis.length !== devis.length ? ` / ${devis.length}` : ""})

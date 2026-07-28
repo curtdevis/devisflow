@@ -87,3 +87,15 @@ CREATE TABLE IF NOT EXISTS site_visits (
 );
 ALTER TABLE site_visits ENABLE ROW LEVEL SECURITY;
 CREATE INDEX IF NOT EXISTS idx_site_visits_created_at ON site_visits(created_at);
+
+-- 7. Geolocalisation + appareil, pour la carte monde et le detail des visiteurs
+-- du dashboard admin. Valeurs derivees des en-tetes geo Vercel (gratuit, deja
+-- fourni par la plateforme) et du User-Agent — aucun service tiers de geo-IP.
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS country TEXT;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS country_code TEXT;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS device_type TEXT;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS browser TEXT;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS os TEXT;
