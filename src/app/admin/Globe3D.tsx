@@ -71,17 +71,21 @@ export default function Globe3D({ visits }: { visits: GlobeVisit[] }) {
     }));
 
   return (
-    <div ref={containerRef} style={{ height: HEIGHT }} className="flex items-center justify-center overflow-hidden">
+    <div
+      ref={containerRef}
+      style={{ height: HEIGHT }}
+      className="flex items-center justify-center overflow-hidden rounded-xl bg-[#050d1a]"
+    >
       {width > 0 && (
         <Globe
           ref={globeRef}
           width={width}
           height={HEIGHT}
           globeImageUrl={GLOBE_IMAGE_URL}
-          backgroundColor="rgba(0,0,0,0)"
+          backgroundColor="#050d1a"
           showAtmosphere
           atmosphereColor="#f97316"
-          atmosphereAltitude={0.15}
+          atmosphereAltitude={0.2}
           pointsData={points}
           pointLat="lat"
           pointLng="lng"
@@ -90,6 +94,7 @@ export default function Globe3D({ visits }: { visits: GlobeVisit[] }) {
           pointRadius="size"
           pointAltitude={0.01}
           pointsMerge={false}
+          pointResolution={12}
         />
       )}
     </div>

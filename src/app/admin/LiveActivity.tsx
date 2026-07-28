@@ -57,8 +57,8 @@ export default function LiveActivity() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-      <div className="lg:col-span-3 bg-white rounded-2xl shadow p-4 sm:p-6">
-        <h2 className="font-bold text-[#1e3a5f] mb-3">Visiteurs en direct dans le monde</h2>
+      <div className="lg:col-span-3 bg-[#050d1a] rounded-2xl shadow p-4 sm:p-6">
+        <h2 className="font-bold text-white mb-3">Visiteurs en direct dans le monde</h2>
         <Globe3D visits={visits} />
       </div>
       <div className="lg:col-span-2 bg-white rounded-2xl shadow overflow-hidden flex flex-col max-h-[420px]">
