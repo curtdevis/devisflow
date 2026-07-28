@@ -45,6 +45,16 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
+// USER_ENTERED lets Sheets auto-linkify URLs (useful for the "Site web"
+// column), but it also means a string starting with +, -, =, or @ gets
+// parsed as a formula — e.g. a phone number "+33 1 84 73 13 96" became
+// #ERROR!. Prefix those with a straight apostrophe to force plain text,
+// same escaping idea as the CSV-injection guard in csv-export.ts.
+function escapeSheetFormula(value: string | number): string | number {
+  if (typeof value === "number") return value;
+  return /^[+\-=@]/.test(value) ? `'${value}` : value;
+}
+
 export async function appendSheetRow(values: (string | number)[]): Promise<void> {
   const sheetId = process.env.GOOGLE_SHEET_ID;
   if (!sheetId) throw new Error("GOOGLE_SHEET_ID manquant");
@@ -59,7 +69,7 @@ export async function appendSheetRow(values: (string | number)[]): Promise<void>
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ values: [values] }),
+      body: JSON.stringify({ values: [values.map(escapeSheetFormula)] }),
     }
   );
 
