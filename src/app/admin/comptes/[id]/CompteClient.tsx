@@ -31,6 +31,7 @@ interface DevisRow {
   profession: string | null;
   signed_at: string | null;
   status: string | null;
+  refusal_reason: string | null;
 }
 
 const TRIAL_DAYS = 7;
@@ -66,7 +67,9 @@ export default function CompteClient({
 
   const totalGenerated = devis.length;
   const signedDevis = devis.filter((d) => !!d.signed_at);
+  const refusedDevis = devis.filter((d) => !d.signed_at && d.status === "refused");
   const totalSigned = signedDevis.length;
+  const totalRefused = refusedDevis.length;
   const conversionRate = totalGenerated > 0 ? Math.round((totalSigned / totalGenerated) * 100) : 0;
   const totalVolumeAll = devis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
   const totalVolumeSigned = signedDevis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
@@ -192,10 +195,11 @@ export default function CompteClient({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mb-6">
           {[
             { label: "Devis générés", value: totalGenerated, color: "#1e3a5f" },
             { label: "Devis acceptés", value: `${totalSigned} (${conversionRate}%)`, color: "#10b981" },
+            { label: "Devis refusés", value: totalRefused, color: "#ef4444" },
             { label: "Volume total TTC", value: formatEuro(totalVolumeAll), color: "#6366f1" },
             { label: "Volume signé TTC", value: formatEuro(totalVolumeSigned), color: "#f97316" },
           ].map((s) => (
@@ -220,13 +224,14 @@ export default function CompteClient({
                   <th className="text-left px-4 py-3">Client</th>
                   <th className="text-left px-4 py-3 hidden sm:table-cell">Métier</th>
                   <th className="text-right px-4 py-3">Total TTC</th>
-                  <th className="text-right px-4 py-3">Statut</th>
+                  <th className="text-left px-4 py-3">Statut</th>
+                  <th className="text-left px-4 py-3 hidden md:table-cell">Motif refus</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {devis.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
                       Aucun devis généré pour l&apos;instant
                     </td>
                   </tr>
@@ -244,14 +249,21 @@ export default function CompteClient({
                         )}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-[#f97316]">{formatEuro(d.total_ttc)}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3">
                         <span
                           className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                            d.signed_at ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
+                            d.signed_at
+                              ? "bg-green-100 text-green-700"
+                              : d.status === "refused"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-orange-100 text-orange-700"
                           }`}
                         >
-                          {d.signed_at ? "Signé" : "En attente"}
+                          {d.signed_at ? "Signé" : d.status === "refused" ? "Refusé" : "En attente"}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs max-w-[220px] truncate" title={d.refusal_reason ?? undefined}>
+                        {d.refusal_reason ?? "—"}
                       </td>
                     </tr>
                   ))

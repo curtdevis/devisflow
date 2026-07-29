@@ -28,7 +28,7 @@ export default async function ComptePage({ params }: { params: Promise<{ id: str
       .maybeSingle(),
     admin
       .from("devis")
-      .select("id, created_at, devis_number, client_name, client_email, total_ttc, profession, signed_at, status")
+      .select("id, created_at, devis_number, client_name, client_email, total_ttc, profession, signed_at, status, refusal_reason")
       .eq("user_id", id)
       .order("created_at", { ascending: false }),
   ]);

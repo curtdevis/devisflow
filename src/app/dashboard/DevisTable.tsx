@@ -407,6 +407,17 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                       <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
                         ✓ Signé
                       </span>
+                    ) : d.status === "refused" ? (
+                      <div>
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">
+                          ✗ Refusé
+                        </span>
+                        {d.refusal_reason && (
+                          <p className="text-xs text-gray-400 mt-1 max-w-[180px] truncate" title={d.refusal_reason}>
+                            {d.refusal_reason}
+                          </p>
+                        )}
+                      </div>
                     ) : (
                       <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">
                         En attente
@@ -443,8 +454,8 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                           <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                       </button>
-                      {/* Sign link — only for unsigned devis */}
-                      {!d.signed_at && <CopyLinkButton devisId={d.id} />}
+                      {/* Sign link — only while the devis is still pending */}
+                      {!d.signed_at && d.status !== "refused" && <CopyLinkButton devisId={d.id} />}
                       {/* Convert to invoice — only for signed devis */}
                       {d.signed_at && <ConvertInvoiceButton devisId={d.id} />}
                     </div>

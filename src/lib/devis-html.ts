@@ -43,6 +43,8 @@ export interface DevisRow {
   profession: string | null;
   result_json: DevisResult | null;
   signed_at?: string | null;
+  status?: string | null;
+  refusal_reason?: string | null;
 }
 
 export function h(s: string | number | null | undefined): string {

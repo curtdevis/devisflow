@@ -29,7 +29,7 @@ export default async function DashboardPage() {
   let { data: devis, error: devisError } = await createSupabaseAdmin()
     .from("devis")
     .select(
-      "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, result_json, signed_at"
+      "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, result_json, signed_at, status, refusal_reason"
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
     const fallback = await createSupabaseAdmin()
       .from("devis")
       .select(
-        "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, signed_at"
+        "id, created_at, devis_number, artisan_name, artisan_email, artisan_siret, client_name, client_email, total_ttc, profession, signed_at, status, refusal_reason"
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })

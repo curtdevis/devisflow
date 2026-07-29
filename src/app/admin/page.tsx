@@ -19,7 +19,7 @@ export default async function AdminPage() {
     admin
       .from("devis")
       .select(
-        "id, created_at, devis_number, artisan_name, artisan_email, artisan_phone, artisan_siret, client_name, client_email, total_ttc, profession, result_json, signed_at"
+        "id, created_at, devis_number, artisan_name, artisan_email, artisan_phone, artisan_siret, client_name, client_email, total_ttc, profession, result_json, signed_at, status, refusal_reason"
       )
       .order("created_at", { ascending: false }),
     admin.from("profiles").select("id", { count: "exact", head: true }),

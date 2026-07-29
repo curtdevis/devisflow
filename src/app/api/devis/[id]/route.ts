@@ -30,7 +30,7 @@ export async function GET(
   const { data, error } = await admin
     .from("devis")
     .select(
-      "id, devis_number, artisan_name, client_name, total_ttc, result_json, status, signed_at, created_at, signature_data"
+      "id, devis_number, artisan_name, client_name, total_ttc, result_json, status, signed_at, refused_at, refusal_reason, created_at, signature_data"
     )
     .eq("id", id)
     .single();
@@ -64,7 +64,7 @@ export async function PATCH(
 
   const admin = createSupabaseAdmin();
 
-  // Fetch current devis to check it exists and isn't already signed
+  // Fetch current devis to check it exists and isn't already in a terminal state
   const { data: current, error: fetchErr } = await admin
     .from("devis")
     .select("id, status, artisan_name, artisan_email, client_name, devis_number, total_ttc")
@@ -75,9 +75,12 @@ export async function PATCH(
     return NextResponse.json({ error: "Devis introuvable" }, { status: 404 });
   }
 
-  // Prevent re-signing an already signed devis
+  // Prevent re-signing or re-refusing a devis that's already in a terminal state
   if (current.status === "signed") {
     return NextResponse.json({ error: "Ce devis est déjà signé" }, { status: 409 });
+  }
+  if (current.status === "refused") {
+    return NextResponse.json({ error: "Ce devis a déjà été refusé" }, { status: 409 });
   }
 
   // Build allowed update with strict type validation
@@ -100,10 +103,18 @@ export async function PATCH(
     allowed.signed_at = input.signed_at;
   }
 
+  if (input.refusal_reason !== undefined) {
+    if (typeof input.refusal_reason !== "string" || input.refusal_reason.length > 2000) {
+      return NextResponse.json({ error: "Motif de refus invalide" }, { status: 422 });
+    }
+    allowed.refusal_reason = input.refusal_reason.trim() || null;
+  }
+
   // Only allow valid status transitions
   const isBeingSigned = input.status === "signed";
+  const isBeingRefused = input.status === "refused";
   if (input.status !== undefined) {
-    if (input.status !== "signed" && input.status !== "pending") {
+    if (input.status !== "signed" && input.status !== "pending" && input.status !== "refused") {
       return NextResponse.json({ error: "Statut invalide" }, { status: 422 });
     }
     allowed.status = input.status;
@@ -113,10 +124,13 @@ export async function PATCH(
     return NextResponse.json({ error: "Aucun champ valide à mettre à jour" }, { status: 400 });
   }
 
-  // Disable reminders when devis is signed
-  if (isBeingSigned) {
+  // Disable reminders once the devis reaches a terminal state
+  if (isBeingSigned || isBeingRefused) {
     allowed.reminder_enabled = false;
     allowed.reminder_next_date = null;
+  }
+  if (isBeingRefused) {
+    allowed.refused_at = new Date().toISOString();
   }
 
   const { error } = await admin.from("devis").update(allowed).eq("id", id);
@@ -168,6 +182,58 @@ export async function PATCH(
       });
     } catch (err) {
       console.error("[devis-sign] notification email error:", err instanceof Error ? err.message : "unknown");
+    }
+  }
+
+  // Send notification email to artisan when devis is refused
+  if (isBeingRefused && current.artisan_email) {
+    const artisanName = escapeHtml(current.artisan_name ?? "");
+    const clientName = escapeHtml(current.client_name ?? "");
+    const devisNumber = escapeHtml(current.devis_number ?? "");
+    const totalTTC = typeof current.total_ttc === "number"
+      ? current.total_ttc.toLocaleString("fr-FR", { minimumFractionDigits: 2 })
+      : "—";
+    const reason = typeof allowed.refusal_reason === "string" ? escapeHtml(allowed.refusal_reason) : null;
+
+    const refusalHtml = `
+<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
+  <p style="font-size:22px;font-weight:900;color:#1e3a5f;margin:0 0 24px;">
+    Devis<span style="color:#f97316;">Flow</span>
+  </p>
+  <div style="background:#fee2e2;border:2px solid #fca5a5;border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+    <p style="font-size:18px;font-weight:700;color:#991b1b;margin:0 0 6px;">✗ Devis refusé</p>
+    <p style="font-size:14px;color:#7f1d1d;margin:0;">
+      <strong>${clientName}</strong> a refusé votre devis <strong>${devisNumber}</strong>
+      d'un montant de <strong>${totalTTC} € TTC</strong>.
+    </p>
+  </div>
+  ${reason
+    ? `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+        <p style="margin:0 0 6px;font-size:11px;font-weight:700;color:#1e3a5f;text-transform:uppercase;letter-spacing:0.05em;">Motif indiqué par le client</p>
+        <p style="margin:0;font-size:14px;color:#374151;line-height:1.6;">${reason}</p>
+       </div>`
+    : `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;">Le client n'a pas précisé de motif.</p>`}
+  <p style="font-size:14px;color:#374151;margin:0 0 16px;">
+    Bonjour ${artisanName},<br><br>
+    Vous pouvez consulter ce devis et en créer un nouveau si besoin depuis votre tableau de bord.
+  </p>
+  <a href="${SITE_URL}/dashboard" style="display:inline-block;background:#1e3a5f;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none;">
+    Voir mon tableau de bord →
+  </a>
+  <p style="color:#9ca3af;font-size:11px;margin-top:20px;">
+    Notification automatique — <a href="${SITE_URL}" style="color:#9ca3af;">DevisFlow</a>
+  </p>
+</div>`;
+
+    try {
+      await resend.emails.send({
+        from: "DevisFlow <equipe@devis-flow.fr>",
+        to: current.artisan_email,
+        subject: `✗ Devis refusé — ${current.client_name} a refusé votre devis ${current.devis_number}`,
+        html: refusalHtml,
+      });
+    } catch (err) {
+      console.error("[devis-refuse] notification email error:", err instanceof Error ? err.message : "unknown");
     }
   }
 

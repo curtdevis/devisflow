@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { Suspense, useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { use } from "react";
+import { useSearchParams } from "next/navigation";
 import { getHtml, type DevisResult } from "@/lib/devis-html";
 import { printHtmlDocument } from "@/lib/print-html";
 
@@ -15,17 +16,26 @@ interface DevisData {
   status: string | null;
   signature_data: string | null;
   signed_at: string | null;
+  refused_at: string | null;
+  refusal_reason: string | null;
   result_json: DevisResult | null;
 }
 
-export default function SignPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+function SignPageContent({ id }: { id: string }) {
+  const searchParams = useSearchParams();
   const [devis, setDevis] = useState<DevisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [signed, setSigned] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState("");
+
+  // Refusal
+  const [refused, setRefused] = useState(false);
+  const [refusePanelOpen, setRefusePanelOpen] = useState(searchParams.get("action") === "refuse");
+  const [refusalReason, setRefusalReason] = useState("");
+  const [refusing, setRefusing] = useState(false);
+  const [refuseError, setRefuseError] = useState("");
 
   // Signature pad
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -36,7 +46,12 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
   useEffect(() => {
     fetch(`/api/devis/${id}`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(data => { setDevis(data); setLoading(false); if (data.status === "signed") setSigned(true); })
+      .then(data => {
+        setDevis(data);
+        setLoading(false);
+        if (data.status === "signed") setSigned(true);
+        if (data.status === "refused") setRefused(true);
+      })
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [id]);
 
@@ -119,6 +134,23 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
     } catch {
       setSignError("Une erreur est survenue. Veuillez réessayer.");
     } finally { setSigning(false); }
+  }
+
+  async function confirmRefuse() {
+    setRefusing(true); setRefuseError("");
+    try {
+      const res = await fetch(`/api/devis/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "refused", refusal_reason: refusalReason }),
+      });
+      if (!res.ok) throw new Error("Erreur serveur");
+      const now = new Date().toISOString();
+      setDevis((prev) => prev ? { ...prev, refused_at: now, refusal_reason: refusalReason || null, status: "refused" } : prev);
+      setRefused(true);
+    } catch {
+      setRefuseError("Une erreur est survenue. Veuillez réessayer.");
+    } finally { setRefusing(false); }
   }
 
   if (loading) {
@@ -249,8 +281,11 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
 
-        {/* Signature block */}
-        <div className="bg-white rounded-2xl border-2 shadow-sm p-6" style={{ borderColor: signed ? "#10b981" : "#f97316" }}>
+        {/* Signature / refusal block */}
+        <div
+          className="bg-white rounded-2xl border-2 shadow-sm p-6"
+          style={{ borderColor: signed ? "#10b981" : refused ? "#9ca3af" : "#f97316" }}
+        >
           {signed ? (
             <div className="text-center py-4">
               <div className="text-5xl mb-3">✅</div>
@@ -265,6 +300,55 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
                 </div>
               )}
             </div>
+          ) : refused ? (
+            <div className="text-center py-4">
+              <div className="text-5xl mb-3">✗</div>
+              <h2 className="text-xl font-extrabold mb-1" style={{ color: "#4b5563" }}>Devis refusé</h2>
+              <p className="text-gray-500 text-sm">
+                Votre refus a été enregistré le {devis.refused_at ? new Date(devis.refused_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }) : "aujourd'hui"}.
+              </p>
+              {devis.refusal_reason && (
+                <div className="mt-4 mx-auto max-w-md text-left bg-gray-50 border border-gray-200 rounded-xl p-4">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#1e3a5f" }}>Motif indiqué</p>
+                  <p className="text-sm text-gray-600">{devis.refusal_reason}</p>
+                </div>
+              )}
+            </div>
+          ) : refusePanelOpen ? (
+            <>
+              <h2 className="text-lg font-extrabold mb-1" style={{ color: "#4b5563" }}>Refuser ce devis</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                Vous pouvez indiquer au prestataire pourquoi vous refusez ce devis (facultatif).
+              </p>
+              <textarea
+                value={refusalReason}
+                onChange={(e) => setRefusalReason(e.target.value)}
+                placeholder="Ex : budget trop élevé, délai trop long, choix d'un autre prestataire…"
+                rows={4}
+                maxLength={2000}
+                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 mb-4"
+              />
+              {refuseError && <p className="text-red-500 text-sm mb-4">{refuseError}</p>}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={confirmRefuse}
+                  disabled={refusing}
+                  className="flex-1 py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-all disabled:opacity-40"
+                  style={{ backgroundColor: "#4b5563" }}
+                >
+                  {refusing ? "Envoi…" : "Confirmer le refus"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRefusePanelOpen(false)}
+                  disabled={refusing}
+                  className="text-sm font-semibold px-4 py-3.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </>
           ) : (
             <>
               <h2 className="text-lg font-extrabold mb-1" style={{ color: "#1e3a5f" }}>Signer ce devis</h2>
@@ -301,6 +385,14 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
               >
                 {signing ? "Enregistrement…" : "✍️ Valider ma signature — Bon pour accord"}
               </button>
+
+              <button
+                type="button"
+                onClick={() => setRefusePanelOpen(true)}
+                className="w-full mt-3 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Refuser ce devis
+              </button>
             </>
           )}
         </div>
@@ -310,5 +402,14 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
         </p>
       </main>
     </div>
+  );
+}
+
+export default function SignPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  return (
+    <Suspense>
+      <SignPageContent id={id} />
+    </Suspense>
   );
 }

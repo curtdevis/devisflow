@@ -280,7 +280,7 @@ export default function AdminClient({
 
   function exportAllCsv() {
     const csv = buildCsv(
-      ["Date", "Artisan", "Email artisan", "Téléphone", "Métier", "Client", "Email client", "Total TTC", "Statut"],
+      ["Date", "Artisan", "Email artisan", "Téléphone", "Métier", "Client", "Email client", "Total TTC", "Statut", "Motif refus"],
       filteredDevis.map((d) => [
         new Date(d.created_at).toLocaleDateString("fr-FR"),
         d.artisan_name ?? "",
@@ -290,7 +290,8 @@ export default function AdminClient({
         d.client_name,
         d.client_email ?? "",
         d.total_ttc.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        d.signed_at ? "Signé" : "En attente",
+        d.signed_at ? "Signé" : d.status === "refused" ? "Refusé" : "En attente",
+        d.refusal_reason ?? "",
       ])
     );
     const today = new Date().toISOString().slice(0, 10);
@@ -707,6 +708,7 @@ export default function AdminClient({
                   <th className="text-left px-4 py-3 hidden sm:table-cell">Email</th>
                   <th className="text-left px-4 py-3 hidden md:table-cell">Métier</th>
                   <th className="text-left px-4 py-3">Client</th>
+                  <th className="text-left px-4 py-3">Statut</th>
                   <th className="text-right px-4 py-3">Total TTC</th>
                   <th className="text-right px-4 py-3">Action</th>
                 </tr>
@@ -714,7 +716,7 @@ export default function AdminClient({
               <tbody className="divide-y divide-gray-50">
                 {filteredDevis.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                    <td colSpan={8} className="px-4 py-8 text-center text-gray-400">
                       Aucun devis ne correspond à ces critères
                     </td>
                   </tr>
@@ -735,6 +737,22 @@ export default function AdminClient({
                         ) : <span className="text-gray-400">—</span>}
                       </td>
                       <td className="px-4 py-3 text-gray-600">{d.client_name}</td>
+                      <td className="px-4 py-3">
+                        {d.signed_at ? (
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Signé</span>
+                        ) : d.status === "refused" ? (
+                          <div>
+                            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Refusé</span>
+                            {d.refusal_reason && (
+                              <p className="text-xs text-gray-400 mt-1 max-w-[160px] truncate" title={d.refusal_reason}>
+                                {d.refusal_reason}
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-orange-100 text-orange-700">En attente</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-right font-semibold text-[#f97316]">
                         {d.total_ttc.toLocaleString("fr-FR", { style: "currency", currency: "EUR" })}
                       </td>
