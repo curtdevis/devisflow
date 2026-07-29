@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { use } from "react";
-import { useSearchParams } from "next/navigation";
 import { getHtml, type DevisResult } from "@/lib/devis-html";
 import { printHtmlDocument } from "@/lib/print-html";
 
@@ -21,15 +20,12 @@ interface DevisData {
 
 export default function SignPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const searchParams = useSearchParams();
-  const autoDownload = searchParams.get("download") === "1";
   const [devis, setDevis] = useState<DevisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [signed, setSigned] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState("");
-  const [downloaded, setDownloaded] = useState(false);
 
   // Signature pad
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,13 +58,7 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
         signed_at: devis.signed_at,
       })
     );
-    setDownloaded(true);
   }
-
-  useEffect(() => {
-    if (autoDownload && devis && !downloaded) downloadPdf();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoDownload, devis]);
 
   function getPos(e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) {
     const rect = canvas.getBoundingClientRect();

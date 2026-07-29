@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
     <div style="padding: 24px 36px; margin: 0 36px 28px; border: 2px solid #f97316; border-radius: 12px; background: #fff7ed; text-align: center;">
       <p style="margin: 0 0 14px; font-size: 13px; color: #374151;">Pour accepter ce devis, cliquez sur le bouton ci-dessous :</p>
       ${devis.id ? `<a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}" style="display:inline-block;background:#f97316;color:#ffffff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">✍️ Signer le devis en ligne →</a>` : `<p style="margin:0;font-size:13px;color:#6b7280;">Répondez à cet email avec la mention <strong>« Bon pour accord »</strong>.</p>`}
-      ${devis.id ? `<div style="margin-top: 14px;"><a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}?download=1" style="display:inline-block;background:#ffffff;color:#1e3a5f;font-weight:700;font-size:13px;padding:10px 24px;border-radius:10px;text-decoration:none;border:1px solid #fed7aa;">📄 Télécharger le devis (PDF)</a></div>` : ""}
+      ${devis.id ? `<div style="margin-top: 14px;"><a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}/telecharger" style="display:inline-block;background:#ffffff;color:#1e3a5f;font-weight:700;font-size:13px;padding:10px 24px;border-radius:10px;text-decoration:none;border:1px solid #fed7aa;">📄 Télécharger le devis (PDF)</a></div>` : ""}
       ${devis.id ? `<p style="margin: 12px 0 0; font-size: 11px; color: #9ca3af;">Ou copiez ce lien : ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}</p>` : ""}
     </div>
 
