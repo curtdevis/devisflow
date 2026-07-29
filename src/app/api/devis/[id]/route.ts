@@ -159,14 +159,16 @@ export async function PATCH(
   </p>
 </div>`;
 
-    resend.emails.send({
-      from: "DevisFlow <equipe@devis-flow.fr>",
-      to: current.artisan_email,
-      subject: `✅ Devis signé — ${current.client_name} a accepté votre devis ${current.devis_number}`,
-      html: notificationHtml,
-    }).catch((err: unknown) => {
+    try {
+      await resend.emails.send({
+        from: "DevisFlow <equipe@devis-flow.fr>",
+        to: current.artisan_email,
+        subject: `✅ Devis signé — ${current.client_name} a accepté votre devis ${current.devis_number}`,
+        html: notificationHtml,
+      });
+    } catch (err) {
       console.error("[devis-sign] notification email error:", err instanceof Error ? err.message : "unknown");
-    });
+    }
   }
 
   return NextResponse.json({ ok: true });

@@ -261,8 +261,9 @@ export async function POST(req: NextRequest) {
       html: emailHtml,
     });
 
-    // Confirm to the artisan that their devis was successfully sent —
-    // fire-and-forget, never blocks the response to the client-facing send.
+    // Confirm to the artisan that their devis was successfully sent.
+    // Awaited (not fire-and-forget) — on serverless, an un-awaited promise
+    // can get cut off once the handler returns before Resend's request completes.
     if (devis.artisan.email) {
       const confirmationHtml = `
 <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
@@ -287,14 +288,16 @@ export async function POST(req: NextRequest) {
   </p>
 </div>`;
 
-      resend.emails.send({
-        from: "DevisFlow <equipe@devis-flow.fr>",
-        to: devis.artisan.email,
-        subject: `📤 Devis envoyé — ${devis.devisNumber} transmis à ${devis.client.name}`,
-        html: confirmationHtml,
-      }).catch((err: unknown) => {
+      try {
+        await resend.emails.send({
+          from: "DevisFlow <equipe@devis-flow.fr>",
+          to: devis.artisan.email,
+          subject: `📤 Devis envoyé — ${devis.devisNumber} transmis à ${devis.client.name}`,
+          html: confirmationHtml,
+        });
+      } catch (err) {
         console.error("[send-devis] artisan confirmation email error:", err instanceof Error ? err.message : "unknown");
-      });
+      }
     }
 
     return NextResponse.json({ success: true });
