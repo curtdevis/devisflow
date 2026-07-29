@@ -1,4 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import {
@@ -9,8 +8,6 @@ import {
 } from "@/lib/devis-calculations";
 import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
 import { DEVIS_LIMIT_PER_MONTH } from "@/lib/agence-limits";
-
-const client = new Anthropic();
 
 // IP-based rate limit for unauthenticated requests: 5 per hour, persisted in Supabase
 // SQL to run once in Supabase:
@@ -66,9 +63,6 @@ async function checkAnonLimitDb(ip: string): Promise<boolean> {
     return true;
   }
 }
-
-const AGENT_ID = process.env.ANTHROPIC_AGENT_ID;
-const ENV_ID = process.env.ANTHROPIC_ENV_ID;
 
 interface Material {
   description: string;
@@ -181,48 +175,34 @@ function extractFirstJson(text: string): string | null {
   return null;
 }
 
-async function generateWithManagedAgent(prompt: string): Promise<{ lines: DevisLine[]; notes: string; legalMentions: string }> {
-  const session = await client.beta.sessions.create({
-    agent: AGENT_ID!,
-    environment_id: ENV_ID!,
-  });
+// Génération temporairement sur Gemini — le compte Anthropic est à sec de
+// crédit. Repasser sur @anthropic-ai/sdk une fois les crédits reconstitués ;
+// le prompt et le point d'appel restent inchangés dans les deux cas.
+const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
-  // Open stream before sending (stream-first ordering)
-  const stream = await client.beta.sessions.events.stream(session.id);
+async function generateWithGemini(prompt: string): Promise<{ lines: DevisLine[]; notes: string; legalMentions: string }> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY manquant");
 
-  await client.beta.sessions.events.send(session.id, {
-    events: [{ type: "user.message", content: [{ type: "text", text: prompt }] }],
-  });
-
-  let collectedText = "";
-  for await (const event of stream) {
-    if (event.type === "agent.message") {
-      for (const block of event.content) {
-        if (block.type === "text") collectedText += block.text;
-      }
+  const res = await fetch(
+    `${GEMINI_API_BASE}/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
     }
-    if (event.type === "session.status_terminated") break;
-    if (event.type === "session.status_idle") {
-      if ((event as { stop_reason?: { type: string } }).stop_reason?.type !== "requires_action") break;
-    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Gemini request failed (${res.status}): ${text.slice(0, 500)}`);
   }
 
-  // Archive session async — don't block the response
-  client.beta.sessions.archive(session.id).catch(() => {});
-
-  const jsonMatch = extractFirstJson(collectedText);
-  if (!jsonMatch) throw new Error("Réponse agent invalide");
-  const parsed = JSON.parse(jsonMatch);
-  return { lines: parsed.lines ?? [], notes: parsed.notes ?? "", legalMentions: parsed.legalMentions ?? "" };
-}
-
-async function generateWithDirectAPI(prompt: string): Promise<{ lines: DevisLine[]; notes: string; legalMentions: string }> {
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
-  });
-  const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   const jsonMatch = extractFirstJson(rawText);
   if (!jsonMatch) throw new Error("Réponse IA invalide");
   const parsed = JSON.parse(jsonMatch);
@@ -391,10 +371,7 @@ Retourne UNIQUEMENT ce JSON :
   let legalMentions = "";
 
   try {
-    const useManagedAgent = AGENT_ID && ENV_ID;
-    const result = useManagedAgent
-      ? await generateWithManagedAgent(prompt)
-      : await generateWithDirectAPI(prompt);
+    const result = await generateWithGemini(prompt);
 
     claudeLines = result.lines;
     notes = customNotes?.trim() || result.notes;
