@@ -43,6 +43,12 @@ export async function scrapeGoogleMapsCategory(
   const token = process.env.APIFY_API_TOKEN;
   if (!token) throw new Error("APIFY_API_TOKEN manquant");
 
+  // Apify's run-sync-get-dataset-items call blocks on their side until the
+  // actor finishes — with no client-side limit, a slow/congested run hangs
+  // past Vercel's own function timeout, which kills the invocation from the
+  // outside and bypasses the try/catch in scrapeCategoryStep entirely (the
+  // workflow then retries the same slow category instead of moving on).
+  // 4 minutes keeps this comfortably inside Fluid Compute's 300s ceiling.
   const res = await fetch(
     `${APIFY_API_BASE}/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${token}`,
     {
@@ -55,6 +61,7 @@ export async function scrapeGoogleMapsCategory(
         language: "fr",
         scrapeContacts: true,
       }),
+      signal: AbortSignal.timeout(240_000),
     }
   );
 
