@@ -19,7 +19,39 @@ interface AgenceRow {
   created_at: string;
 }
 
+interface AccountRow {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  company_name: string | null;
+  account_type: string;
+  plan: string | null;
+  profession: string | null;
+  created_at: string;
+  suspended: boolean | null;
+}
+
+interface ClientRow {
+  id: string;
+  user_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  created_at: string;
+}
+
 type DateFilter = "all" | "week" | "month";
+type AccountTypeFilter = "all" | "artisan" | "agence";
+type AccountStatusFilter = "all" | "active" | "suspended" | "trial_expired";
+
+const TRIAL_DAYS = 7;
+
+function isTrialExpired(account: AccountRow): boolean {
+  if (account.plan === "paid") return false;
+  const daysSince = (Date.now() - new Date(account.created_at).getTime()) / (1000 * 60 * 60 * 24);
+  return daysSince > TRIAL_DAYS;
+}
 
 function startOfWeek(now: Date): Date {
   const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -58,16 +90,26 @@ export default function AdminClient({
   userCount,
   agences,
   statsResetAt,
+  accounts,
+  allClients,
 }: {
   devis: DevisRow[];
   userCount: number;
   agences: AgenceRow[];
   statsResetAt: string | null;
+  accounts: AccountRow[];
+  allClients: ClientRow[];
 }) {
   const [agenceList, setAgenceList] = useState(agences);
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  const [accountList, setAccountList] = useState(accounts);
+  const [accountSearch, setAccountSearch] = useState("");
+  const [accountTypeFilter, setAccountTypeFilter] = useState<AccountTypeFilter>("all");
+  const [accountStatusFilter, setAccountStatusFilter] = useState<AccountStatusFilter>("all");
+  const [pendingAccountId, setPendingAccountId] = useState<string | null>(null);
+  const [clientSearch, setClientSearch] = useState("");
   const [liveVisitors, setLiveVisitors] = useState<number | null>(null);
   const [resetting, setResetting] = useState(false);
   const [showSnapshots, setShowSnapshots] = useState(false);
@@ -154,6 +196,61 @@ export default function AdminClient({
       setPendingId(null);
     }
   }
+
+  async function toggleAccountSuspended(id: string, suspended: boolean) {
+    setPendingAccountId(id);
+    try {
+      const res = await fetch("/api/admin/accounts/suspend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, suspended }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "Erreur lors de la mise à jour.");
+        return;
+      }
+      setAccountList((prev) => prev.map((a) => (a.id === id ? { ...a, suspended } : a)));
+    } finally {
+      setPendingAccountId(null);
+    }
+  }
+
+  const filteredAccounts = useMemo(() => {
+    const q = accountSearch.trim().toLowerCase();
+    return accountList.filter((a) => {
+      const matchSearch =
+        !q ||
+        (a.email ?? "").toLowerCase().includes(q) ||
+        (a.full_name ?? "").toLowerCase().includes(q) ||
+        (a.company_name ?? "").toLowerCase().includes(q);
+
+      const matchType = accountTypeFilter === "all" || a.account_type === accountTypeFilter;
+
+      const matchStatus =
+        accountStatusFilter === "all"
+          ? true
+          : accountStatusFilter === "suspended"
+          ? !!a.suspended
+          : accountStatusFilter === "trial_expired"
+          ? !a.suspended && isTrialExpired(a)
+          : !a.suspended && !isTrialExpired(a);
+
+      return matchSearch && matchType && matchStatus;
+    });
+  }, [accountList, accountSearch, accountTypeFilter, accountStatusFilter]);
+
+  const filteredClients = useMemo(() => {
+    const q = clientSearch.trim().toLowerCase();
+    if (!q) return allClients;
+    return allClients.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        (c.email ?? "").toLowerCase().includes(q) ||
+        (c.phone ?? "").toLowerCase().includes(q) ||
+        (c.address ?? "").toLowerCase().includes(q)
+    );
+  }, [allClients, clientSearch]);
 
   const filteredDevis = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -391,6 +488,174 @@ export default function AdminClient({
                       </tr>
                     );
                   })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow overflow-hidden mb-6 sm:mb-8">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col gap-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h2 className="font-bold text-[#1e3a5f]">
+                Comptes utilisateurs ({filteredAccounts.length}{filteredAccounts.length !== accountList.length ? ` / ${accountList.length}` : ""})
+              </h2>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <input
+                type="search"
+                value={accountSearch}
+                onChange={(e) => setAccountSearch(e.target.value)}
+                placeholder="Rechercher par nom, email ou société…"
+                className="flex-1 min-w-[220px] rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+              <select
+                value={accountTypeFilter}
+                onChange={(e) => setAccountTypeFilter(e.target.value as AccountTypeFilter)}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              >
+                <option value="all">Tous les types</option>
+                <option value="artisan">Artisan</option>
+                <option value="agence">Agence</option>
+              </select>
+              <select
+                value={accountStatusFilter}
+                onChange={(e) => setAccountStatusFilter(e.target.value as AccountStatusFilter)}
+                className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              >
+                <option value="all">Tous les statuts</option>
+                <option value="active">Actif</option>
+                <option value="trial_expired">Essai expiré</option>
+                <option value="suspended">Suspendu</option>
+              </select>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                  <th className="text-left px-4 py-3">Inscrit le</th>
+                  <th className="text-left px-4 py-3">Nom</th>
+                  <th className="text-left px-4 py-3 hidden sm:table-cell">Email</th>
+                  <th className="text-left px-4 py-3">Type</th>
+                  <th className="text-left px-4 py-3 hidden md:table-cell">Plan</th>
+                  <th className="text-left px-4 py-3">Statut</th>
+                  <th className="text-right px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredAccounts.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                      Aucun compte ne correspond à ces critères
+                    </td>
+                  </tr>
+                ) : (
+                  filteredAccounts.map((a) => {
+                    const suspended = !!a.suspended;
+                    const expired = !suspended && isTrialExpired(a);
+                    return (
+                      <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+                          {new Date(a.created_at).toLocaleDateString("fr-FR", {
+                            day: "2-digit", month: "2-digit", year: "2-digit",
+                          })}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-[#1e3a5f]">
+                          {a.company_name ?? a.full_name ?? "—"}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 hidden sm:table-cell text-xs">{a.email ?? "—"}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                            {a.account_type === "agence" ? "Agence" : "Artisan"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs">
+                          {a.plan === "paid" ? "Payant" : "Gratuit"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                              suspended
+                                ? "bg-red-100 text-red-700"
+                                : expired
+                                ? "bg-orange-100 text-orange-700"
+                                : "bg-green-100 text-green-700"
+                            }`}
+                          >
+                            {suspended ? "Suspendu" : expired ? "Essai expiré" : "Actif"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => toggleAccountSuspended(a.id, !suspended)}
+                            disabled={pendingAccountId === a.id}
+                            className={`text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-50 ${
+                              suspended
+                                ? "text-white"
+                                : "border border-gray-200 hover:bg-gray-50 text-gray-500 hover:text-red-600"
+                            }`}
+                            style={suspended ? { backgroundColor: "#10b981" } : {}}
+                          >
+                            {pendingAccountId === a.id ? "…" : suspended ? "Réactiver" : "Suspendre"}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow overflow-hidden mb-6 sm:mb-8">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col gap-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h2 className="font-bold text-[#1e3a5f]">
+                Tous les clients ({filteredClients.length}{filteredClients.length !== allClients.length ? ` / ${allClients.length}` : ""})
+              </h2>
+            </div>
+            <input
+              type="search"
+              value={clientSearch}
+              onChange={(e) => setClientSearch(e.target.value)}
+              placeholder="Rechercher par nom, email, téléphone ou adresse…"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+          <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                  <th className="text-left px-4 py-3">Ajouté le</th>
+                  <th className="text-left px-4 py-3">Nom</th>
+                  <th className="text-left px-4 py-3 hidden sm:table-cell">Email</th>
+                  <th className="text-left px-4 py-3 hidden md:table-cell">Téléphone</th>
+                  <th className="text-left px-4 py-3">Adresse</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filteredClients.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-400">
+                      Aucun client ne correspond à ces critères
+                    </td>
+                  </tr>
+                ) : (
+                  filteredClients.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
+                        {new Date(c.created_at).toLocaleDateString("fr-FR", {
+                          day: "2-digit", month: "2-digit", year: "2-digit",
+                        })}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-[#1e3a5f]">{c.name}</td>
+                      <td className="px-4 py-3 text-gray-500 hidden sm:table-cell text-xs">{c.email ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-500 hidden md:table-cell text-xs">{c.phone ?? "—"}</td>
+                      <td className="px-4 py-3 text-gray-600 text-xs">{c.address ?? "—"}</td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>

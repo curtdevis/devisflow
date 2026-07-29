@@ -5,14 +5,21 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 
+const URL_ERROR_MESSAGES: Record<string, string> = {
+  missing_code: "Connexion impossible. Réessayez.",
+  auth_failed: "Connexion impossible. Réessayez.",
+  account_suspended: "Votre compte a été suspendu. Contactez le support pour plus d'informations.",
+};
+
 function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const redirect = params.get("redirect") || null;
+  const urlError = params.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(urlError ? URL_ERROR_MESSAGES[urlError] ?? "" : "");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -51,9 +58,17 @@ function LoginForm() {
     // Read account_type from DB profile (source of truth) — user_metadata can be stale
     const { data: profile } = await supabase
       .from("profiles")
-      .select("account_type")
+      .select("account_type, suspended")
       .eq("id", data.user.id)
       .single();
+
+    if (profile?.suspended) {
+      await supabase.auth.signOut();
+      setError("Votre compte a été suspendu. Contactez le support pour plus d'informations.");
+      setLoading(false);
+      return;
+    }
+
     const accountType =
       (profile?.account_type as string | undefined) ??
       data.user?.user_metadata?.account_type;

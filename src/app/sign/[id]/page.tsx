@@ -3,13 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { use } from "react";
-
-interface DevisLine {
-  description: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
-}
+import { useSearchParams } from "next/navigation";
+import { getHtml, type DevisResult } from "@/lib/devis-html";
+import { printHtmlDocument } from "@/lib/print-html";
 
 interface DevisData {
   id: string;
@@ -20,28 +16,20 @@ interface DevisData {
   status: string | null;
   signature_data: string | null;
   signed_at: string | null;
-  result_json: {
-    date: string;
-    validUntil: string;
-    lines: DevisLine[];
-    subtotalHT: number;
-    tvaRate: number;
-    tvaAmount: number;
-    totalTTC: number;
-    notes: string;
-    artisan: { name: string; siret: string; address?: string; phone?: string; email?: string };
-    client: { name: string; address: string; phone: string; email: string };
-  } | null;
+  result_json: DevisResult | null;
 }
 
 export default function SignPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const autoDownload = searchParams.get("download") === "1";
   const [devis, setDevis] = useState<DevisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [signed, setSigned] = useState(false);
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState("");
+  const [downloaded, setDownloaded] = useState(false);
 
   // Signature pad
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -55,6 +43,32 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
       .then(data => { setDevis(data); setLoading(false); if (data.status === "signed") setSigned(true); })
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [id]);
+
+  function downloadPdf() {
+    if (!devis) return;
+    printHtmlDocument(
+      getHtml({
+        id: devis.id,
+        created_at: devis.result_json?.date ?? "",
+        devis_number: devis.devis_number,
+        artisan_name: devis.artisan_name,
+        artisan_email: devis.result_json?.artisan.email ?? null,
+        artisan_siret: devis.result_json?.artisan.siret ?? null,
+        client_name: devis.client_name,
+        client_email: devis.result_json?.client.email ?? null,
+        total_ttc: devis.total_ttc,
+        profession: null,
+        result_json: devis.result_json,
+        signed_at: devis.signed_at,
+      })
+    );
+    setDownloaded(true);
+  }
+
+  useEffect(() => {
+    if (autoDownload && devis && !downloaded) downloadPdf();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDownload, devis]);
 
   function getPos(e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) {
     const rect = canvas.getBoundingClientRect();
@@ -172,6 +186,14 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
               <p className="text-2xl font-extrabold" style={{ color: "#1e3a5f" }}>
                 {devis.total_ttc.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €
               </p>
+              <button
+                type="button"
+                onClick={downloadPdf}
+                className="mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                style={{ color: "#1e3a5f" }}
+              >
+                📄 Télécharger le PDF
+              </button>
             </div>
           </div>
 

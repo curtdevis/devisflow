@@ -56,10 +56,11 @@ export default function ConfidentialitePage() {
                 </ul>
               </div>
               <div className="rounded-xl border border-gray-100 p-4">
-                <p className="font-semibold text-gray-900 text-sm mb-2">Données de devis</p>
+                <p className="font-semibold text-gray-900 text-sm mb-2">Données de devis et de vos clients</p>
                 <ul className="text-sm text-gray-500 space-y-1 ml-3 list-disc">
-                  <li>Contenu des devis générés (descriptions, montants, clients)</li>
+                  <li>Contenu des devis générés (descriptions, montants)</li>
                   <li>Historique des devis créés</li>
+                  <li>Coordonnées de vos clients que vous renseignez (nom, email, téléphone, adresse), enregistrées dans votre carnet de clients pour accélérer la création de vos prochains devis</li>
                   <li>Paramètres de relances automatiques</li>
                 </ul>
               </div>
@@ -115,7 +116,8 @@ export default function ConfidentialitePage() {
                   {[
                     { name: "Supabase", purpose: "Base de données et authentification", location: "EU (AWS)" },
                     { name: "Vercel", purpose: "Hébergement web", location: "EU / USA (SCCs)" },
-                    { name: "Anthropic (Claude)", purpose: "Génération IA des devis", location: "USA (SCCs)" },
+                    { name: "Anthropic (Claude) / Google (Gemini)", purpose: "Génération IA des devis", location: "USA (SCCs)" },
+                    { name: "Google", purpose: "Connexion via compte Google (OAuth, facultatif)", location: "USA (SCCs)" },
                     { name: "Resend", purpose: "Envoi d'emails transactionnels", location: "USA (SCCs)" },
                     { name: "Lemon Squeezy", purpose: "Paiement et abonnements", location: "USA (SCCs)" },
                   ].map((r) => (
@@ -173,7 +175,19 @@ export default function ConfidentialitePage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>7. Cookies</h2>
+            <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>7. Suspension de compte</h2>
+            <p>
+              DevisFlow se réserve le droit de suspendre temporairement l&apos;accès à un compte en cas
+              de violation des CGU, de fraude suspectée, d&apos;impayé, ou d&apos;usage abusif du service
+              (par exemple une utilisation détournée de la génération de devis ou de l&apos;envoi d&apos;emails).
+              Vos données ne sont pas supprimées lors d&apos;une suspension : elles restent conservées et
+              vous restent accessibles sur demande, conformément à vos droits RGPD, jusqu&apos;à
+              résolution de la situation ou suppression du compte à votre demande.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>8. Cookies</h2>
             <p>
               Le site utilise uniquement des cookies strictement nécessaires au fonctionnement du service :
             </p>
@@ -187,7 +201,7 @@ export default function ConfidentialitePage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>8. Sécurité</h2>
+            <h2 className="text-lg font-bold mb-3" style={{ color: "var(--navy)" }}>9. Sécurité</h2>
             <p>
               DevisFlow met en œuvre des mesures techniques et organisationnelles appropriées pour
               protéger vos données : chiffrement TLS en transit, chiffrement au repos (Supabase),

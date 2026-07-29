@@ -76,21 +76,23 @@ export async function POST(req: NextRequest) {
     }
 
     const saved = stored.result_json as SendDevisRequest["devis"] | null;
-    devis = saved ?? {
-      id: stored.id,
-      devisNumber: stored.devis_number ?? "",
-      date: stored.created_at ?? "",
-      validUntil: "",
-      artisan: { name: stored.artisan_name ?? "", siret: "", email: stored.artisan_email ?? undefined },
-      client: { name: stored.client_name ?? "", address: "", phone: "", email: "" },
-      lines: [],
-      subtotalHT: 0,
-      tvaRate: 0,
-      tvaAmount: 0,
-      totalTTC: stored.total_ttc ?? 0,
-      notes: "",
-      legalMentions: "",
-    };
+    devis = saved
+      ? { ...saved, id: stored.id }
+      : {
+          id: stored.id,
+          devisNumber: stored.devis_number ?? "",
+          date: stored.created_at ?? "",
+          validUntil: "",
+          artisan: { name: stored.artisan_name ?? "", siret: "", email: stored.artisan_email ?? undefined },
+          client: { name: stored.client_name ?? "", address: "", phone: "", email: "" },
+          lines: [],
+          subtotalHT: 0,
+          tvaRate: 0,
+          tvaAmount: 0,
+          totalTTC: stored.total_ttc ?? 0,
+          notes: "",
+          legalMentions: "",
+        };
   } else if (!user) {
     return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
@@ -227,8 +229,9 @@ export async function POST(req: NextRequest) {
 
     <!-- Signature -->
     <div style="padding: 24px 36px; margin: 0 36px 28px; border: 2px solid #f97316; border-radius: 12px; background: #fff7ed; text-align: center;">
-      <p style="margin: 0 0 12px; font-size: 13px; color: #374151;">Pour accepter ce devis, cliquez sur le bouton ci-dessous :</p>
+      <p style="margin: 0 0 14px; font-size: 13px; color: #374151;">Pour accepter ce devis, cliquez sur le bouton ci-dessous :</p>
       ${devis.id ? `<a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}" style="display:inline-block;background:#f97316;color:#ffffff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:10px;text-decoration:none;">✍️ Signer le devis en ligne →</a>` : `<p style="margin:0;font-size:13px;color:#6b7280;">Répondez à cet email avec la mention <strong>« Bon pour accord »</strong>.</p>`}
+      ${devis.id ? `<div style="margin-top: 14px;"><a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}?download=1" style="display:inline-block;background:#ffffff;color:#1e3a5f;font-weight:700;font-size:13px;padding:10px 24px;border-radius:10px;text-decoration:none;border:1px solid #fed7aa;">📄 Télécharger le devis (PDF)</a></div>` : ""}
       ${devis.id ? `<p style="margin: 12px 0 0; font-size: 11px; color: #9ca3af;">Ou copiez ce lien : ${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/sign/${devis.id}</p>` : ""}
     </div>
 
@@ -257,6 +260,42 @@ export async function POST(req: NextRequest) {
       subject: `Votre devis N° ${devis.devisNumber} — ${devis.totalTTC.toFixed(2)} € TTC`,
       html: emailHtml,
     });
+
+    // Confirm to the artisan that their devis was successfully sent —
+    // fire-and-forget, never blocks the response to the client-facing send.
+    if (devis.artisan.email) {
+      const confirmationHtml = `
+<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
+  <p style="font-size:22px;font-weight:900;color:#1e3a5f;margin:0 0 24px;">
+    Devis<span style="color:#f97316;">Flow</span>
+  </p>
+  <div style="background:#eff6ff;border:2px solid #bfdbfe;border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+    <p style="font-size:18px;font-weight:700;color:#1e3a5f;margin:0 0 6px;">📤 Devis envoyé !</p>
+    <p style="font-size:14px;color:#1e3a5f;margin:0;">
+      Votre devis <strong>${esc(devis.devisNumber)}</strong> (${devis.totalTTC.toFixed(2)} € TTC) a bien été envoyé à
+      <strong>${esc(recipientEmail)}</strong>.
+    </p>
+  </div>
+  <p style="font-size:14px;color:#374151;margin:0 0 16px;">
+    Vous serez notifié par email dès que votre client aura signé le devis.
+  </p>
+  <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}/dashboard" style="display:inline-block;background:#1e3a5f;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:10px;text-decoration:none;">
+    Voir mon tableau de bord →
+  </a>
+  <p style="color:#9ca3af;font-size:11px;margin-top:20px;">
+    Notification automatique — <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr"}" style="color:#9ca3af;">DevisFlow</a>
+  </p>
+</div>`;
+
+      resend.emails.send({
+        from: "DevisFlow <equipe@devis-flow.fr>",
+        to: devis.artisan.email,
+        subject: `📤 Devis envoyé — ${devis.devisNumber} transmis à ${devis.client.name}`,
+        html: confirmationHtml,
+      }).catch((err: unknown) => {
+        console.error("[send-devis] artisan confirmation email error:", err instanceof Error ? err.message : "unknown");
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

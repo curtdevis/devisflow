@@ -272,9 +272,13 @@ export async function POST(req: NextRequest) {
 
     const { data: profile } = await admin
       .from("profiles")
-      .select("plan, agence_id")
+      .select("plan, agence_id, suspended")
       .eq("id", userId)
       .single();
+
+    if (profile?.suspended) {
+      return NextResponse.json({ error: "Votre compte a été suspendu." }, { status: 403 });
+    }
 
     // Artisans linked to a paid Cabinet & Groupement account are covered by
     // the agence's subscription — their own 7-day trial clock doesn't apply,

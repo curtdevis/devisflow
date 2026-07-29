@@ -40,9 +40,14 @@ export async function GET(request: NextRequest) {
   if (isOAuthLogin) {
     const { data: existingProfile } = await admin
       .from("profiles")
-      .select("id")
+      .select("id, suspended")
       .eq("id", user.id)
       .maybeSingle();
+
+    if (existingProfile?.suspended) {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(`${origin}/auth/login?error=account_suspended`);
+    }
 
     if (!existingProfile) {
       // First Google login → create profile with plan free

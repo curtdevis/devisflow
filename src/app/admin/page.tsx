@@ -15,7 +15,7 @@ export default async function AdminPage() {
   }
 
   const admin = createSupabaseAdmin();
-  const [{ data: devis }, { count: userCount }, { data: agences }, { data: statsReset }] = await Promise.all([
+  const [{ data: devis }, { count: userCount }, { data: agences }, { data: statsReset }, { data: accounts }, { data: allClients }] = await Promise.all([
     admin
       .from("devis")
       .select(
@@ -29,6 +29,14 @@ export default async function AdminPage() {
       .eq("account_type", "agence")
       .order("created_at", { ascending: false }),
     admin.from("admin_stats_reset").select("reset_at").eq("id", 1).maybeSingle(),
+    admin
+      .from("profiles")
+      .select("id, email, full_name, company_name, account_type, plan, profession, created_at, suspended")
+      .order("created_at", { ascending: false }),
+    admin
+      .from("clients")
+      .select("id, user_id, name, email, phone, address, created_at")
+      .order("created_at", { ascending: false }),
   ]);
 
   return (
@@ -37,6 +45,8 @@ export default async function AdminPage() {
       userCount={userCount ?? 0}
       agences={agences ?? []}
       statsResetAt={statsReset?.reset_at ?? null}
+      accounts={accounts ?? []}
+      allClients={allClients ?? []}
     />
   );
 }
