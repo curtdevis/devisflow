@@ -1,5 +1,8 @@
 # Journal des publications Instagram — @devis.flow
 
+## ⚠️ 2026-07-29 — Campagne automatique 43 jours activée
+Depuis le 2026-07-29, un post + une story sont publiés automatiquement CHAQUE JOUR à 8h15 UTC via `/api/instagram/daily-post` (Vercel Cron, voir `vercel.json` et `scripts/daily-instagram-post.tsx`). Contenu généré par Gemini, rotation sur les 6 piliers de `.claude/instagram-strategy.md`. Progression réelle (jour actuel, statut, erreurs) : table Supabase `instagram_campaign_posts`, PAS ce fichier — ce journal manuel n'est plus mis à jour pour ces publications automatiques. Le community-manager (session manuelle) doit consulter cette table avant de publier quoi que ce soit en plus, pour éviter tout doublon avec la campagne auto. Fin prévue : jour 43 (~2026-09-10).
+
 ## 2026-07-28 — Post 1 (pilier "coulisses" — présentation)
 - **Type** : Post carré (1080x1080)
 - **Visuel** : Dégradé navy → orange, logo DevisFlow, headline "Vos devis. Générés en 30 secondes."
