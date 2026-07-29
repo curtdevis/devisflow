@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Corps de requête invalide." }, { status: 400 });
   }
 
-  const { recipientEmail, devis } = body;
+  const { recipientEmail } = body;
+  let devis = body.devis;
 
   if (!recipientEmail || !devis) {
     return NextResponse.json({ error: "Données manquantes." }, { status: 400 });
@@ -53,28 +54,51 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Adresse email invalide." }, { status: 400 });
   }
 
-  // Verify ownership: if devis has an ID, check it exists; if no ID, require auth (prevent email relay)
+  const supabaseServer = await createSupabaseServer();
+  const { data: { user } } = await supabaseServer.auth.getUser();
+
+  // Verify ownership and rebuild the email content server-side — never trust
+  // the client-submitted `devis` object once an id is given, otherwise
+  // anyone who knows any existing devis id could relay arbitrary spam/phishing
+  // content through devis-flow.fr's sending domain.
   if (devis.id) {
-    const { data: devisExists } = await createSupabaseAdmin()
+    const { data: stored } = await createSupabaseAdmin()
       .from("devis")
-      .select("id")
+      .select("id, user_id, result_json, devis_number, artisan_name, artisan_email, client_name, total_ttc, created_at")
       .eq("id", devis.id)
       .single();
-    if (!devisExists) {
+
+    if (!stored) {
       return NextResponse.json({ error: "Devis introuvable." }, { status: 404 });
     }
-  } else {
-    const supabaseServer = await createSupabaseServer();
-    const { data: { user } } = await supabaseServer.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
+    if (stored.user_id && stored.user_id !== user?.id) {
+      return NextResponse.json({ error: "Non autorisé." }, { status: 403 });
     }
+
+    const saved = stored.result_json as SendDevisRequest["devis"] | null;
+    devis = saved ?? {
+      id: stored.id,
+      devisNumber: stored.devis_number ?? "",
+      date: stored.created_at ?? "",
+      validUntil: "",
+      artisan: { name: stored.artisan_name ?? "", siret: "", email: stored.artisan_email ?? undefined },
+      client: { name: stored.client_name ?? "", address: "", phone: "", email: "" },
+      lines: [],
+      subtotalHT: 0,
+      tvaRate: 0,
+      tvaAmount: 0,
+      totalTTC: stored.total_ttc ?? 0,
+      notes: "",
+      legalMentions: "",
+    };
+  } else if (!user) {
+    return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
   }
 
-  // Rate limit: max 10 email sends per hour for authenticated users
+  // Rate limit: 10 sends/hour for authenticated users (by account),
+  // 5 sends/hour for anonymous senders (by IP, shares the rate_limits table
+  // with generate-devis under a distinct key so the two quotas don't mix).
   try {
-    const supabaseServer = await createSupabaseServer();
-    const { data: { user } } = await supabaseServer.auth.getUser();
     if (user) {
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       const { count } = await createSupabaseAdmin()
@@ -85,8 +109,24 @@ export async function POST(req: NextRequest) {
       if ((count ?? 0) >= 10) {
         return NextResponse.json({ error: "Limite atteinte : 10 envois par heure." }, { status: 429 });
       }
+    } else {
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+      const admin = createSupabaseAdmin();
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const key = `send-devis:${ip}`;
+      const { count } = await admin
+        .from("rate_limits")
+        .select("*", { count: "exact", head: true })
+        .eq("ip", key)
+        .gte("window_start", oneHourAgo);
+      if ((count ?? 0) >= 5) {
+        return NextResponse.json({ error: "Limite atteinte : 5 envois par heure." }, { status: 429 });
+      }
+      await admin.from("rate_limits").insert({ ip: key, window_start: new Date().toISOString(), count: 1 });
     }
-  } catch { /* non-authenticated send — allowed */ }
+  } catch (err) {
+    console.warn("[send-devis] rate-limit check failed, allowing:", err);
+  }
 
   const linesRows = devis.lines
     .map(
