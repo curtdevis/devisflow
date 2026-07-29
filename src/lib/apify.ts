@@ -49,8 +49,8 @@ export async function scrapeGoogleMapsCategory(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        searchStringsArray: [`${category} Île-de-France`],
-        locationQuery: "Île-de-France, France",
+        searchStringsArray: [`${category} France`],
+        locationQuery: "France",
         maxCrawledPlacesPerSearch: maxResults,
         language: "fr",
         scrapeContacts: true,

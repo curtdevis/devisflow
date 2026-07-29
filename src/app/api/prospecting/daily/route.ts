@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { start } from "workflow/api";
-import { weeklyProspectingWorkflow } from "../../../../../scripts/weekly-prospecting";
+import { dailyProspectingWorkflow } from "../../../../../scripts/daily-prospecting";
 
 // Vercel Cron trigger — starts the durable workflow and returns immediately.
-// The actual scraping/personalizing/sending (up to ~50 min with the 30s
-// delay between the 10 categories × 10 prospects) runs independently of this
+// The actual scraping/personalizing/sending (up to ~100 min with the 30s
+// delay between the 10 categories × 20 prospects) runs independently of this
 // request's lifetime, so this route stays fast regardless of campaign size.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -13,6 +13,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const run = await start(weeklyProspectingWorkflow);
+  const run = await start(dailyProspectingWorkflow);
   return NextResponse.json({ started: true, runId: run.runId });
 }

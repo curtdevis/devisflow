@@ -18,7 +18,7 @@ const CATEGORIES = [
   "vitrier",
 ] as const;
 
-const PROSPECTS_PER_CATEGORY = 10;
+const PROSPECTS_PER_CATEGORY = 20;
 const DELAY_BETWEEN_EMAILS = "30s";
 const SEND_FROM = "DevisFlow <equipe@devis-flow.fr>";
 
@@ -48,7 +48,7 @@ async function scrapeCategoryStep(category: string): Promise<ApifyPlace[]> {
   try {
     return await scrapeGoogleMapsCategory(category, PROSPECTS_PER_CATEGORY);
   } catch (err) {
-    console.error(`[weekly-prospecting] Apify scrape failed for "${category}":`, err);
+    console.error(`[daily-prospecting] Apify scrape failed for "${category}":`, err);
     return [];
   }
 }
@@ -57,7 +57,7 @@ async function scrapeCategoryStep(category: string): Promise<ApifyPlace[]> {
  * Blocks a send if this email (or this company, under a possibly different
  * email) already received an outreach, or if the email replied STOP.
  * The company-name check matters because Apify can surface the same
- * business with a slightly different scraped email across weekly runs.
+ * business with a slightly different scraped email across daily runs.
  */
 async function checkGateStep(
   email: string,
@@ -86,7 +86,7 @@ async function personalizeStep(place: ApifyPlace): Promise<string | null> {
   try {
     return await personalizeEmail(place.website, siteText);
   } catch (err) {
-    console.error(`[weekly-prospecting] Claude personalization failed for ${place.website}:`, err);
+    console.error(`[daily-prospecting] Claude personalization failed for ${place.website}:`, err);
     return null;
   }
 }
@@ -158,13 +158,13 @@ async function recordResultStep(
   } catch (err) {
     // Never let a Sheets outage block the campaign — the Supabase row above
     // is the source of truth for dedup; the sheet is a human-readable log.
-    console.error("[weekly-prospecting] Google Sheets append failed:", err);
+    console.error("[daily-prospecting] Google Sheets append failed:", err);
   }
 }
 
 // ── Workflow ───────────────────────────────────────────────────────────────
 
-export async function weeklyProspectingWorkflow() {
+export async function dailyProspectingWorkflow() {
   "use workflow";
 
   const week = getIsoWeekLabel(new Date());
@@ -204,7 +204,7 @@ export async function weeklyProspectingWorkflow() {
   const skipped = results.filter((r) => r.status === "skipped").length;
   const bounced = results.filter((r) => r.status === "bounced").length;
 
-  console.log(`[weekly-prospecting] Semaine ${week} — ${sent} envoyés, ${skipped} ignorés, ${bounced} échecs`);
+  console.log(`[daily-prospecting] Semaine ${week} — ${sent} envoyés, ${skipped} ignorés, ${bounced} échecs`);
 
   return { week, sent, skipped, bounced, results };
 }

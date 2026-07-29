@@ -13,6 +13,10 @@
       "schedule": "0 6 20 4 *"
     },
     {
+      "path": "/api/prospecting/daily",
+      "schedule": "0 6 * * *"
+    },
+    {
       "path": "/api/cron/indexnow",
       "schedule": "0 5 * * 1"
     }

@@ -13,7 +13,7 @@ function extractEmail(from: string): string {
  * Resend inbound webhook — fires on `email.received` when a prospect replies
  * to equipe@devis-flow.fr. Detects "STOP" (in the subject via the one-click
  * List-Unsubscribe mailto, or anywhere in a freeform reply) and blacklists
- * the sender so scripts/weekly-prospecting.ts never contacts them again.
+ * the sender so scripts/daily-prospecting.ts never contacts them again.
  *
  * Manual setup required in the Resend dashboard (not doable from code):
  * 1. Domains > devis-flow.fr > enable Receiving, add the MX record it gives you.
