@@ -19,6 +19,10 @@
     {
       "path": "/api/cron/indexnow",
       "schedule": "0 5 * * 1"
+    },
+    {
+      "path": "/api/instagram/daily-post",
+      "schedule": "15 8 * * *"
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Sequence } from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig, Sequence, Audio, staticFile } from "remotion";
 
 const NAVY = "#1e3a5f";
 const ORANGE = "#f97316";
@@ -21,6 +21,7 @@ function Reel01Hook() {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{ fontFamily: "Arial, sans-serif" }}>
+      <Audio src={staticFile("music.mp3")} volume={0.1} />
       {/* Scene 1 : Question choc (0-90f) */}
       <Sequence from={0} durationInFrames={90}>
         <AbsoluteFill style={{ background: NAVY, alignItems: "center", justifyContent: "center", flexDirection: "column", padding: 60, gap: 24 }}>
@@ -109,6 +110,7 @@ function Reel02AvantApres() {
 
   return (
     <AbsoluteFill style={{ fontFamily: "Arial, sans-serif" }}>
+      <Audio src={staticFile("music.mp3")} volume={0.1} />
       <Sequence from={0} durationInFrames={100}>
         <AbsoluteFill style={{ background: "#111827", alignItems: "center", justifyContent: "center", flexDirection: "column", padding: 60, gap: 16 }}>
           <div style={{ opacity: fadeIn(frame, 0, 12), fontSize: 32, fontWeight: 900, color: WHITE, textAlign: "center" }}>

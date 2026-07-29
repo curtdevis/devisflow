@@ -11,3 +11,4 @@ import { enableTailwind } from '@remotion/tailwind-v4';
 Config.setVideoImageFormat("jpeg");
 Config.setOverwriteOutput(true);
 Config.overrideWebpackConfig(enableTailwind);
+Config.setBrowserExecutable("C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe");

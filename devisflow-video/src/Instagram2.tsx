@@ -5,6 +5,8 @@ import {
   useCurrentFrame,
   useVideoConfig,
   Sequence,
+  Audio,
+  staticFile,
 } from "remotion";
 
 const NAVY = "#1e3a5f";
@@ -319,6 +321,7 @@ export function Reel03Demo30sec() {
 
   return (
     <AbsoluteFill style={{ fontFamily: "Arial, sans-serif" }}>
+      <Audio src={staticFile("music.mp3")} volume={0.1} />
       {/* Scene 1 : DÉFI + timer start (0-30f) */}
       <Sequence from={0} durationInFrames={30}>
         <AbsoluteFill
@@ -724,6 +727,7 @@ export function Reel04Reglementation() {
 
   return (
     <AbsoluteFill style={{ fontFamily: "Arial, sans-serif" }}>
+      <Audio src={staticFile("music.mp3")} volume={0.1} />
       {/* Scene 1 : Titre alarmant (0-45f) */}
       <Sequence from={0} durationInFrames={45}>
         <AbsoluteFill
@@ -1000,6 +1004,7 @@ export function Reel05Temoignage() {
 
   return (
     <AbsoluteFill style={{ fontFamily: "Arial, sans-serif" }}>
+      <Audio src={staticFile("music.mp3")} volume={0.1} />
       {/* Scene 1 : POV titre (0-30f) */}
       <Sequence from={0} durationInFrames={30}>
         <AbsoluteFill
@@ -1419,6 +1424,7 @@ export function ReelComparateur() {
 
   return (
     <AbsoluteFill style={{ fontFamily: "Arial, sans-serif" }}>
+      <Audio src={staticFile("music.mp3")} volume={0.1} />
       {/* Background */}
       <AbsoluteFill style={{ background: "#0f172a" }} />
 
