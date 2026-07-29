@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     if (!existingProfile) {
       // First Google login → create profile with plan free
-      await admin.from("profiles").insert({
+      const { error: insertError } = await admin.from("profiles").insert({
         id: user.id,
         email: user.email!,
         full_name: meta.full_name ?? meta.name ?? null,
@@ -54,6 +54,9 @@ export async function GET(request: NextRequest) {
         plan: "free",
         created_at: new Date().toISOString(),
       });
+      if (insertError) {
+        console.error("[auth/callback] profile insert failed:", insertError);
+      }
 
       // Send onboarding email for new Google users (fire-and-forget)
       // Sanitize the name before embedding in HTML to prevent injection if
@@ -114,7 +117,7 @@ export async function GET(request: NextRequest) {
 
   // Upsert profile (safe to re-run on repeated confirmations)
   // For agence accounts, store the agency name in both full_name and company_name
-  await admin.from("profiles").upsert(
+  const { error: upsertError } = await admin.from("profiles").upsert(
     {
       id: user.id,
       email: user.email!,
@@ -125,6 +128,9 @@ export async function GET(request: NextRequest) {
     },
     { onConflict: "id" }
   );
+  if (upsertError) {
+    console.error("[auth/callback] profile upsert failed:", upsertError);
+  }
 
   // Send onboarding email (fire-and-forget — don't block redirect)
   // Sanitize name embedded in HTML.
