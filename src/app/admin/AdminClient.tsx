@@ -555,7 +555,11 @@ export default function AdminClient({
                     const suspended = !!a.suspended;
                     const expired = !suspended && isTrialExpired(a);
                     return (
-                      <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                      <tr
+                        key={a.id}
+                        onClick={() => window.open(`/admin/comptes/${a.id}`, "_blank")}
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                      >
                         <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-xs">
                           {new Date(a.created_at).toLocaleDateString("fr-FR", {
                             day: "2-digit", month: "2-digit", year: "2-digit",
@@ -586,7 +590,7 @@ export default function AdminClient({
                             {suspended ? "Suspendu" : expired ? "Essai expiré" : "Actif"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => toggleAccountSuspended(a.id, !suspended)}
                             disabled={pendingAccountId === a.id}
