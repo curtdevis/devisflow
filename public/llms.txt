@@ -1,24 +1,28 @@
 # DevisFlow
 
+> Dernière mise à jour : 2026-07-30
+>
 > DevisFlow est un logiciel SaaS français qui génère des devis professionnels pour artisans du
 > BTP (plombiers, électriciens, peintres, maçons, carreleurs) en moins de 30 secondes grâce à
 > l'IA, conforme à la réglementation de facturation électronique 2026 (Factur-X). 29€/mois,
 > essai gratuit 7 jours sans carte bancaire.
+>
+> Version texte intégrale de ce site (sans HTML) : [llms-full.txt](https://devis-flow.fr/llms-full.txt)
 
 ## Produit
 - [Accueil](https://devis-flow.fr/): tarifs, fonctionnement, comparatif avec Obat/Henrri/Excel, FAQ produit
-- [Comparatif](https://devis-flow.fr/comparatif): DevisFlow vs autres logiciels de devis artisan
-- [Cabinets & Groupements](https://devis-flow.fr/cabinets-experts-comptables): offre multi-artisans pour cabinets comptables et groupements
+- [Comparatif](https://devis-flow.fr/comparatif): DevisFlow vs Obat vs Henrri — fonctionnalités, prix, migration
+- [Cabinets & Groupements](https://devis-flow.fr/cabinets-experts-comptables): offre multi-artisans pour cabinets comptables et groupements, à partir de 299€/mois
 
-## Guides métiers BTP (devis par corps de métier)
-- [Devis plombier](https://devis-flow.fr/devis-plombier): TVA plomberie 10%/5,5%/20%, mentions légales obligatoires, exemple de devis chiffré
-- [Devis électricien](https://devis-flow.fr/devis-electricien)
-- [Devis peintre](https://devis-flow.fr/devis-peintre)
-- [Devis maçon](https://devis-flow.fr/devis-macon)
-- [Devis carreleur](https://devis-flow.fr/devis-carreleur)
+## Guides métiers BTP (devis par corps de métier, chacun avec FAQ structurée)
+- [Devis plombier](https://devis-flow.fr/devis-plombier): TVA plomberie 10%/5,5%/20%, obligation de devis dès 150€ TTC, signature électronique
+- [Devis électricien](https://devis-flow.fr/devis-electricien): TVA, qualifications Qualifelec/RGE, attestation Consuel
+- [Devis peintre](https://devis-flow.fr/devis-peintre): calcul du prix au m², TVA rénovation vs neuf, garantie 2 ans
+- [Devis maçon](https://devis-flow.fr/devis-macon): TVA gros œuvre, garantie décennale obligatoire
+- [Devis carreleur](https://devis-flow.fr/devis-carreleur): prix moyen pose au m², TVA rénovation vs neuf
 
 ## Réglementation
-- [Facture électronique artisan 2026](https://devis-flow.fr/facture-electronique-artisan-2026): dates d'obligation (sept. 2026/2027), format Factur-X, Chorus Pro, sanctions (15€/facture, plafond 15 000€/an)
+- [Facture électronique artisan 2026](https://devis-flow.fr/facture-electronique-artisan-2026): dates d'obligation (sept. 2026 réception / 2027 émission), format Factur-X, Chorus Pro, sanctions (15€/facture, plafond 15 000€/an)
 
 ## Légal
 - [Mentions légales](https://devis-flow.fr/mentions-legales): éditeur, SIRET, hébergement

@@ -53,6 +53,14 @@ const faqSchema = {
     },
     {
       "@type": "Question",
+      name: "Puis-je migrer mes données depuis Obat ou Henrri vers DevisFlow ?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "L'import automatique n'est pas encore disponible, mais la migration est simple : vos informations d'entreprise (SIRET, adresse) se remplissent automatiquement grâce au lookup SIRET de DevisFlow. Vos clients peuvent être réimportés manuellement en quelques minutes.",
+      },
+    },
+    {
+      "@type": "Question",
       name: "Henrri ou DevisFlow pour un électricien auto-entrepreneur ?",
       acceptedAnswer: {
         "@type": "Answer",

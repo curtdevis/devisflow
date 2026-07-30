@@ -50,6 +50,24 @@ const breadcrumbSchema = {
   ],
 };
 
+// Contenu réglementaire sensible au temps (obligations légales, montants
+// de sanction) — la date signale aux moteurs (et aux moteurs IA) que
+// l'information a été vérifiée récemment. Mettre à jour à chaque
+// changement réel de contenu, voir aussi PAGE_DATES dans sitemap.ts.
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: "Facture Électronique Artisan 2026 — Guide Complet",
+  description:
+    "Tout comprendre sur l'obligation e-facture artisan septembre 2026. Format Factur-X, Chorus Pro, sanctions.",
+  datePublished: "2026-04-19",
+  dateModified: "2026-07-25",
+  author: { "@id": "https://devis-flow.fr/#organization" },
+  publisher: { "@id": "https://devis-flow.fr/#organization" },
+  mainEntityOfPage: "https://devis-flow.fr/facture-electronique-artisan-2026",
+  inLanguage: "fr-FR",
+};
+
 export default function FactureElectroniqueArtisan2026Page() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -442,6 +460,10 @@ export default function FactureElectroniqueArtisan2026Page() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
 
       {/* ── Footer ── */}

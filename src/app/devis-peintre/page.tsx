@@ -42,6 +42,16 @@ const breadcrumbSchema = {
   ],
 };
 
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  serviceType: "Génération de devis pour peintres en bâtiment",
+  provider: { "@id": "https://devis-flow.fr/#organization" },
+  areaServed: { "@type": "Country", name: "France" },
+  audience: { "@type": "Audience", audienceType: "Peintres, artisans peinture" },
+  url: "https://devis-flow.fr/devis-peintre",
+};
+
 const SPECS = [
   {
     accent: "#f97316",
@@ -423,6 +433,10 @@ export default function DevisPeintrePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
+      />
 
       {/* ── Footer ── */}
       <footer className="py-10 px-4 text-center text-sm text-blue-200" style={{ backgroundColor: "var(--navy-dark)" }}>
@@ -432,7 +446,10 @@ export default function DevisPeintrePage() {
         <p className="mb-5 text-blue-300 text-sm">Le générateur de devis IA pour les artisans français</p>
         <div className="flex flex-wrap justify-center gap-5 text-xs text-blue-400 mb-5">
           <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
-          <Link href="/devis-macon" className="hover:text-white transition-colors">Devis Maçon</Link>
+          <Link href="/devis-plombier" className="hover:text-white transition-colors">Devis plombier</Link>
+          <Link href="/devis-electricien" className="hover:text-white transition-colors">Devis électricien</Link>
+          <Link href="/devis-macon" className="hover:text-white transition-colors">Devis maçon</Link>
+          <Link href="/devis-carreleur" className="hover:text-white transition-colors">Devis carreleur</Link>
           <Link href="/comparatif" className="hover:text-white transition-colors">Comparatif</Link>
           <Link href="/cabinets-experts-comptables" className="hover:text-white transition-colors">Cabinets &amp; Groupements</Link>
           <Link href="/facture-electronique-artisan-2026" className="hover:text-white transition-colors">Facture électronique 2026</Link>

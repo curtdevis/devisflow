@@ -1,0 +1,96 @@
+# DevisFlow — contenu complet pour agents IA
+
+> Dernière mise à jour : 2026-07-30. Ce fichier complète llms.txt avec le texte intégral des pages
+> clés de devis-flow.fr, déjà nettoyé du HTML, pour une lecture directe sans crawl supplémentaire.
+
+## Résumé produit
+
+DevisFlow est un logiciel SaaS français qui génère des devis professionnels pour artisans du BTP
+(plombiers, électriciens, peintres, maçons, carreleurs, chauffagistes) en moins de 30 secondes
+grâce à l'IA. Conforme à la réglementation de facturation électronique française (Factur-X,
+obligation à partir de septembre 2026). Prix : 29€/mois (artisan solo), à partir de 299€/mois
+(offre Cabinet & Groupement pour cabinets d'experts-comptables et fédérations d'artisans). Essai
+gratuit 7 jours, sans carte bancaire.
+
+Fonctionnalités clés : génération de devis par IA en 30 secondes, signature électronique client
+depuis un lien envoyé par email ou WhatsApp, relances automatiques configurables (J+3/J+7),
+lookup SIRET automatique, autocomplétion d'adresses françaises (API adresse.data.gouv.fr),
+conversion devis → facture, export Factur-X.
+
+Éditeur : Nathan Makambo, entreprise individuelle, SIRET 920 513 330 00018, France.
+
+## Comparatif DevisFlow vs Obat vs Henrri
+
+DevisFlow est deux fois moins cher qu'Obat (29€/mois vs 49-89€/mois), avec génération de devis
+par IA en 30 secondes et une approche mobile-first — Obat est plus adapté aux grandes entreprises
+de BTP. Face à Henrri (solution de facturation généraliste sans spécialisation BTP), DevisFlow
+connaît les prestations spécifiques par métier (plomberie, électricité, peinture, maçonnerie,
+carrelage) et génère des devis adaptés automatiquement. L'import automatique depuis Obat/Henrri
+n'est pas encore disponible ; la migration se fait manuellement (SIRET et adresse pré-remplis
+automatiquement, clients à réimporter à la main).
+
+## Guide devis plombier
+
+Un devis plombier est obligatoire dès que le montant des travaux dépasse 150€ TTC (remise avant
+tout commencement de chantier). La TVA plomberie est de 10% pour la rénovation d'un logement de
+plus de 2 ans, 5,5% pour les travaux d'amélioration énergétique (chauffe-eau thermodynamique,
+isolation), 20% pour le neuf et les locaux commerciaux (article 279-0 bis du CGI). Un devis signé
+électroniquement (loi n°2000-230 du 13 mars 2000) a la même valeur juridique qu'un devis signé
+sur papier.
+
+## Guide devis électricien
+
+Devis obligatoire dès 150€ TTC, doit mentionner le SIRET et les qualifications professionnelles
+(Qualifelec, RGE le cas échéant). TVA : 10% rénovation, 5,5% amélioration énergétique (pompe à
+chaleur, isolation, borne de recharge EV éligible CEE), 20% neuf/professionnel. Le Consuel
+(attestation de conformité électrique, 150-300€) doit figurer en ligne séparée sur le devis dès
+qu'une nouvelle installation ou une remise en conformité complète est réalisée.
+
+## Guide devis peintre
+
+Prix moyen peinture intérieure : 15 à 30€/m² TTC fournitures incluses (deux couches). TVA : 10%
+rénovation logement de plus de 2 ans (sur attestation fiscale du client), 20% neuf/professionnel.
+Le devis doit mentionner surface en m², nombre de couches, référence des peintures, et la garantie
+de 2 ans.
+
+## Guide devis maçon
+
+TVA maçonnerie : 10% rénovation (art. 279-0 bis CGI), 20% construction neuve/extension/locaux
+professionnels. La garantie décennale est obligatoire sur tout devis (art. L. 241-1 du Code des
+assurances) : nom de l'assureur, numéro de contrat, durée de validité, souscrite avant l'ouverture
+du chantier.
+
+## Guide devis carreleur
+
+Prix moyen pose carrelage : 25 à 60€/m², + fourniture (5-80€/m² selon gamme), ragréage (8-15€/m²),
+dépose ancien carrelage (10-20€/m²). TVA : 10% rénovation logement de plus de 2 ans, 20% neuf/
+professionnel ou si la part matériaux dépasse le seuil réglementaire.
+
+## Facture électronique artisan 2026 — réglementation complète
+
+L'obligation de facture électronique s'applique à TOUTES les entreprises françaises assujetties à
+la TVA, y compris micro-entrepreneurs et auto-entrepreneurs. Dès le 1er septembre 2026, toute
+entreprise doit être en mesure de RECEVOIR des factures électroniques. L'obligation d'ÉMETTRE ses
+propres e-factures suit pour les TPE/PME à partir du 1er septembre 2027. Les grandes entreprises
+de plus de 5000 salariés émettent déjà des e-factures depuis 2024.
+
+Format recommandé : Factur-X — PDF lisible normalement, avec un fichier XML structuré (norme
+européenne EN 16931) embarqué, lisible automatiquement par les logiciels comptables et
+plateformes fiscales. Alternatives acceptées : UBL, CII (XML pur, sans PDF lisible).
+
+Chorus Pro : plateforme gouvernementale (gérée par l'ASP) obligatoire pour la facturation des
+marchés publics (mairies, hôpitaux, écoles) depuis 2020. Pour le B2B privé, ce sont des
+plateformes de dématérialisation partenaires (PDP) accréditées par la DGFiP qui gèrent les
+échanges à partir de septembre 2026.
+
+Sanctions : amende de 15€ par facture non conforme, plafonnée à 15 000€ par an. En cas de
+récidive dans les deux ans, ces plafonds peuvent être doublés (jusqu'à 30 000€/an).
+
+DevisFlow génère automatiquement les factures au format Factur-X conforme, avec export du fichier
+XML séparé pour l'expert-comptable, sans manipulation technique de l'artisan.
+
+## Offre Cabinets & Groupements
+
+Pour cabinets d'experts-comptables, fédérations d'artisans et groupements BTP : dashboard
+multi-artisans, gestion centralisée de tous les artisans depuis un seul espace. À partir de
+299€/mois selon le nombre d'artisans gérés (offre sur devis).

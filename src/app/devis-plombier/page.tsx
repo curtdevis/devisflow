@@ -8,35 +8,29 @@ export const metadata: Metadata = {
   alternates: { canonical: "/devis-plombier" },
 };
 
+const FAQS = [
+  {
+    q: "Un devis plombier est-il obligatoire ?",
+    a: "Oui, dès que le montant des travaux dépasse 150 € TTC, le plombier est tenu de remettre un devis détaillé et signé avant tout commencement de chantier. Ce devis doit comporter les coordonnées complètes de l'entreprise, y compris le numéro SIRET et l'assurance RC Pro, le détail des prestations, les prix unitaires, le taux de TVA applicable et la durée de validité — généralement 3 mois. Un devis signé par le client vaut bon de commande légal, avec la même valeur juridique qu'un contrat signé sur papier, conformément à la loi n°2000-230 du 13 mars 2000 sur la signature électronique. En dessous de 150 € TTC, un devis écrit reste fortement recommandé pour éviter tout litige sur le prix ou l'étendue des travaux, même s'il n'est pas légalement obligatoire. Avec DevisFlow, ce devis conforme est généré automatiquement en 30 secondes depuis votre téléphone, mentions légales et garantie décennale incluses.",
+  },
+  {
+    q: "Quelle TVA sur les travaux de plomberie ?",
+    a: "La TVA sur les travaux de plomberie est de 10% pour les logements d'habitation achevés depuis plus de 2 ans (rénovation, entretien, réparation), conformément à l'article 279-0 bis du Code général des impôts. Elle passe à 5,5% pour les travaux d'amélioration énergétique, comme l'installation d'un chauffe-eau thermodynamique ou l'isolation. Le taux normal de 20% s'applique aux constructions neuves, aux locaux commerciaux et à toute fourniture non liée à une prestation de rénovation. Le taux de TVA appliqué doit obligatoirement apparaître sur chaque ligne du devis : un taux erroné peut exposer l'artisan à un redressement fiscal lors d'un contrôle. DevisFlow applique automatiquement le bon taux selon la nature des travaux renseignés, distingue TVA 10% de rénovation et TVA 20% de fourniture neuve sur le même devis, et évite ainsi les erreurs de facturation les plus courantes chez les plombiers indépendants.",
+  },
+  {
+    q: "Comment envoyer un devis plombier par email ?",
+    a: "Avec DevisFlow, vous générez votre devis plombier en 30 secondes depuis votre téléphone, directement sur le chantier, puis vous l'envoyez en un tap par email ou par WhatsApp. Le client reçoit un lien sécurisé pour consulter le devis et le signer électroniquement depuis son propre téléphone, sans avoir besoin d'imprimer, de renvoyer un document scanné, d'installer une application ou de créer un compte. La signature est horodatée et accompagnée d'une preuve d'identité par email, ce qui la rend opposable en cas de litige, conformément à la loi n°2000-230 du 13 mars 2000. Vous êtes notifié dès que le client signe. Le PDF final est automatiquement archivé dans votre espace DevisFlow et peut ensuite être converti en facture, y compris au format Factur-X conforme à l'obligation de facturation électronique 2026, sans ressaisie ni manipulation technique supplémentaire.",
+  },
+];
+
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "Un devis plombier est-il obligatoire ?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Oui, dès que le montant des travaux dépasse 150 € TTC, le plombier est tenu de remettre un devis détaillé et signé avant tout commencement de chantier. Ce devis doit comporter les coordonnées complètes de l'entreprise, y compris le numéro SIRET et l'assurance RC Pro, le détail des prestations, les prix unitaires, le taux de TVA applicable et la durée de validité — généralement 3 mois. Un devis signé par le client vaut bon de commande légal, avec la même valeur juridique qu'un contrat signé sur papier, conformément à la loi n°2000-230 du 13 mars 2000 sur la signature électronique. En dessous de 150 € TTC, un devis écrit reste fortement recommandé pour éviter tout litige sur le prix ou l'étendue des travaux, même s'il n'est pas légalement obligatoire. Avec DevisFlow, ce devis conforme est généré automatiquement en 30 secondes depuis votre téléphone, mentions légales et garantie décennale incluses.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Quelle TVA sur les travaux de plomberie ?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "La TVA sur les travaux de plomberie est de 10% pour les logements d'habitation achevés depuis plus de 2 ans (rénovation, entretien, réparation), conformément à l'article 279-0 bis du Code général des impôts. Elle passe à 5,5% pour les travaux d'amélioration énergétique, comme l'installation d'un chauffe-eau thermodynamique ou l'isolation. Le taux normal de 20% s'applique aux constructions neuves, aux locaux commerciaux et à toute fourniture non liée à une prestation de rénovation. Le taux de TVA appliqué doit obligatoirement apparaître sur chaque ligne du devis : un taux erroné peut exposer l'artisan à un redressement fiscal lors d'un contrôle. DevisFlow applique automatiquement le bon taux selon la nature des travaux renseignés, distingue TVA 10% de rénovation et TVA 20% de fourniture neuve sur le même devis, et évite ainsi les erreurs de facturation les plus courantes chez les plombiers indépendants.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Comment envoyer un devis plombier par email ?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Avec DevisFlow, vous générez votre devis plombier en 30 secondes depuis votre téléphone, directement sur le chantier, puis vous l'envoyez en un tap par email ou par WhatsApp. Le client reçoit un lien sécurisé pour consulter le devis et le signer électroniquement depuis son propre téléphone, sans avoir besoin d'imprimer, de renvoyer un document scanné, d'installer une application ou de créer un compte. La signature est horodatée et accompagnée d'une preuve d'identité par email, ce qui la rend opposable en cas de litige, conformément à la loi n°2000-230 du 13 mars 2000. Vous êtes notifié dès que le client signe. Le PDF final est automatiquement archivé dans votre espace DevisFlow et peut ensuite être converti en facture, y compris au format Factur-X conforme à l'obligation de facturation électronique 2026, sans ressaisie ni manipulation technique supplémentaire.",
-      },
-    },
-  ],
+  mainEntity: FAQS.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
 };
 
 const DEVIS_LINES = [
@@ -55,6 +49,16 @@ const breadcrumbSchema = {
   ],
 };
 
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  serviceType: "Génération de devis pour plombiers",
+  provider: { "@id": "https://devis-flow.fr/#organization" },
+  areaServed: { "@type": "Country", name: "France" },
+  audience: { "@type": "Audience", audienceType: "Plombiers, artisans plomberie" },
+  url: "https://devis-flow.fr/devis-plombier",
+};
+
 export default function DevisPlombierPage() {
   const totalHT = DEVIS_LINES.reduce((acc, l) => acc + l.qty * l.pu, 0);
   const totalTVA = DEVIS_LINES.reduce((acc, l) => acc + l.qty * l.pu * (l.tva / 100), 0);
@@ -69,6 +73,10 @@ export default function DevisPlombierPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
 
       {/* ── Navbar ── */}
@@ -396,20 +404,7 @@ export default function DevisPlombierPage() {
             </div>
 
             <div className="space-y-3">
-              {[
-                {
-                  q: "Un devis plombier est-il obligatoire ?",
-                  a: "Oui, dès que le montant des travaux dépasse 150 € TTC, le plombier est tenu de remettre un devis détaillé et signé avant tout commencement de chantier. Ce devis doit comporter les coordonnées complètes de l'entreprise, y compris le numéro SIRET et l'assurance RC Pro, le détail des prestations, les prix unitaires, le taux de TVA applicable et la durée de validité — généralement 3 mois. Un devis signé par le client vaut bon de commande légal, avec la même valeur juridique qu'un contrat signé sur papier, conformément à la loi n°2000-230 du 13 mars 2000 sur la signature électronique. En dessous de 150 € TTC, un devis écrit reste fortement recommandé pour éviter tout litige sur le prix ou l'étendue des travaux, même s'il n'est pas légalement obligatoire. Avec DevisFlow, ce devis conforme est généré automatiquement en 30 secondes depuis votre téléphone, mentions légales et garantie décennale incluses.",
-                },
-                {
-                  q: "Quelle TVA sur les travaux de plomberie ?",
-                  a: "La TVA sur les travaux de plomberie est de 10% pour les logements d'habitation achevés depuis plus de 2 ans (rénovation, entretien, réparation), conformément à l'article 279-0 bis du Code général des impôts. Elle passe à 5,5% pour les travaux d'amélioration énergétique, comme l'installation d'un chauffe-eau thermodynamique ou l'isolation. Le taux normal de 20% s'applique aux constructions neuves, aux locaux commerciaux et à toute fourniture non liée à une prestation de rénovation. Le taux de TVA appliqué doit obligatoirement apparaître sur chaque ligne du devis : un taux erroné peut exposer l'artisan à un redressement fiscal lors d'un contrôle. DevisFlow applique automatiquement le bon taux selon la nature des travaux renseignés, distingue TVA 10% de rénovation et TVA 20% de fourniture neuve sur le même devis, et évite ainsi les erreurs de facturation les plus courantes chez les plombiers indépendants.",
-                },
-                {
-                  q: "Comment envoyer un devis plombier par email ?",
-                  a: "Avec DevisFlow, vous générez votre devis plombier en 30 secondes depuis votre téléphone, directement sur le chantier, puis vous l'envoyez en un tap par email ou par WhatsApp. Le client reçoit un lien sécurisé pour consulter le devis et le signer électroniquement depuis son propre téléphone, sans avoir besoin d'imprimer, de renvoyer un document scanné, d'installer une application ou de créer un compte. La signature est horodatée et accompagnée d'une preuve d'identité par email, ce qui la rend opposable en cas de litige, conformément à la loi n°2000-230 du 13 mars 2000. Vous êtes notifié dès que le client signe. Le PDF final est automatiquement archivé dans votre espace DevisFlow et peut ensuite être converti en facture, y compris au format Factur-X conforme à l'obligation de facturation électronique 2026, sans ressaisie ni manipulation technique supplémentaire.",
-                },
-              ].map((faq) => (
+              {FAQS.map((faq) => (
                 <details
                   key={faq.q}
                   className="group bg-white border border-gray-100 rounded-xl shadow-sm hover:border-gray-200 transition-colors"
@@ -479,6 +474,9 @@ export default function DevisPlombierPage() {
           <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
           <Link href="/comparatif" className="hover:text-white transition-colors">Comparatif</Link>
           <Link href="/devis-electricien" className="hover:text-white transition-colors">Devis électricien</Link>
+          <Link href="/devis-peintre" className="hover:text-white transition-colors">Devis peintre</Link>
+          <Link href="/devis-macon" className="hover:text-white transition-colors">Devis maçon</Link>
+          <Link href="/devis-carreleur" className="hover:text-white transition-colors">Devis carreleur</Link>
           <Link href="/cabinets-experts-comptables" className="hover:text-white transition-colors">Cabinets &amp; Groupements</Link>
           <Link href="/facture-electronique-artisan-2026" className="hover:text-white transition-colors">Facture électronique 2026</Link>
           <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>

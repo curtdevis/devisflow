@@ -121,6 +121,7 @@ const structuredData = {
         areaServed: "FR",
         availableLanguage: ["French"],
       },
+      sameAs: ["https://www.instagram.com/devis.flow/"],
     },
     {
       "@type": "SoftwareApplication",
@@ -150,6 +151,7 @@ const structuredData = {
         {
           "@type": "Offer",
           name: "Cabinet & Groupement",
+          price: "299",
           priceCurrency: "EUR",
           priceSpecification: {
             "@type": "UnitPriceSpecification",
@@ -173,7 +175,6 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${geistSans.variable} ${instrumentSerif.variable} h-full antialiased`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="preconnect" href="https://vpkafkilducttjucrzze.supabase.co" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://devisflow.lemonsqueezy.com" />

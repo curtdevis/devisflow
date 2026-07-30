@@ -8,35 +8,29 @@ export const metadata: Metadata = {
   alternates: { canonical: "/devis-electricien" },
 };
 
+const FAQS = [
+  {
+    q: "Un devis électricien est-il obligatoire ?",
+    a: "Oui, dès 150 € TTC de travaux, l'électricien doit remettre un devis détaillé avant intervention. Le devis doit mentionner le numéro SIRET, les qualifications professionnelles (Qualifelec, RGE le cas échéant), le détail des prestations, le taux de TVA applicable et la durée de validité. Un devis signé par le client constitue un bon de commande légalement contraignant.",
+  },
+  {
+    q: "Quelle TVA pour des travaux d'électricité ?",
+    a: "Le taux de TVA applicable aux travaux d'électricité dépend de la nature du logement : 10% pour la rénovation de logements d'habitation achevés depuis plus de 2 ans, 5,5% pour les travaux d'amélioration de la performance énergétique (pompe à chaleur, isolation, borne de recharge EV éligible CEE), 20% pour les constructions neuves et les locaux professionnels. DevisFlow applique le bon taux automatiquement.",
+  },
+  {
+    q: "Faut-il mentionner le Consuel sur un devis électricien ?",
+    a: "Il est fortement recommandé de mentionner le Consuel (Comité National pour la Sécurité des Usagers de l'Électricité) sur le devis dès lors que les travaux nécessitent une attestation de conformité : nouvelle installation électrique, remise en conformité complète, raccordement au réseau. Le coût de l'attestation Consuel (environ 150-300 €) doit figurer en ligne séparée sur le devis. DevisFlow intègre ce poste automatiquement quand nécessaire.",
+  },
+];
+
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: [
-    {
-      "@type": "Question",
-      name: "Un devis électricien est-il obligatoire ?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Oui, dès 150 € TTC de travaux, l'électricien doit remettre un devis détaillé avant intervention. Le devis doit mentionner le numéro SIRET, les qualifications professionnelles (Qualifelec, RGE le cas échéant), le détail des prestations, le taux de TVA applicable et la durée de validité. Un devis signé par le client constitue un bon de commande légalement contraignant.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Quelle TVA pour des travaux d'électricité ?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Le taux de TVA applicable aux travaux d'électricité dépend de la nature du logement : 10% pour la rénovation de logements d'habitation achevés depuis plus de 2 ans, 5,5% pour les travaux d'amélioration de la performance énergétique (pompe à chaleur, isolation, borne de recharge EV éligible CEE), 20% pour les constructions neuves et les locaux professionnels. DevisFlow applique le bon taux automatiquement.",
-      },
-    },
-    {
-      "@type": "Question",
-      name: "Faut-il mentionner le Consuel sur un devis électricien ?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Il est fortement recommandé de mentionner le Consuel (Comité National pour la Sécurité des Usagers de l'Électricité) sur le devis dès lors que les travaux nécessitent une attestation de conformité : nouvelle installation électrique, remise en conformité complète, raccordement au réseau. Le coût de l'attestation Consuel (environ 150-300 €) doit figurer en ligne séparée sur le devis. DevisFlow intègre ce poste automatiquement quand nécessaire.",
-      },
-    },
-  ],
+  mainEntity: FAQS.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
 };
 
 const DEVIS_LINES = [
@@ -56,6 +50,16 @@ const breadcrumbSchema = {
   ],
 };
 
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  serviceType: "Génération de devis pour électriciens",
+  provider: { "@id": "https://devis-flow.fr/#organization" },
+  areaServed: { "@type": "Country", name: "France" },
+  audience: { "@type": "Audience", audienceType: "Électriciens, artisans électricité" },
+  url: "https://devis-flow.fr/devis-electricien",
+};
+
 export default function DevisElectricienPage() {
   const totalHT = DEVIS_LINES.reduce((acc, l) => acc + l.qty * l.pu, 0);
   const totalTVA = DEVIS_LINES.reduce((acc, l) => acc + l.qty * l.pu * (l.tva / 100), 0);
@@ -70,6 +74,10 @@ export default function DevisElectricienPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
 
       {/* ── Navbar ── */}
@@ -397,20 +405,7 @@ export default function DevisElectricienPage() {
             </div>
 
             <div className="space-y-3">
-              {[
-                {
-                  q: "Un devis électricien est-il obligatoire ?",
-                  a: "Oui, dès 150 € TTC de travaux, l'électricien doit remettre un devis détaillé avant intervention. Le devis doit mentionner le numéro SIRET, les qualifications professionnelles (Qualifelec, RGE le cas échéant), le détail des prestations, le taux de TVA applicable et la durée de validité. Un devis signé par le client constitue un bon de commande légalement contraignant.",
-                },
-                {
-                  q: "Quelle TVA pour des travaux d'électricité ?",
-                  a: "Le taux de TVA applicable aux travaux d'électricité dépend de la nature du logement : 10% pour la rénovation de logements d'habitation achevés depuis plus de 2 ans, 5,5% pour les travaux d'amélioration de la performance énergétique (pompe à chaleur, isolation, borne de recharge EV éligible CEE), 20% pour les constructions neuves et les locaux professionnels. DevisFlow applique le bon taux automatiquement.",
-                },
-                {
-                  q: "Faut-il mentionner le Consuel sur un devis électricien ?",
-                  a: "Il est fortement recommandé de mentionner le Consuel (Comité National pour la Sécurité des Usagers de l'Électricité) sur le devis dès lors que les travaux nécessitent une attestation de conformité : nouvelle installation électrique, remise en conformité complète, raccordement au réseau. Le coût de l'attestation Consuel (environ 150-300 €) doit figurer en ligne séparée sur le devis. DevisFlow intègre ce poste automatiquement quand nécessaire.",
-                },
-              ].map((faq) => (
+              {FAQS.map((faq) => (
                 <details
                   key={faq.q}
                   className="group bg-white border border-gray-100 rounded-xl shadow-sm hover:border-gray-200 transition-colors"
@@ -480,6 +475,9 @@ export default function DevisElectricienPage() {
           <Link href="/" className="hover:text-white transition-colors">Accueil</Link>
           <Link href="/comparatif" className="hover:text-white transition-colors">Comparatif</Link>
           <Link href="/devis-plombier" className="hover:text-white transition-colors">Devis plombier</Link>
+          <Link href="/devis-peintre" className="hover:text-white transition-colors">Devis peintre</Link>
+          <Link href="/devis-macon" className="hover:text-white transition-colors">Devis maçon</Link>
+          <Link href="/devis-carreleur" className="hover:text-white transition-colors">Devis carreleur</Link>
           <Link href="/cabinets-experts-comptables" className="hover:text-white transition-colors">Cabinets &amp; Groupements</Link>
           <Link href="/facture-electronique-artisan-2026" className="hover:text-white transition-colors">Facture électronique 2026</Link>
           <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
