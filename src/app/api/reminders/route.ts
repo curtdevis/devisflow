@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
-import Anthropic from "@anthropic-ai/sdk";
 import { Resend } from "resend";
 
-const anthropic = new Anthropic();
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr";
 const TRIAL_DAYS = 7;
+
+// Même bascule que generate-devis et prospecting-personalize — le compte
+// Anthropic est à sec de crédit, tout passe par Gemini en attendant.
+const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 function esc(s: string | number | null | undefined): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -181,21 +184,45 @@ Informations :
 - Relance n° : ${attemptNum}
 
 Génère UNIQUEMENT 2-3 phrases de corps d'email en HTML simple (balises <p> uniquement, pas de html/head/body).
-L'email commence par "Bonjour ${devis.client_name}," et finit par "Cordialement," suivi du nom de l'artisan.`;
+L'email commence par "Bonjour ${devis.client_name}," et finit par "Cordialement," suivi du nom de l'artisan.
+INTERDIT : toute ligne "Objet :" ou "Subject :" en tête de message.`;
 
   const linesTable = buildLinesTable(devis);
 
   try {
-    const message = await anthropic.messages.create({
-      model: "claude-haiku-4-6",
-      max_tokens: 256,
-      messages: [{ role: "user", content: prompt }],
-    });
-    const body = message.content[0].type === "text" ? message.content[0].text : fallbackBody(devis);
-    return wrapTemplate(body, linesTable, devis.artisan_name, devis.artisan_email);
+    const body = await generateWithGemini(prompt);
+    return wrapTemplate(body ?? fallbackBody(devis), linesTable, devis.artisan_name, devis.artisan_email);
   } catch {
     return wrapTemplate(fallbackBody(devis), linesTable, devis.artisan_name, devis.artisan_email);
   }
+}
+
+async function generateWithGemini(prompt: string): Promise<string | null> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("GEMINI_API_KEY manquant");
+
+  const res = await fetch(
+    `${GEMINI_API_BASE}/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Gemini request failed (${res.status}): ${text.slice(0, 500)}`);
+  }
+
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
+  // Gemini ajoute parfois une ligne "Objet:"/"Objet :" malgré la consigne
+  // (déjà observé en prod côté prospection) — strip défensif.
+  const cleaned = raw.replace(/^(subject|objet)\s*:.*\n+/i, "").trim();
+  return cleaned.length > 0 ? cleaned : null;
 }
 
 function buildLinesTable(devis: ReminderDevis): string {
