@@ -1,4 +1,5 @@
 import { withWorkflow } from "workflow/next";
+import { withBotId } from "botid/next/config";
 import type { NextConfig } from "next";
 
 // Not using script-src nonces/strict-dynamic here — this app renders many
@@ -67,4 +68,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+export default withWorkflow(withBotId(nextConfig));

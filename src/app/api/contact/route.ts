@@ -1,3 +1,4 @@
+import { checkBotId } from "botid/server";
 import { Resend } from "resend";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -28,6 +29,11 @@ interface ContactRequest {
 }
 
 export async function POST(req: NextRequest) {
+  const { isBot } = await checkBotId();
+  if (isBot) {
+    return NextResponse.json({ error: "Accès refusé." }, { status: 403 });
+  }
+
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   if (!checkRateLimit(ip)) {
     return NextResponse.json({ error: "Trop de demandes. Réessayez dans une heure." }, { status: 429 });

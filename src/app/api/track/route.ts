@@ -1,3 +1,4 @@
+import { checkBotId } from "botid/server";
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import { parseUserAgent } from "@/lib/user-agent";
@@ -23,6 +24,16 @@ function countryName(code: string | null): string | null {
 
 /** Public pageview beacon — no auth (anonymous visitors), input validated to keep bad/abusive rows out. */
 export async function POST(request: NextRequest) {
+  // Silently drop bot traffic instead of erroring — a bot getting a 403 is
+  // no different from a human whose pageview beacon failed to send, and we
+  // don't want scrapers/analytics-poisoning tools to learn anything from
+  // the response. This keeps the admin "live visitors" globe (LiveActivity/
+  // Globe3D) showing real people only.
+  const { isBot } = await checkBotId();
+  if (isBot) {
+    return NextResponse.json({ ok: true });
+  }
+
   const body = await request.json().catch(() => null);
   const sessionId = body?.sessionId;
   const path = body?.path;
