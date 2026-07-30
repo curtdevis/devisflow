@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { captureAttribution } from "@/lib/attribution";
 
 const MIN_TRACKED_DURATION_MS = 500; // ignore instant bounces/navigation blips
 
@@ -33,6 +34,7 @@ export default function VisitorTracker() {
     let visitId: string | null = null;
     let reported = false;
 
+    const attribution = captureAttribution();
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -40,6 +42,7 @@ export default function VisitorTracker() {
         sessionId: crypto.randomUUID(),
         path: pathname,
         referrer: document.referrer || null,
+        ...attribution,
       }),
     })
       .then((res) => (res.ok ? res.json() : null))

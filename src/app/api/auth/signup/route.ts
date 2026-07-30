@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Corps invalide" }, { status: 400 });
 
-  const { email, password, fullName, accountType, inviteToken, redirectAfter, artisanCount } = body as {
+  const { email, password, fullName, accountType, inviteToken, redirectAfter, artisanCount, utm_source, utm_medium, utm_campaign } = body as {
     email: string;
     password: string;
     fullName: string;
@@ -18,7 +18,13 @@ export async function POST(request: NextRequest) {
     inviteToken: string | null;
     redirectAfter: string | null;
     artisanCount: string | null;
+    utm_source?: string | null;
+    utm_medium?: string | null;
+    utm_campaign?: string | null;
   };
+
+  const UTM_RE = /^[a-zA-Z0-9_-]{1,64}$/;
+  const cleanUtm = (v: string | null | undefined) => (typeof v === "string" && UTM_RE.test(v) ? v : null);
 
   if (!email || !password || !fullName) {
     return NextResponse.json({ error: "Champs obligatoires manquants" }, { status: 400 });
@@ -62,6 +68,9 @@ export async function POST(request: NextRequest) {
           invite_token: inviteToken ?? null,
           redirect_after: redirectAfter ?? null,
           artisan_count: artisanCount ?? null,
+          utm_source: cleanUtm(utm_source),
+          utm_medium: cleanUtm(utm_medium),
+          utm_campaign: cleanUtm(utm_campaign),
         },
         redirectTo: `${SITE_URL}/auth/callback`,
       },

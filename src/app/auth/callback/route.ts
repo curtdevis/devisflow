@@ -5,9 +5,20 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr";
 
+const UTM_RE = /^[a-zA-Z0-9_-]{1,64}$/;
+function cleanUtm(v: string | null): string | null {
+  return v && UTM_RE.test(v) ? v : null;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  // Present for Google OAuth signups — see handleGoogleSignIn in
+  // auth/register/page.tsx, which appends these to the redirectTo URL since
+  // signInWithOAuth has no equivalent to signUp's user_metadata `data`.
+  const oauthUtmSource = cleanUtm(searchParams.get("utm_source"));
+  const oauthUtmMedium = cleanUtm(searchParams.get("utm_medium"));
+  const oauthUtmCampaign = cleanUtm(searchParams.get("utm_campaign"));
 
   if (!code) {
     return NextResponse.redirect(`${origin}/auth/login?error=missing_code`);
@@ -58,6 +69,9 @@ export async function GET(request: NextRequest) {
         account_type: "artisan",
         plan: "free",
         created_at: new Date().toISOString(),
+        utm_source: oauthUtmSource,
+        utm_medium: oauthUtmMedium,
+        utm_campaign: oauthUtmCampaign,
       });
       if (insertError) {
         console.error("[auth/callback] profile insert failed:", insertError);
@@ -130,6 +144,9 @@ export async function GET(request: NextRequest) {
       company_name: accountType === "agence" ? (meta.full_name ?? null) : null,
       account_type: accountType,
       agence_id: agenceId,
+      utm_source: cleanUtm((meta.utm_source as string | undefined) ?? null),
+      utm_medium: cleanUtm((meta.utm_medium as string | undefined) ?? null),
+      utm_campaign: cleanUtm((meta.utm_campaign as string | undefined) ?? null),
     },
     { onConflict: "id" }
   );

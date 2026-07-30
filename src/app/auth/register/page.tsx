@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
+import { captureAttribution } from "@/lib/attribution";
 
 function RegisterForm() {
   const params = useSearchParams();
@@ -30,9 +31,14 @@ function RegisterForm() {
     setError("");
     setGoogleLoading(true);
     const supabase = createSupabaseBrowser();
+    const attribution = captureAttribution();
+    const callbackUrl = new URL(`${window.location.origin}/auth/callback`);
+    if (attribution.utm_source) callbackUrl.searchParams.set("utm_source", attribution.utm_source);
+    if (attribution.utm_medium) callbackUrl.searchParams.set("utm_medium", attribution.utm_medium);
+    if (attribution.utm_campaign) callbackUrl.searchParams.set("utm_campaign", attribution.utm_campaign);
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl.toString() },
     });
     if (authError) {
       setError("Connexion Google impossible pour le moment.");
@@ -65,10 +71,17 @@ function RegisterForm() {
       return;
     }
 
+    const attribution = captureAttribution();
     const res = await fetch("/api/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, fullName, accountType, inviteToken: inviteToken ?? null, redirectAfter: redirectAfter ?? null, artisanCount: accountType === "agence" ? artisanCount : null }),
+      body: JSON.stringify({
+        email, password, fullName, accountType,
+        inviteToken: inviteToken ?? null,
+        redirectAfter: redirectAfter ?? null,
+        artisanCount: accountType === "agence" ? artisanCount : null,
+        ...attribution,
+      }),
     });
 
     const data = await res.json().catch(() => ({}));

@@ -5,6 +5,11 @@ import { parseUserAgent } from "@/lib/user-agent";
 
 const SESSION_ID_RE = /^[a-zA-Z0-9_-]{8,64}$/;
 const MAX_TEXT_LENGTH = 512;
+const UTM_RE = /^[a-zA-Z0-9_-]{1,64}$/;
+
+function parseUtmField(value: unknown): string | null {
+  return typeof value === "string" && UTM_RE.test(value) ? value : null;
+}
 
 function parseFloatHeader(value: string | null): number | null {
   if (!value) return null;
@@ -38,6 +43,9 @@ export async function POST(request: NextRequest) {
   const sessionId = body?.sessionId;
   const path = body?.path;
   const referrer = body?.referrer;
+  const utmSource = parseUtmField(body?.utm_source);
+  const utmMedium = parseUtmField(body?.utm_medium);
+  const utmCampaign = parseUtmField(body?.utm_campaign);
 
   if (typeof sessionId !== "string" || !SESSION_ID_RE.test(sessionId)) {
     return NextResponse.json({ error: "Invalid sessionId" }, { status: 400 });
@@ -68,6 +76,9 @@ export async function POST(request: NextRequest) {
       device_type: deviceType,
       browser,
       os,
+      utm_source: utmSource,
+      utm_medium: utmMedium,
+      utm_campaign: utmCampaign,
     })
     .select("id")
     .single();

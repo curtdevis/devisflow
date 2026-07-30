@@ -7,6 +7,7 @@ import { buildCsv } from "@/lib/csv-export";
 import LiveActivity from "./LiveActivity";
 import TrafficChart from "./TrafficChart";
 import PageEngagement from "./PageEngagement";
+import Campaigns from "./Campaigns";
 
 type DevisRow = BaseDevisRow & { artisan_phone: string | null };
 
@@ -419,6 +420,8 @@ export default function AdminClient({
             <PageEngagement />
           </div>
         </div>
+
+        <Campaigns />
 
         <div className="bg-white rounded-2xl shadow overflow-hidden mb-6 sm:mb-8">
           <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
