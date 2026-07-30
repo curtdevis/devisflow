@@ -173,8 +173,8 @@ export default function HomePage() {
                 <p className="mt-4 text-sm text-blue-300/80">Sans carte bancaire · Annulation à tout moment</p>
               </div>
 
-              {/* Video mockup — desktop only */}
-              <div className="animate-fadein-d1 hidden lg:block">
+              {/* Video mockup — shown on all breakpoints so mobile visitors (the primary audience) see product proof immediately too, not just after scrolling to the demo section */}
+              <div className="animate-fadein-d1">
                 <div className="relative">
                   <div className="absolute -inset-6 rounded-3xl opacity-30" style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.5) 0%, transparent 70%)" }} />
                   <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
@@ -216,13 +216,14 @@ export default function HomePage() {
         </div>
 
         {/* ── Social proof ── */}
+        {/* "Paiement sécurisé par Lemon Squeezy" intentionally lives near the
+            pricing CTA instead (see showLsNote below) — nobody cares about
+            payment security before they've decided to buy. */}
         <div className="bg-white border-b border-gray-100 py-3 px-4">
           <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm text-gray-600">
             <span><strong className="text-gray-900">Conforme e-facture 2026</strong></span>
             <span className="text-gray-200 hidden sm:inline">|</span>
             <span><strong className="text-gray-900">Données hébergées en UE</strong> (Supabase)</span>
-            <span className="text-gray-200 hidden sm:inline">|</span>
-            <span><strong className="text-gray-900">Paiement sécurisé</strong> par Lemon Squeezy</span>
           </div>
         </div>
 
