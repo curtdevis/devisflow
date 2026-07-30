@@ -187,7 +187,7 @@ export default function HomePage() {
                       </div>
                     </div>
                     {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                    <video autoPlay muted loop playsInline preload="metadata" className="w-full block" style={{ maxHeight: "400px", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
+                    <video autoPlay muted loop playsInline preload="metadata" poster="/demo-poster.jpg" className="w-full block" style={{ maxHeight: "400px", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
                     <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-md tracking-wide">DÉMO IA</div>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function HomePage() {
             </div>
             <div className="rounded-2xl overflow-hidden shadow-xl border border-gray-200 bg-black">
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-              <video controls muted loop playsInline preload="none" className="w-full block" style={{ maxHeight: "65vh", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
+              <video controls muted loop playsInline preload="none" poster="/demo-poster.jpg" className="w-full block" style={{ maxHeight: "65vh", aspectRatio: "16 / 9", objectFit: "contain", backgroundColor: "#000" }} src="/demo.mp4" />
             </div>
             <div className="mt-6 text-center">
               <CheckoutButton className="btn-orange inline-flex items-center text-white font-bold px-7 py-3.5 rounded-xl shadow-lg transition-all hover:opacity-90 text-sm" style={{ backgroundColor: "var(--orange)" }}>
