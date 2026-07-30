@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 400 400" width="400" height="400">
+<title>DevisFlow</title>
+<rect width="400" height="400" fill="#ffffff"/>
+<rect x="130" y="112" width="140" height="175" rx="10" ry="10" fill="#1e3a5f"/>
+<polygon points="230,112 270,112 270,152" fill="#ffffff" fill-opacity="0.15"/>
+<polygon points="230,112 270,152 230,152" fill="#0f2340"/>
+<rect x="150" y="167" width="75" height="8" rx="4" fill="#ffffff" fill-opacity="0.35"/>
+<rect x="150" y="185" width="90" height="8" rx="4" fill="#ffffff" fill-opacity="0.35"/>
+<rect x="150" y="203" width="65" height="8" rx="4" fill="#ffffff" fill-opacity="0.35"/>
+<rect x="150" y="221" width="80" height="8" rx="4" fill="#ffffff" fill-opacity="0.35"/>
+<rect x="150" y="239" width="55" height="8" rx="4" fill="#ffffff" fill-opacity="0.2"/>
+<polygon points="208,140 193,180 205,180 192,220 219,170 205,170 222,140" fill="#f97316"/>
+</svg>
