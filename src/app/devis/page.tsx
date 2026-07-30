@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { calculateDevisTotals, calculateLaborCost, calculateMaterialsSubtotal } from "@/lib/devis-calculations";
 import { DevisPreview, type DevisResult } from "./DevisPreview";
+import CheckoutButton from "@/app/_components/CheckoutButton";
 
 // ── Profession data ────────────────────────────────────────────────────────────
 
@@ -157,19 +158,12 @@ function TrialBanner({ plan }: { plan: string | null }) {
           ? "⚠️ Dernier jour d'essai ! Passez à Artisan Solo pour continuer."
           : `⏳ Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? "s" : ""} restant${daysLeft > 1 ? "s" : ""}`}
       </span>
-      <a
-        href="#"
-        onClick={(e) => {
-          e.preventDefault();
-          createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
-            if (user) window.open(`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`, "_blank", "noopener,noreferrer");
-          });
-        }}
+      <CheckoutButton
         className="text-xs font-bold px-3 py-1.5 rounded-lg text-white whitespace-nowrap"
         style={{ backgroundColor: "#f97316" }}
       >
         Passer à Artisan Solo →
-      </a>
+      </CheckoutButton>
     </div>
   );
 }
@@ -524,20 +518,12 @@ export default function DevisPage() {
           <p className="text-gray-500 text-sm mb-6 leading-relaxed">
             Vous avez profité de {TRIAL_DAYS} jours d'accès gratuit. Passez à l'abonnement Artisan Solo pour continuer à générer des devis sans limite.
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
-                if (user) {
-                  window.open(`https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`, "_blank", "noopener,noreferrer");
-                }
-              });
-            }}
+          <CheckoutButton
             className="w-full py-4 rounded-xl text-white font-extrabold text-base shadow-md transition-all hover:scale-[1.02] active:scale-95 mb-3"
             style={{ backgroundColor: "#f97316" }}
           >
             Passer à Artisan Solo — 29 €/mois →
-          </button>
+          </CheckoutButton>
           <Link
             href="/dashboard"
             className="block text-sm text-gray-400 hover:text-gray-600 transition-colors"

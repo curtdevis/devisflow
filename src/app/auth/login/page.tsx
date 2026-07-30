@@ -74,8 +74,17 @@ function LoginForm() {
       data.user?.user_metadata?.account_type;
 
     if (redirect === "checkout" && data.user) {
-      const checkoutUrl = `https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${data.user.id}`;
-      window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+      fetch("/api/billing/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+        .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+        .then((body) => {
+          if (body?.url) window.open(body.url, "_blank", "noopener,noreferrer");
+          else throw new Error("no url");
+        })
+        .catch(() => {
+          // Redirect to dashboard still happens below either way — the trial
+          // banner there has its own working CheckoutButton to retry with.
+          alert("Le paiement n'a pas pu s'ouvrir. Vous pouvez réessayer depuis votre tableau de bord.");
+        });
       router.push(accountType === "agence" ? "/agence" : "/dashboard");
     } else {
       const dest = redirect || (accountType === "agence" ? "/agence" : "/dashboard");

@@ -6,6 +6,7 @@ import { Resend } from "resend";
 const anthropic = new Anthropic();
 const resend = new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr";
+const TRIAL_DAYS = 7;
 
 function esc(s: string | number | null | undefined): string {
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
   const { data: dueDevis, error } = await admin
     .from("devis")
     .select(
-      "id, devis_number, artisan_name, artisan_email, client_name, client_email, total_ttc, reminder_frequency_days, reminder_max_count, reminder_count, reminder_tone, result_json"
+      "id, user_id, devis_number, artisan_name, artisan_email, client_name, client_email, total_ttc, reminder_frequency_days, reminder_max_count, reminder_count, reminder_tone, result_json"
     )
     .eq("reminder_enabled", true)
     .lte("reminder_next_date", now)
@@ -38,9 +39,48 @@ export async function GET(request: NextRequest) {
   }
 
   // Filter where reminder_count < reminder_max_count (column comparison not supported in JS client)
-  const eligible = (dueDevis ?? []).filter(
+  const dueCount = (dueDevis ?? []).filter(
     (d) => (d.reminder_count ?? 0) < (d.reminder_max_count ?? 2)
   );
+
+  // Automatic reminders are a paid feature — a devis created during a trial
+  // that later expires without converting shouldn't keep triggering Claude +
+  // Resend calls indefinitely. Disable reminders on those instead of just
+  // skipping them, so they stop being re-fetched on every future run too.
+  const ownerIds = Array.from(new Set(dueCount.map((d) => d.user_id).filter((id): id is string => !!id)));
+  const { data: owners } = ownerIds.length
+    ? await admin.from("profiles").select("id, plan, created_at, agence_id").in("id", ownerIds)
+    : { data: [] as { id: string; plan: string | null; created_at: string; agence_id: string | null }[] };
+  const ownerById = new Map((owners ?? []).map((o) => [o.id, o]));
+
+  // Artisans linked to a paid Cabinet & Groupement account are covered by the
+  // agence's subscription — their own trial clock doesn't apply, same rule as
+  // generate-devis/route.ts. Must check this before disqualifying anyone.
+  const agenceIds = Array.from(new Set((owners ?? []).map((o) => o.agence_id).filter((id): id is string => !!id)));
+  const { data: agences } = agenceIds.length
+    ? await admin.from("profiles").select("id, plan").in("id", agenceIds)
+    : { data: [] as { id: string; plan: string | null }[] };
+  const agencePlanById = new Map((agences ?? []).map((a) => [a.id, a.plan]));
+
+  const eligible: typeof dueCount = [];
+  const disqualifiedIds: string[] = [];
+  for (const d of dueCount) {
+    const owner = d.user_id ? ownerById.get(d.user_id) : undefined;
+    const coveredByAgence = !!owner?.agence_id && agencePlanById.get(owner.agence_id) === "paid";
+    if (owner && !coveredByAgence && owner.plan !== "paid") {
+      const daysSince = (Date.now() - new Date(owner.created_at).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSince > TRIAL_DAYS) {
+        disqualifiedIds.push(d.id);
+        continue;
+      }
+    }
+    eligible.push(d);
+  }
+
+  if (disqualifiedIds.length > 0) {
+    await admin.from("devis").update({ reminder_enabled: false }).in("id", disqualifiedIds);
+    console.log(`[reminders] disabled reminders for ${disqualifiedIds.length} devis — owner's trial expired, unpaid`);
+  }
 
   console.log(`[reminders] ${eligible.length} reminders due (of ${dueDevis?.length ?? 0} fetched)`);
 

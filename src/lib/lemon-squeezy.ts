@@ -60,6 +60,7 @@ export interface LSWebhookPayload {
   meta: {
     event_name: string;
     custom_data?: Record<string, string>;
+    test_mode?: boolean;
   };
   data: {
     id: string;
@@ -194,6 +195,7 @@ export function parseWebhookPayload(raw: unknown): {
   subscriptionId: string | undefined;
   customerPortal: string | null;
   status: string | undefined;
+  testMode: boolean;
 } | null {
   const payload = raw as LSWebhookPayload;
   const eventName = payload?.meta?.event_name as LSWebhookEvent | undefined;
@@ -206,8 +208,9 @@ export function parseWebhookPayload(raw: unknown): {
   const customerPortal =
     (attrs?.urls as Record<string, string> | undefined)?.customer_portal ?? null;
   const status = attrs?.status as string | undefined;
+  const testMode = payload.meta.test_mode === true;
 
-  return { eventName, userId, customerId, subscriptionId, customerPortal, status };
+  return { eventName, userId, customerId, subscriptionId, customerPortal, status, testMode };
 }
 
 // ── Plan logic ──────────────────────────────────────────────────────────────

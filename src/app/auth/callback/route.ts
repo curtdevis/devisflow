@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
+import { createCheckoutSession } from "@/lib/lemon-squeezy";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -221,8 +222,13 @@ export async function GET(request: NextRequest) {
 
   const redirectAfter = meta.redirect_after as string | null | undefined;
   if (redirectAfter === "checkout") {
-    const checkoutUrl = `https://devisflow.lemonsqueezy.com/checkout/buy/c410da6a-48e2-4e35-aeb0-dea0ebb29cb5?checkout[custom][user_id]=${user.id}`;
-    return NextResponse.redirect(checkoutUrl);
+    try {
+      const session = await createCheckoutSession({ userId: user.id, userEmail: user.email! });
+      return NextResponse.redirect(session.url);
+    } catch (err) {
+      console.error("[auth/callback] checkout session creation failed:", err);
+      return NextResponse.redirect(`${origin}/dashboard`);
+    }
   }
   if (redirectAfter === "devis") {
     return NextResponse.redirect(`${origin}/devis`);

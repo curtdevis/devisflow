@@ -143,15 +143,23 @@ export default async function DashboardPage() {
         {/* Trial / upgrade banner for free users */}
         {profile?.plan !== "paid" && (() => {
           const daysSince = (Date.now() - new Date(user!.created_at).getTime()) / (1000 * 60 * 60 * 24);
+          const isExpired = daysSince > 7;
           const daysLeft = Math.max(0, Math.ceil(7 - daysSince));
+          const urgent = isExpired || daysLeft <= 1;
           return (
-            <div className={`mb-6 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${daysLeft <= 1 ? "bg-red-50 border border-red-200" : "bg-orange-50 border border-orange-100"}`}>
+            <div className={`mb-6 rounded-2xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${urgent ? "bg-red-50 border border-red-200" : "bg-orange-50 border border-orange-100"}`}>
               <div>
-                <p className="font-bold text-sm" style={{ color: daysLeft <= 1 ? "#b91c1c" : "#9a3412" }}>
-                  {daysLeft <= 1 ? "⚠️ Dernier jour d'essai gratuit" : `⏳ Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? "s" : ""} restant${daysLeft > 1 ? "s" : ""}`}
+                <p className="font-bold text-sm" style={{ color: urgent ? "#b91c1c" : "#9a3412" }}>
+                  {isExpired
+                    ? "⛔ Essai gratuit terminé"
+                    : daysLeft <= 1
+                    ? "⚠️ Dernier jour d'essai gratuit"
+                    : `⏳ Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? "s" : ""} restant${daysLeft > 1 ? "s" : ""}`}
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: "#78350f" }}>
-                  Passez à Artisan Solo pour continuer à utiliser DevisFlow après votre essai.
+                  {isExpired
+                    ? "Passez à Artisan Solo pour recommencer à générer des devis."
+                    : "Passez à Artisan Solo pour continuer à utiliser DevisFlow après votre essai."}
                 </p>
               </div>
               <CheckoutButton
@@ -208,12 +216,12 @@ export default async function DashboardPage() {
             { label: "Taux de conversion", value: `${conversionRate} %`, sub: devisList.length > 0 ? "acceptés" : "—" },
             {
               label: "Volume total TTC",
-              value: `${totalTTC.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} €`,
+              value: `${totalTTC.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} €`,
               sub: "cumulé",
             },
             {
               label: "Panier moyen",
-              value: avgTTC > 0 ? `${avgTTC.toLocaleString("fr-FR", { minimumFractionDigits: 0 })} €` : "—",
+              value: avgTTC > 0 ? `${avgTTC.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} €` : "—",
               sub: "par devis",
             },
             {

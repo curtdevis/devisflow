@@ -40,8 +40,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const { eventName, userId, customerId, customerPortal, subscriptionId } = event;
-  console.log(`[ls-webhook] event=${eventName} user=${userId ?? "unknown"} sub=${subscriptionId ?? "-"}`);
+  const { eventName, userId, customerId, customerPortal, subscriptionId, testMode } = event;
+  console.log(`[ls-webhook] event=${eventName} user=${userId ?? "unknown"} sub=${subscriptionId ?? "-"} test=${testMode}`);
+
+  // Never let a test-store event (e.g. someone testing a checkout with the LS
+  // dashboard toggled to test mode) grant a real "paid" plan — createCheckoutSession
+  // always forces test_mode:false on our side, so a test event here means the
+  // request didn't originate from our own live checkout flow.
+  if (testMode) {
+    console.warn(`[ls-webhook] Ignoring test-mode event=${eventName} user=${userId ?? "unknown"}`);
+    return NextResponse.json({ received: true, ignored: "test_mode" });
+  }
 
   if (!userId) {
     console.warn("[ls-webhook] No user_id in custom_data — cannot sync account");
