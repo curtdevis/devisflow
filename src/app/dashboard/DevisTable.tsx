@@ -171,6 +171,26 @@ function SortIcon({ k, sortKey, sortAsc }: { k: SortKey; sortKey: SortKey; sortA
   return <span className="ml-0.5" style={{ color: "var(--orange)" }}>{sortAsc ? "↑" : "↓"}</span>;
 }
 
+function WhatsAppButton({ row }: { row: DevisRow }) {
+  function openWhatsApp() {
+    const signLink = `${window.location.origin}/sign/${row.id}`;
+    const validUntil = row.result_json?.validUntil;
+    const text = encodeURIComponent(
+      `Bonjour ${row.client_name},\n\nVeuillez trouver ci-joint votre devis N° ${row.devis_number ?? ""} d'un montant de ${row.total_ttc.toFixed(2)} € TTC, établi par ${row.artisan_name ?? ""}.${validUntil ? `\n\nValable jusqu'au ${validUntil}.` : ""}\n\nPour visualiser et signer en ligne : ${signLink}`
+    );
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
+  }
+  return (
+    <button
+      onClick={openWhatsApp}
+      title="Envoyer par WhatsApp"
+      className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors whitespace-nowrap"
+    >
+      💬 <span className="hidden sm:inline">WhatsApp</span>
+    </button>
+  );
+}
+
 function CopyLinkButton({ devisId }: { devisId: string }) {
   const [copied, setCopied] = useState(false);
   function copy() {
@@ -454,8 +474,13 @@ export default function DevisTable({ devis }: { devis: DevisRow[] }) {
                           <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
                       </button>
-                      {/* Sign link — only while the devis is still pending */}
-                      {!d.signed_at && d.status !== "refused" && <CopyLinkButton devisId={d.id} />}
+                      {/* Sign link + WhatsApp resend — only while the devis is still pending */}
+                      {!d.signed_at && d.status !== "refused" && (
+                        <>
+                          <WhatsAppButton row={d} />
+                          <CopyLinkButton devisId={d.id} />
+                        </>
+                      )}
                       {/* Convert to invoice — only for signed devis */}
                       {d.signed_at && <ConvertInvoiceButton devisId={d.id} />}
                     </div>
