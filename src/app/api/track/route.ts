@@ -11,6 +11,27 @@ function parseUtmField(value: unknown): string | null {
   return typeof value === "string" && UTM_RE.test(value) ? value : null;
 }
 
+// In-memory rate limit: max 60 pageview beacons per IP per 10 minutes — well
+// above what a real visitor generates browsing normally (BotID already
+// filters most automated traffic; this is a second layer against scripted
+// floods that would otherwise inflate site_visits, and by extension the
+// utm_source/campaign counts in the admin dashboard).
+const trackRateLimit = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 10 * 60_000;
+const RATE_LIMIT_MAX = 60;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = trackRateLimit.get(ip);
+  if (!entry || now > entry.resetAt) {
+    trackRateLimit.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
+
 function parseFloatHeader(value: string | null): number | null {
   if (!value) return null;
   const n = Number.parseFloat(value);
@@ -37,6 +58,11 @@ export async function POST(request: NextRequest) {
   const { isBot } = await checkBotId();
   if (isBot) {
     return NextResponse.json({ ok: true });
+  }
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json({ ok: true }); // silent drop, same reasoning as the bot check above
   }
 
   const body = await request.json().catch(() => null);
