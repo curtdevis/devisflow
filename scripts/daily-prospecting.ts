@@ -1,8 +1,8 @@
 import { sleep } from "workflow";
 import { Resend } from "resend";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
-import { scrapeGoogleMapsCategory, type ApifyPlace } from "@/lib/apify";
-import { fetchWebsiteText, personalizeEmail, buildEmailHtml } from "@/lib/prospecting-personalize";
+import { searchBusinessesByCategory, type BusinessPlace } from "@/lib/google-places";
+import { fetchWebsiteData, domainAcceptsMail, personalizeEmail, buildEmailHtml } from "@/lib/prospecting-personalize";
 import { appendSheetRow } from "@/lib/google-sheets";
 
 const CATEGORIES = [
@@ -32,6 +32,12 @@ interface ProspectResult {
   reason?: string;
 }
 
+interface EnrichedPlace extends Omit<BusinessPlace, "website"> {
+  website: string;
+  email: string;
+  siteText: string;
+}
+
 function getIsoWeekLabel(date: Date): string {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = d.getUTCDay() || 7;
@@ -43,20 +49,41 @@ function getIsoWeekLabel(date: Date): string {
 
 // ── Steps ──────────────────────────────────────────────────────────────────
 
-async function scrapeCategoryStep(category: string): Promise<ApifyPlace[]> {
+async function scrapeCategoryStep(category: string): Promise<BusinessPlace[]> {
   "use step";
   try {
-    return await scrapeGoogleMapsCategory(category, PROSPECTS_PER_CATEGORY);
+    return await searchBusinessesByCategory(category, PROSPECTS_PER_CATEGORY);
   } catch (err) {
-    console.error(`[daily-prospecting] Apify scrape failed for "${category}":`, err);
+    console.error(`[daily-prospecting] Google Places search failed for "${category}":`, err);
     return [];
   }
 }
 
 /**
+ * Fetches the business's own site once, extracting both the personalization
+ * text and a real published email (see prospecting-personalize.ts — never a
+ * guessed address), then confirms the email's domain can receive mail.
+ * Returns null if any of those three things comes up empty — a place with no
+ * verifiable, real contact email is skipped entirely, never sent to.
+ */
+async function enrichPlaceStep(place: BusinessPlace): Promise<EnrichedPlace | null> {
+  "use step";
+  const website = place.website;
+  if (!website) return null;
+
+  const { text, email } = await fetchWebsiteData(website);
+  if (!text || !email) return null;
+
+  const mxOk = await domainAcceptsMail(email);
+  if (!mxOk) return null;
+
+  return { ...place, website, email, siteText: text };
+}
+
+/**
  * Blocks a send if this email (or this company, under a possibly different
  * email) already received an outreach, or if the email replied STOP.
- * The company-name check matters because Apify can surface the same
+ * The company-name check matters because Google Places can surface the same
  * business with a slightly different scraped email across daily runs.
  */
 async function checkGateStep(
@@ -78,13 +105,10 @@ async function checkGateStep(
   return { allowed: true };
 }
 
-async function personalizeStep(place: ApifyPlace): Promise<string | null> {
+async function personalizeStep(place: EnrichedPlace): Promise<string | null> {
   "use step";
-  if (!place.website) return null;
-  const siteText = await fetchWebsiteText(place.website);
-  if (!siteText) return null;
   try {
-    return await personalizeEmail(place.website, siteText);
+    return await personalizeEmail(place.website, place.siteText);
   } catch (err) {
     console.error(`[daily-prospecting] Claude personalization failed for ${place.website}:`, err);
     return null;
@@ -99,7 +123,7 @@ async function personalizeStep(place: ApifyPlace): Promise<string | null> {
 // checkGateStep (by email AND company name) is what actually prevents
 // re-contacting someone in the meantime.
 async function sendEmailStep(
-  place: ApifyPlace,
+  place: EnrichedPlace,
   message: string
 ): Promise<{ ok: boolean; error?: string }> {
   "use step";
@@ -107,7 +131,7 @@ async function sendEmailStep(
   try {
     const { error } = await resend.emails.send({
       from: SEND_FROM,
-      to: place.email!,
+      to: place.email,
       replyTo: "equipe@devis-flow.fr",
       subject: `${place.companyName}, une question rapide`,
       text: message,
@@ -125,7 +149,7 @@ async function sendEmailStep(
 
 async function recordResultStep(
   week: string,
-  place: ApifyPlace,
+  place: EnrichedPlace,
   category: string,
   status: SendStatus,
   message: string
@@ -133,7 +157,7 @@ async function recordResultStep(
   "use step";
   const admin = createSupabaseAdmin();
 
-  if (status === "sent" && place.email) {
+  if (status === "sent") {
     await admin.from("prospecting_sent").insert({
       email: place.email,
       category,
@@ -147,7 +171,7 @@ async function recordResultStep(
       new Date().toISOString().slice(0, 10),
       category,
       place.companyName,
-      place.email ?? "",
+      place.email,
       place.phone ?? "",
       place.website ?? "",
       place.address ?? "",
@@ -173,9 +197,15 @@ export async function dailyProspectingWorkflow() {
   for (const category of CATEGORIES) {
     const places = await scrapeCategoryStep(category);
 
-    for (const place of places) {
-      if (!place.website || !place.email) {
-        results.push({ category, companyName: place.companyName, email: place.email, status: "skipped", reason: "no_website_or_email" });
+    for (const rawPlace of places) {
+      if (!rawPlace.website) {
+        results.push({ category, companyName: rawPlace.companyName, email: null, status: "skipped", reason: "no_website" });
+        continue;
+      }
+
+      const place = await enrichPlaceStep(rawPlace);
+      if (!place) {
+        results.push({ category, companyName: rawPlace.companyName, email: null, status: "skipped", reason: "no_verifiable_email" });
         continue;
       }
 
