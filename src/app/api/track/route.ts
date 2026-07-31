@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
   const utmSource = parseUtmField(body?.utm_source);
   const utmMedium = parseUtmField(body?.utm_medium);
   const utmCampaign = parseUtmField(body?.utm_campaign);
+  const ref = parseUtmField(body?.ref);
 
   if (typeof sessionId !== "string" || !SESSION_ID_RE.test(sessionId)) {
     return NextResponse.json({ error: "Invalid sessionId" }, { status: 400 });
@@ -105,6 +106,7 @@ export async function POST(request: NextRequest) {
       utm_source: utmSource,
       utm_medium: utmMedium,
       utm_campaign: utmCampaign,
+      ref,
     })
     .select("id")
     .single();

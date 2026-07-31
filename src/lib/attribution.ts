@@ -10,9 +10,10 @@ export interface Attribution {
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
+  ref: string | null;
 }
 
-const EMPTY: Attribution = { utm_source: null, utm_medium: null, utm_campaign: null };
+const EMPTY: Attribution = { utm_source: null, utm_medium: null, utm_campaign: null, ref: null };
 
 /**
  * Reads utm_* params from the current URL and, if present, persists them as
@@ -38,6 +39,7 @@ export function captureAttribution(): Attribution {
     utm_source: params.get("utm_source"),
     utm_medium: params.get("utm_medium"),
     utm_campaign: params.get("utm_campaign"),
+    ref: params.get("ref"),
   };
 
   if (fromUrl.utm_source) {

@@ -217,10 +217,21 @@ function escapeHtml(text: string): string {
  * project's visual identity. Strips the plain-text signature block (the
  * "DevisFlow — devis-flow.fr — Se désinscrire" line) since it's rebuilt as
  * proper styled markup below instead of being echoed as raw text.
+ *
+ * `ref` is a per-recipient tracking token (generated in sendEmailStep,
+ * scripts/daily-prospecting.ts, and stored on prospecting_sent.tracking_ref)
+ * appended to both links. Without it, utm_source=prospecting only tells us
+ * *that* someone clicked — never *which* prospect, since every recipient
+ * gets the exact same URL otherwise. src/lib/attribution.ts and
+ * src/app/api/track/route.ts carry `ref` through to site_visits.ref, which
+ * is what lets a click be matched back to a specific email/company.
  */
-const CTA_URL = "https://devis-flow.fr/auth/register?type=artisan&utm_source=prospecting&utm_medium=email&utm_campaign=cold-outreach";
+function buildCtaUrl(path: string, ref?: string): string {
+  const url = `https://devis-flow.fr${path}?utm_source=prospecting&utm_medium=email&utm_campaign=cold-outreach`;
+  return ref ? `${url}&ref=${encodeURIComponent(ref)}` : url;
+}
 
-export function buildEmailHtml(message: string): string {
+export function buildEmailHtml(message: string, ref?: string): string {
   const body = message
     .replace(/\n?DevisFlow\s*[—-]\s*devis-flow\.fr\s*[—-]\s*Se désinscrire\s*:\s*répondez STOP\s*$/i, "")
     .trim();
@@ -229,6 +240,9 @@ export function buildEmailHtml(message: string): string {
     .split(/\n{2,}/)
     .map((p) => `<p style="margin:0 0 16px;">${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
     .join("");
+
+  const ctaUrl = buildCtaUrl("/auth/register?type=artisan", ref);
+  const footerUrl = buildCtaUrl("/", ref);
 
   return `<!doctype html>
 <html lang="fr">
@@ -247,7 +261,7 @@ export function buildEmailHtml(message: string): string {
 ${paragraphs}
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;">
 <tr><td style="border-radius:8px;background:#ff7a1a;">
-<a href="${CTA_URL}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;">Essayer gratuitement 7 jours →</a>
+<a href="${ctaUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;">Essayer gratuitement 7 jours →</a>
 </td></tr>
 </table>
 <p style="margin:0 0 24px;color:#6b7280;font-size:13px;">Sans carte bancaire, annulation en 1 clic.</p>
@@ -255,7 +269,7 @@ ${paragraphs}
 <strong>L'équipe DevisFlow</strong></p>
 </td></tr>
 <tr><td style="padding:20px 32px;background:#f4f5f7;border-top:1px solid #e5e7eb;">
-<a href="https://devis-flow.fr?utm_source=prospecting&utm_medium=email&utm_campaign=cold-outreach" style="color:#ff7a1a;font-size:13px;text-decoration:none;font-weight:bold;">devis-flow.fr</a>
+<a href="${footerUrl}" style="color:#ff7a1a;font-size:13px;text-decoration:none;font-weight:bold;">devis-flow.fr</a>
 <p style="margin:8px 0 0;color:#8a8f98;font-size:12px;">Pour ne plus recevoir nos emails, répondez simplement STOP à ce message.</p>
 </td></tr>
 </table>

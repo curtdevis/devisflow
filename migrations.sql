@@ -175,3 +175,18 @@ ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS resend_id TEXT;
 ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS delivery_status TEXT DEFAULT 'sent';
 ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS delivery_updated_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS idx_prospecting_sent_resend_id ON prospecting_sent(resend_id);
+
+-- 13. Per-recipient click attribution for prospecting emails. Every
+-- recipient's CTA/footer links previously carried the exact same
+-- utm_source=prospecting URL, so a click only ever proved *someone* clicked
+-- — never *which* prospect, since nothing distinguished one recipient's link
+-- from another's. tracking_ref is a random token generated per send
+-- (scripts/daily-prospecting.ts sendEmailStep), embedded in that email's
+-- links (src/lib/prospecting-personalize.ts buildEmailHtml), and echoed
+-- back on site_visits.ref when that link is opened (src/lib/attribution.ts,
+-- src/app/api/track/route.ts) — joining the two tables on this token
+-- identifies exactly which company/email clicked.
+ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS tracking_ref TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_prospecting_sent_tracking_ref ON prospecting_sent(tracking_ref) WHERE tracking_ref IS NOT NULL;
+ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS ref TEXT;
+CREATE INDEX IF NOT EXISTS idx_site_visits_ref ON site_visits(ref) WHERE ref IS NOT NULL;

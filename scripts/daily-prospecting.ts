@@ -181,8 +181,15 @@ async function personalizeStep(place: EnrichedPlace): Promise<string | null> {
 async function sendEmailStep(
   place: EnrichedPlace,
   message: string
-): Promise<{ ok: boolean; error?: string; resendId?: string }> {
+): Promise<{ ok: boolean; error?: string; resendId?: string; trackingRef?: string }> {
   "use step";
+  // Every recipient otherwise gets an identical CTA URL (utm_source=
+  // prospecting, same for all) — a click only ever proved *someone* clicked,
+  // never *which* prospect. This per-send token, embedded in both links via
+  // buildEmailHtml and captured back through site_visits.ref (see
+  // src/app/api/track/route.ts), is what makes a click attributable to a
+  // specific company/email.
+  const trackingRef = crypto.randomUUID().replace(/-/g, "");
   const resend = new Resend(process.env.RESEND_API_KEY);
   try {
     const { data, error } = await resend.emails.send({
@@ -191,13 +198,13 @@ async function sendEmailStep(
       replyTo: "equipe@devis-flow.fr",
       subject: `${place.companyName}, une question rapide`,
       text: message,
-      html: buildEmailHtml(message),
+      html: buildEmailHtml(message, trackingRef),
       headers: {
         "List-Unsubscribe": "<mailto:equipe@devis-flow.fr?subject=STOP>",
       },
     });
     if (error) return { ok: false, error: error.message };
-    return { ok: true, resendId: data?.id };
+    return { ok: true, resendId: data?.id, trackingRef };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "unknown" };
   }
@@ -209,7 +216,8 @@ async function recordResultStep(
   category: string,
   status: SendStatus,
   message: string,
-  resendId?: string
+  resendId?: string,
+  trackingRef?: string
 ): Promise<void> {
   "use step";
   const admin = createSupabaseAdmin();
@@ -220,6 +228,7 @@ async function recordResultStep(
       category,
       company_name: place.companyName,
       resend_id: resendId ?? null,
+      tracking_ref: trackingRef ?? null,
     });
   }
 
@@ -285,7 +294,7 @@ export async function dailyProspectingWorkflow(maxSends?: number) {
 
       const sendResult = await sendEmailStep(place, message);
       const status: SendStatus = sendResult.ok ? "sent" : "bounced";
-      await recordResultStep(week, place, category, status, message, sendResult.resendId);
+      await recordResultStep(week, place, category, status, message, sendResult.resendId, sendResult.trackingRef);
       results.push({ category, companyName: place.companyName, email: place.email, status, reason: sendResult.error });
 
       await sleep(DELAY_BETWEEN_EMAILS);
