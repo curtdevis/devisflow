@@ -46,7 +46,7 @@ const PLANS = [
     features: [
       "Tout le plan Artisan Solo",
       "Relances automatiques illimitées",
-      "Multi-utilisateurs (invitez votre équipe)",
+      "Équipe partagée (vous + 2 collaborateurs, même espace de travail)",
       "Export comptable détaillé (HT / TVA / TTC)",
       "Support prioritaire",
     ],
@@ -64,10 +64,10 @@ const PLANS = [
     description: "Cabinets comptables, fédérations d'artisans, groupements BTP",
     features: [
       "Tout le plan Artisan Solo",
-      "Invitations artisans par email",
-      "Dashboard multi-artisans centralisé",
-      "Suivi de tous les devis en temps réel",
-      "Statistiques d'activité par artisan",
+      "Jusqu'à 50 artisans, chacun avec son propre espace indépendant",
+      "Suivi consolidé de l'activité de tous vos artisans",
+      "Statistiques comparées par artisan",
+      "Rapports mensuels exportables",
       "Support prioritaire dédié",
     ],
     cta: "Créer un compte Cabinet",
