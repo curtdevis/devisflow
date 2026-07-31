@@ -195,7 +195,7 @@ export default function DevisPlombierPage() {
                   bg: "rgba(16,185,129,0.07)",
                   icon: "🔧",
                   title: "Postes types pré-renseignés",
-                  desc: "Débouchage canalisation, remplacement chauffe-eau, installation sanitaire (WC, lavabo, douche), réparation fuite, mise aux normes VMC… Les postes les plus courants sont suggérés avec les unités et fourchettes de prix du marché.",
+                  desc: "Débouchage canalisation, remplacement chauffe-eau, installation sanitaire (WC, lavabo, douche), réparation fuite, installation lave-vaisselle… Les postes les plus courants sont suggérés avec les unités et fourchettes de prix du marché.",
                 },
                 {
                   accent: "#8b5cf6",

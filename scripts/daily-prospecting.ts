@@ -16,6 +16,7 @@ const CATEGORIES = [
   "couvreur",
   "serrurier",
   "vitrier",
+  "climatisation",
 ] as const;
 
 // A bare "{category} France" query only ever returns Google's top-20
