@@ -18,7 +18,31 @@ const CATEGORIES = [
   "vitrier",
 ] as const;
 
-const PROSPECTS_PER_CATEGORY = 20;
+// A bare "{category} France" query only ever returns Google's top-20
+// national results for that text — same listings, run after run — which is
+// why the pool of fresh prospects dried up after a few days. Querying per
+// city instead surfaces a distinct top-N for each city, and pagination lets
+// each of those go past 20. See searchBusinessesByCategory in
+// src/lib/google-places.ts.
+const CITIES = [
+  "Paris",
+  "Marseille",
+  "Lyon",
+  "Toulouse",
+  "Nice",
+  "Nantes",
+  "Montpellier",
+  "Strasbourg",
+  "Bordeaux",
+  "Lille",
+  "Rennes",
+  "Reims",
+  "Toulon",
+  "Grenoble",
+  "Dijon",
+] as const;
+
+const RESULTS_PER_CITY = 20;
 const DELAY_BETWEEN_EMAILS = "30s";
 const SEND_FROM = "DevisFlow <equipe@devis-flow.fr>";
 
@@ -49,14 +73,45 @@ function getIsoWeekLabel(date: Date): string {
 
 // ── Steps ──────────────────────────────────────────────────────────────────
 
+/**
+ * Queries every city for this category and merges the results, deduping on
+ * company name and website — the same business can legitimately surface
+ * under more than one city query (chains, or a search radius overlapping a
+ * neighboring city), and re-enriching/re-sending to it would waste a step
+ * and risk a double email if the dedupe DB check ever raced.
+ */
 async function scrapeCategoryStep(category: string): Promise<BusinessPlace[]> {
   "use step";
-  try {
-    return await searchBusinessesByCategory(category, PROSPECTS_PER_CATEGORY);
-  } catch (err) {
-    console.error(`[daily-prospecting] Google Places search failed for "${category}":`, err);
-    return [];
+  const merged: BusinessPlace[] = [];
+  const seenNames = new Set<string>();
+  const seenWebsites = new Set<string>();
+
+  for (const city of CITIES) {
+    let places: BusinessPlace[];
+    try {
+      places = await searchBusinessesByCategory(category, city, RESULTS_PER_CITY);
+    } catch (err) {
+      console.error(`[daily-prospecting] Google Places search failed for "${category}" / "${city}":`, err);
+      continue;
+    }
+
+    for (const place of places) {
+      const nameKey = place.companyName.trim().toLowerCase();
+      const siteKey = place.website?.trim().toLowerCase() ?? null;
+      if (seenNames.has(nameKey) || (siteKey && seenWebsites.has(siteKey))) continue;
+      seenNames.add(nameKey);
+      if (siteKey) seenWebsites.add(siteKey);
+      merged.push(place);
+    }
+
+    // Stay well clear of any per-second burst limit across 15 sequential
+    // calls per category — Places API New's default quota is generous, but
+    // this costs a few seconds against a workflow that already sleeps 30s
+    // per send.
+    await new Promise((r) => setTimeout(r, 150));
   }
+
+  return merged;
 }
 
 /**
