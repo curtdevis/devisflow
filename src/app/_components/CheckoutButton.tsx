@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const TRIAL_DAYS = 7;
+import { isTrialExpired } from "@/lib/trial";
 
 // @supabase/supabase-js is ~54KB gzip — dynamic import keeps it out of the
 // shared marketing-page bundle, fetched only when this button is clicked.
@@ -51,13 +50,12 @@ export default function CheckoutButton({ className, style, children, tier = "sol
       } else {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("plan, created_at")
+          .select("plan, created_at, trial_days")
           .eq("id", user.id)
           .single();
         plan = profile?.plan ?? "free";
         const createdAt = profile?.created_at ?? user.created_at;
-        const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
-        trialActive = daysSince <= TRIAL_DAYS;
+        trialActive = !isTrialExpired(createdAt, profile?.trial_days);
       }
 
       // Already paid (directly or via team/agence coverage) → go straight to the app

@@ -8,6 +8,7 @@ import LiveActivity from "./LiveActivity";
 import TrafficChart from "./TrafficChart";
 import PageEngagement from "./PageEngagement";
 import Campaigns from "./Campaigns";
+import { isTrialExpired } from "@/lib/trial";
 
 type DevisRow = BaseDevisRow & { artisan_phone: string | null };
 
@@ -32,6 +33,7 @@ interface AccountRow {
   profession: string | null;
   created_at: string;
   suspended: boolean | null;
+  trial_days: number;
 }
 
 const TIER_LABEL: Record<string, string> = { solo: "Solo", intermediaire: "Intermédiaire", agence: "Agence" };
@@ -51,12 +53,9 @@ type DateFilter = "all" | "week" | "month";
 type AccountTypeFilter = "all" | "artisan" | "agence";
 type AccountStatusFilter = "all" | "active" | "suspended" | "trial_expired";
 
-const TRIAL_DAYS = 7;
-
-function isTrialExpired(account: AccountRow): boolean {
+function accountTrialExpired(account: AccountRow): boolean {
   if (account.plan === "paid") return false;
-  const daysSince = (Date.now() - new Date(account.created_at).getTime()) / (1000 * 60 * 60 * 24);
-  return daysSince > TRIAL_DAYS;
+  return isTrialExpired(account.created_at, account.trial_days);
 }
 
 function startOfWeek(now: Date): Date {
@@ -239,8 +238,8 @@ export default function AdminClient({
           : accountStatusFilter === "suspended"
           ? !!a.suspended
           : accountStatusFilter === "trial_expired"
-          ? !a.suspended && isTrialExpired(a)
-          : !a.suspended && !isTrialExpired(a);
+          ? !a.suspended && accountTrialExpired(a)
+          : !a.suspended && !accountTrialExpired(a);
 
       return matchSearch && matchType && matchStatus;
     });
@@ -592,7 +591,7 @@ export default function AdminClient({
                 ) : (
                   filteredAccounts.map((a) => {
                     const suspended = !!a.suspended;
-                    const expired = !suspended && isTrialExpired(a);
+                    const expired = !suspended && accountTrialExpired(a);
                     return (
                       <tr
                         key={a.id}

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
-
-const TRIAL_DAYS = 7;
+import { DEFAULT_TRIAL_DAYS, isTrialExpired, trialDaysLeft } from "@/lib/trial";
 
 /**
  * GET /api/account/effective-access
@@ -32,7 +31,7 @@ export async function GET() {
   const admin = createSupabaseAdmin();
   const { data: profile } = await admin
     .from("profiles")
-    .select("plan, tier, agence_id, member_of, created_at")
+    .select("plan, tier, agence_id, member_of, created_at, trial_days")
     .eq("id", user.id)
     .single<{
       plan: string | null;
@@ -40,6 +39,7 @@ export async function GET() {
       agence_id: string | null;
       member_of: string | null;
       created_at: string;
+      trial_days: number;
     }>();
 
   let coveredByAgence = false;
@@ -66,10 +66,11 @@ export async function GET() {
   const plan = ownPlanPaid || coveredByAgence || coveredByMember ? "paid" : "free";
 
   let trialExpired = false;
+  let trialDaysLeftValue = 0;
   if (!ownPlanPaid && !coveredByAgence && !coveredByMember) {
     const createdAt = profile?.created_at ?? user.created_at;
-    const daysSince = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24);
-    trialExpired = daysSince > TRIAL_DAYS;
+    trialExpired = isTrialExpired(createdAt, profile?.trial_days);
+    trialDaysLeftValue = trialDaysLeft(createdAt, profile?.trial_days);
   }
 
   // Mirrors the HIGH_TIER_REMINDER_CAP eligibility in /api/generate-devis —
@@ -77,5 +78,11 @@ export async function GET() {
   // Artisan Solo parity only, not Intermédiaire's unlimited reminders.
   const reminderTierHigh = profile?.tier === "intermediaire" || profile?.tier === "agence" || coveredByMember;
 
-  return NextResponse.json({ plan, trialExpired, reminderTierHigh });
+  return NextResponse.json({
+    plan,
+    trialExpired,
+    trialDaysLeft: trialDaysLeftValue,
+    trialDays: profile?.trial_days ?? DEFAULT_TRIAL_DAYS,
+    reminderTierHigh,
+  });
 }

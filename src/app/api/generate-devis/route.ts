@@ -8,6 +8,7 @@ import {
 } from "@/lib/devis-calculations";
 import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
 import { DEVIS_LIMIT_PER_MONTH } from "@/lib/agence-limits";
+import { isTrialExpired } from "@/lib/trial";
 
 // IP-based rate limit for unauthenticated requests: 5 per hour, persisted in Supabase
 // SQL to run once in Supabase:
@@ -18,7 +19,6 @@ import { DEVIS_LIMIT_PER_MONTH } from "@/lib/agence-limits";
 //   PRIMARY KEY (ip, window_start)
 // );
 const ANON_RATE_LIMIT = 5;
-const TRIAL_DAYS = 7;
 
 async function checkAnonLimitDb(ip: string): Promise<boolean> {
   try {
@@ -284,7 +284,7 @@ export async function POST(req: NextRequest) {
 
     const { data: profile } = await admin
       .from("profiles")
-      .select("plan, agence_id, suspended, tier, member_of")
+      .select("plan, agence_id, suspended, tier, member_of, trial_days")
       .eq("id", userId)
       .single();
 
@@ -363,8 +363,7 @@ export async function POST(req: NextRequest) {
     } else if (profile?.plan !== "paid" && userCreatedAt) {
       // Trial enforcement — mirrors the client-side check in devis/page.tsx,
       // but this one can't be bypassed by calling the API directly.
-      const daysSinceSignup = (Date.now() - new Date(userCreatedAt).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceSignup > TRIAL_DAYS) {
+      if (isTrialExpired(userCreatedAt, profile?.trial_days)) {
         return NextResponse.json(
           { error: "Votre essai gratuit de 7 jours est terminé. Passez à l'abonnement Artisan Solo pour continuer à générer des devis." },
           { status: 403 }

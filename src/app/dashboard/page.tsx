@@ -8,6 +8,7 @@ import CheckoutButton from "@/app/_components/CheckoutButton";
 import DevisTable from "./DevisTable";
 import type { DevisRow } from "@/lib/devis-html";
 import UpgradeBanner from "./UpgradeBanner";
+import { isTrialExpired, trialDaysLeft } from "@/lib/trial";
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServer();
@@ -130,10 +131,9 @@ export default async function DashboardPage() {
 
   // Trial banner state — computed once here rather than inline in JSX
   // (Date.now() must not be called during render).
-  const trialDaysSince = (now.getTime() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24);
-  const trialExpired = trialDaysSince > 7;
-  const trialDaysLeft = Math.max(0, Math.ceil(7 - trialDaysSince));
-  const trialUrgent = trialExpired || trialDaysLeft <= 1;
+  const trialExpired = isTrialExpired(user.created_at, profile?.trial_days);
+  const daysLeft = trialDaysLeft(user.created_at, profile?.trial_days);
+  const trialUrgent = trialExpired || daysLeft <= 1;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -200,9 +200,9 @@ export default async function DashboardPage() {
               <p className="font-bold text-sm" style={{ color: trialUrgent ? "#b91c1c" : "#9a3412" }}>
                 {trialExpired
                   ? "⛔ Essai gratuit terminé"
-                  : trialDaysLeft <= 1
+                  : daysLeft <= 1
                   ? "⚠️ Dernier jour d'essai gratuit"
-                  : `⏳ Essai gratuit — ${trialDaysLeft} jour${trialDaysLeft > 1 ? "s" : ""} restant${trialDaysLeft > 1 ? "s" : ""}`}
+                  : `⏳ Essai gratuit — ${daysLeft} jour${daysLeft > 1 ? "s" : ""} restant${daysLeft > 1 ? "s" : ""}`}
               </p>
               <p className="text-xs mt-0.5" style={{ color: "#78350f" }}>
                 {trialExpired

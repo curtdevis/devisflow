@@ -190,3 +190,16 @@ ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS tracking_ref TEXT;
 CREATE UNIQUE INDEX IF NOT EXISTS idx_prospecting_sent_tracking_ref ON prospecting_sent(tracking_ref) WHERE tracking_ref IS NOT NULL;
 ALTER TABLE site_visits ADD COLUMN IF NOT EXISTS ref TEXT;
 CREATE INDEX IF NOT EXISTS idx_site_visits_ref ON site_visits(ref) WHERE ref IS NOT NULL;
+
+-- 14. Retargeting: prospects who clicked a cold email but never signed up
+-- get one automatic follow-up with a genuine 14-day trial (vs the standard
+-- 7), instead of just a repeat of the same message. retargeted_at marks a
+-- prospecting_sent row as already retargeted (dedup — never send it twice).
+-- profiles.trial_days is per-account so 8+ call sites across the app (see
+-- src/lib/trial.ts) can honor an extended trial instead of the hardcoded 7
+-- every one of them had independently. It is ONLY ever set to 14 by
+-- src/app/auth/callback/route.ts, and only after re-validating server-side
+-- that the signup's `ref` matches a prospecting_sent row with
+-- retargeted_at IS NOT NULL — never trusted from client input directly.
+ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS retargeted_at TIMESTAMPTZ;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS trial_days INTEGER NOT NULL DEFAULT 7;

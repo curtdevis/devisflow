@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { isTrialExpired } from "@/lib/trial";
 
 interface Profile {
   id: string;
@@ -20,6 +21,7 @@ interface Profile {
   created_at: string;
   suspended: boolean | null;
   lemon_squeezy_customer_id: string | null;
+  trial_days: number;
 }
 
 interface DevisRow {
@@ -34,8 +36,6 @@ interface DevisRow {
   status: string | null;
   refusal_reason: string | null;
 }
-
-const TRIAL_DAYS = 7;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -75,8 +75,7 @@ export default function CompteClient({
   const totalVolumeAll = devis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
   const totalVolumeSigned = signedDevis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
 
-  const daysSinceSignup = (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24);
-  const trialExpired = profile.plan !== "paid" && daysSinceSignup > TRIAL_DAYS;
+  const trialExpired = profile.plan !== "paid" && isTrialExpired(profile.created_at, profile.trial_days);
 
   const tierLabel = profile.account_type === "agence" ? "Agence" : profile.tier === "intermediaire" ? "Intermédiaire" : "Solo";
   let paymentLabel = `Payant actif — ${tierLabel}`;

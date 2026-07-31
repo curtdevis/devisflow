@@ -7,6 +7,7 @@ import { createSupabaseBrowser } from "@/lib/supabase-browser";
 import { calculateDevisTotals, calculateLaborCost, calculateMaterialsSubtotal } from "@/lib/devis-calculations";
 import { DevisPreview, type DevisResult } from "./DevisPreview";
 import CheckoutButton from "@/app/_components/CheckoutButton";
+import { isTrialExpired, trialDaysLeft as computeTrialDaysLeft } from "@/lib/trial";
 
 // ── Profession data ────────────────────────────────────────────────────────────
 
@@ -183,11 +184,15 @@ function TrialBanner({ plan }: { plan: string | null }) {
   const [daysLeft, setDaysLeft] = useState<number | null>(null);
   useEffect(() => {
     if (plan === "paid") return;
-    createSupabaseBrowser().auth.getUser().then(({ data: { user } }) => {
+    const supabase = createSupabaseBrowser();
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return;
-      const daysSince = (Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24);
-      const left = Math.max(0, Math.ceil(TRIAL_DAYS - daysSince));
-      setDaysLeft(left);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("trial_days")
+        .eq("id", user.id)
+        .single();
+      setDaysLeft(computeTrialDaysLeft(user.created_at, profile?.trial_days));
     });
   }, [plan]);
 
@@ -252,13 +257,12 @@ function ProgressBar({ step }: { step: number }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-const TRIAL_DAYS = 7;
-
 export default function DevisPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [profession, setProfession] = useState("");
   const [trialExpired, setTrialExpired] = useState(false);
+  const [trialDaysTotal, setTrialDaysTotal] = useState(7);
   const [userPlan, setUserPlan] = useState<string | null>(null);
   // True when this account is eligible for the high (20 / "illimité")
   // reminder cap — either directly (own tier) or via Intermédiaire
@@ -320,9 +324,9 @@ export default function DevisPage() {
       const type = user.user_metadata?.account_type;
       setDashboardHref(type === "agence" ? "/agence" : "/dashboard");
 
-      type ProfileRow = { full_name: string | null; siret: string | null; phone: string | null; address: string | null; email: string | null; plan: string | null; tier: string | null };
+      type ProfileRow = { full_name: string | null; siret: string | null; phone: string | null; address: string | null; email: string | null; plan: string | null; tier: string | null; trial_days: number };
       const [{ data: profile }, clientsRes, accessRes] = await Promise.all([
-        supabase.from("profiles").select("full_name,siret,phone,address,email,plan,tier").eq("id", user.id).single<ProfileRow>(),
+        supabase.from("profiles").select("full_name,siret,phone,address,email,plan,tier,trial_days").eq("id", user.id).single<ProfileRow>(),
         fetch("/api/clients"),
         fetch("/api/account/effective-access"),
       ]);
@@ -333,20 +337,18 @@ export default function DevisPage() {
       // Falls back to the raw own-profile check if the endpoint can't be
       // reached, matching the previous (pre-coverage-aware) behaviour.
       if (accessRes.ok) {
-        const access: { plan: string; trialExpired: boolean; reminderTierHigh: boolean } = await accessRes.json();
+        const access: { plan: string; trialExpired: boolean; trialDays: number; reminderTierHigh: boolean } = await accessRes.json();
         setUserPlan(access.plan);
         setTrialExpired(access.trialExpired);
+        setTrialDaysTotal(access.trialDays);
         setHighReminderTier(access.reminderTierHigh);
       } else {
         const plan = profile?.plan ?? "free";
         setUserPlan(plan);
         setHighReminderTier(profile?.tier === "intermediaire" || profile?.tier === "agence");
-        if (plan !== "paid") {
-          const createdAt = new Date(user.created_at).getTime();
-          const daysSince = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
-          if (daysSince > TRIAL_DAYS) {
-            setTrialExpired(true);
-          }
+        if (profile?.trial_days) setTrialDaysTotal(profile.trial_days);
+        if (plan !== "paid" && isTrialExpired(user.created_at, profile?.trial_days)) {
+          setTrialExpired(true);
         }
       }
 
@@ -576,7 +578,7 @@ export default function DevisPage() {
             Votre essai gratuit est terminé
           </h1>
           <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-            Vous avez profité de {TRIAL_DAYS} jours d&apos;accès gratuit. Passez à l&apos;abonnement Artisan Solo pour continuer à générer des devis sans limite.
+            Vous avez profité de {trialDaysTotal} jours d&apos;accès gratuit. Passez à l&apos;abonnement Artisan Solo pour continuer à générer des devis sans limite.
           </p>
           <CheckoutButton
             className="w-full py-4 rounded-xl text-white font-extrabold text-base shadow-md transition-all hover:scale-[1.02] active:scale-95 mb-3"

@@ -12,6 +12,28 @@ function cleanUtm(v: string | null): string | null {
   return v && UTM_RE.test(v) ? v : null;
 }
 
+/**
+ * Resolves how many trial days a fresh signup should get. Default is 7 —
+ * 14 is granted ONLY when `ref` matches a prospecting_sent row that was
+ * actually retargeted (retargeted_at IS NOT NULL, set by
+ * src/app/api/prospecting/retarget/route.ts after it sends the "essai
+ * prolongé" email). Clicking the original cold-outreach email alone is NOT
+ * enough — that email only ever advertised the standard 7 days, so honoring
+ * it here would grant an offer the recipient was never actually shown.
+ * `ref` is client-supplied and never trusted directly — this DB lookup is
+ * the only thing that can grant the extension.
+ */
+async function resolveTrialDays(admin: ReturnType<typeof createSupabaseAdmin>, ref: string | null): Promise<number> {
+  if (!ref) return 7;
+  const { data } = await admin
+    .from("prospecting_sent")
+    .select("id")
+    .eq("tracking_ref", ref)
+    .not("retargeted_at", "is", null)
+    .maybeSingle();
+  return data ? 14 : 7;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
@@ -21,6 +43,7 @@ export async function GET(request: NextRequest) {
   const oauthUtmSource = cleanUtm(searchParams.get("utm_source"));
   const oauthUtmMedium = cleanUtm(searchParams.get("utm_medium"));
   const oauthUtmCampaign = cleanUtm(searchParams.get("utm_campaign"));
+  const oauthRef = cleanUtm(searchParams.get("ref"));
 
   if (!code) {
     return NextResponse.redirect(`${origin}/auth/login?error=missing_code`);
@@ -64,6 +87,7 @@ export async function GET(request: NextRequest) {
 
     if (!existingProfile) {
       // First Google login → create profile with plan free
+      const trialDays = await resolveTrialDays(admin, oauthRef);
       const { error: insertError } = await admin.from("profiles").insert({
         id: user.id,
         email: user.email!,
@@ -74,6 +98,7 @@ export async function GET(request: NextRequest) {
         utm_source: oauthUtmSource,
         utm_medium: oauthUtmMedium,
         utm_campaign: oauthUtmCampaign,
+        trial_days: trialDays,
       });
       if (insertError) {
         console.error("[auth/callback] profile insert failed:", insertError);
@@ -98,7 +123,7 @@ export async function GET(request: NextRequest) {
             <p style="color:#6b7280;font-size:13px;margin:0 0 28px">Générateur de devis IA pour artisans</p>
             <h1 style="font-size:20px;color:#1e3a5f;margin:0 0 8px">Bienvenue ${firstNameOAuth} ! 🎉</h1>
             <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px">
-              Votre compte est activé. Vous avez <strong>7 jours d'essai gratuit</strong> pour tout tester — sans carte bancaire.
+              Votre compte est activé. Vous avez <strong>${trialDays} jours d'essai gratuit</strong> pour tout tester — sans carte bancaire.
             </p>
             <a href="${SITE_URL}/devis"
                style="display:inline-block;background:#f97316;color:#fff;font-weight:700;font-size:15px;padding:14px 28px;border-radius:12px;text-decoration:none;">
@@ -189,6 +214,13 @@ export async function GET(request: NextRequest) {
     console.warn("[auth/callback] invite token present but invalid/expired/already used — creating standard account");
   }
 
+  // Only resolved/applied on the very first creation — same reasoning as
+  // member_of above: re-running this upsert on a later confirmation-link
+  // click must never reset an already-running trial back down to 7 days.
+  const trialDays = isInitialProfileCreation
+    ? await resolveTrialDays(admin, cleanUtm((meta.ref as string | undefined) ?? null))
+    : null;
+
   // Upsert profile (safe to re-run on repeated confirmations)
   // For agence accounts, store the agency name in both full_name and company_name
   const { error: upsertError } = await admin.from("profiles").upsert(
@@ -202,6 +234,7 @@ export async function GET(request: NextRequest) {
       utm_source: cleanUtm((meta.utm_source as string | undefined) ?? null),
       utm_medium: cleanUtm((meta.utm_medium as string | undefined) ?? null),
       utm_campaign: cleanUtm((meta.utm_campaign as string | undefined) ?? null),
+      ...(trialDays !== null ? { trial_days: trialDays } : {}),
     },
     { onConflict: "id" }
   );
@@ -262,7 +295,7 @@ export async function GET(request: NextRequest) {
 
         <h1 style="font-size:20px;color:#1e3a5f;margin:0 0 8px">Bienvenue ${firstName} ! 🎉</h1>
         <p style="color:#6b7280;font-size:15px;line-height:1.6;margin:0 0 24px">
-          Votre compte est activé. Vous avez <strong>7 jours d'essai gratuit</strong> pour tout tester — sans carte bancaire.
+          Votre compte est activé. Vous avez <strong>${trialDays ?? 7} jours d'essai gratuit</strong> pour tout tester — sans carte bancaire.
         </p>
 
         <div style="background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:24px;border:1px solid #e5e7eb;">

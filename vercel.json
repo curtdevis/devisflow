@@ -17,6 +17,10 @@
       "schedule": "0 6 * * *"
     },
     {
+      "path": "/api/prospecting/retarget",
+      "schedule": "*/10 * * * *"
+    },
+    {
       "path": "/api/cron/indexnow",
       "schedule": "0 5 * * 1"
     },

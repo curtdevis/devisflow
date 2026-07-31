@@ -278,3 +278,56 @@ ${paragraphs}
 </body>
 </html>`;
 }
+
+/**
+ * Retargeting email — sent once to a prospect who clicked the original cold
+ * email but never signed up (see src/app/api/prospecting/retarget/route.ts).
+ * Distinct from the AI-personalized cold-outreach message: this one names
+ * the company directly (they've already shown real interest, no need to
+ * re-pitch from scratch) and leads with the 14-day trial, which is only
+ * actually honored if this exact email gets sent — see resolveTrialDays in
+ * src/app/auth/callback/route.ts. utm_campaign is "retargeting-14j",
+ * distinct from "cold-outreach", so the two show up separately in the admin
+ * campaigns table.
+ */
+export function buildRetargetingEmailHtml(companyName: string, ref: string): string {
+  const safeName = escapeHtml(companyName);
+  const ctaUrl = `https://devis-flow.fr/auth/register?type=artisan&utm_source=prospecting&utm_medium=email&utm_campaign=retargeting-14j&ref=${encodeURIComponent(ref)}`;
+  const footerUrl = `https://devis-flow.fr/?utm_source=prospecting&utm_medium=email&utm_campaign=retargeting-14j&ref=${encodeURIComponent(ref)}`;
+
+  return `<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:32px 16px;">
+<tr><td align="center">
+<table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;overflow:hidden;">
+<tr><td style="background:#0a2540;padding:20px 32px;">
+<span style="color:#ffffff;font-size:20px;font-weight:bold;letter-spacing:0.3px;">Devis<span style="color:#ff7a1a;">Flow</span></span>
+</td></tr>
+<tr><td style="padding:32px;color:#1a1a2e;font-size:15px;line-height:1.6;">
+<p style="margin:0 0 16px;">Bonjour,</p>
+<p style="margin:0 0 16px;">On a vu que quelqu'un chez <strong>${safeName}</strong> était passé sur DevisFlow récemment — pas eu le temps de finir votre inscription ?</p>
+<p style="margin:0 0 16px;">Pour vous laisser vraiment le temps de tester (générer plusieurs devis, essayer la signature en ligne, les relances automatiques...), on vous offre <strong>14 jours d'essai gratuit au lieu de 7</strong>, sans carte bancaire.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 24px;">
+<tr><td style="border-radius:8px;background:#ff7a1a;">
+<a href="${ctaUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;">Essayer gratuitement 14 jours →</a>
+</td></tr>
+</table>
+<p style="margin:0 0 24px;color:#6b7280;font-size:13px;">Sans carte bancaire, annulation en 1 clic.</p>
+<p style="margin:0;">Cordialement,<br>
+<strong>L'équipe DevisFlow</strong></p>
+</td></tr>
+<tr><td style="padding:20px 32px;background:#f4f5f7;border-top:1px solid #e5e7eb;">
+<a href="${footerUrl}" style="color:#ff7a1a;font-size:13px;text-decoration:none;font-weight:bold;">devis-flow.fr</a>
+<p style="margin:8px 0 0;color:#8a8f98;font-size:12px;">Pour ne plus recevoir nos emails, répondez simplement STOP à ce message.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}

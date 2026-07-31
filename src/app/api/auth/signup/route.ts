@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return NextResponse.json({ error: "Corps invalide" }, { status: 400 });
 
-  const { email, password, fullName, accountType, inviteToken, redirectAfter, artisanCount, utm_source, utm_medium, utm_campaign } = body as {
+  const { email, password, fullName, accountType, inviteToken, redirectAfter, artisanCount, utm_source, utm_medium, utm_campaign, ref } = body as {
     email: string;
     password: string;
     fullName: string;
@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     utm_source?: string | null;
     utm_medium?: string | null;
     utm_campaign?: string | null;
+    ref?: string | null;
   };
 
   const UTM_RE = /^[a-zA-Z0-9_-]{1,64}$/;
@@ -71,6 +72,10 @@ export async function POST(request: NextRequest) {
           utm_source: cleanUtm(utm_source),
           utm_medium: cleanUtm(utm_medium),
           utm_campaign: cleanUtm(utm_campaign),
+          // Not trusted as-is — only ever honored for the 14-day retargeting
+          // trial after auth/callback re-validates it server-side against
+          // prospecting_sent.tracking_ref + retargeted_at IS NOT NULL.
+          ref: cleanUtm(ref),
         },
         redirectTo: `${SITE_URL}/auth/callback`,
       },

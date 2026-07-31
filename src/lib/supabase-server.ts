@@ -57,6 +57,7 @@ export type Profile = {
   avatar_url: string | null;
   plan: string | null;
   tier: string | null;
+  trial_days: number;
   lemon_squeezy_customer_portal: string | null;
   profession: string | null;
   updated_at: string | null;

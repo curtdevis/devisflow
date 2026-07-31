@@ -22,7 +22,7 @@ export default async function ComptePage({ params }: { params: Promise<{ id: str
     admin
       .from("profiles")
       .select(
-        "id, email, full_name, company_name, account_type, plan, tier, siret, phone, address, profession, avatar_url, agence_id, created_at, suspended, lemon_squeezy_customer_id"
+        "id, email, full_name, company_name, account_type, plan, tier, siret, phone, address, profession, avatar_url, agence_id, created_at, suspended, lemon_squeezy_customer_id, trial_days"
       )
       .eq("id", id)
       .maybeSingle(),

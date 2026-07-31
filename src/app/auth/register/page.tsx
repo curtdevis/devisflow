@@ -36,6 +36,7 @@ function RegisterForm() {
     if (attribution.utm_source) callbackUrl.searchParams.set("utm_source", attribution.utm_source);
     if (attribution.utm_medium) callbackUrl.searchParams.set("utm_medium", attribution.utm_medium);
     if (attribution.utm_campaign) callbackUrl.searchParams.set("utm_campaign", attribution.utm_campaign);
+    if (attribution.ref) callbackUrl.searchParams.set("ref", attribution.ref);
     const { error: authError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: callbackUrl.toString() },
