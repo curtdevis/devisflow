@@ -16,9 +16,10 @@ interface Props {
   className?: string;
   style?: React.CSSProperties;
   children: React.ReactNode;
+  tier?: "solo" | "intermediaire";
 }
 
-export default function CheckoutButton({ className, style, children }: Props) {
+export default function CheckoutButton({ className, style, children, tier = "solo" }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -34,25 +35,39 @@ export default function CheckoutButton({ className, style, children }: Props) {
         return;
       }
 
-      // Check plan + trial status from profile
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("plan, created_at")
-        .eq("id", user.id)
-        .single();
+      // Check effective plan + trial status — resolved server-side so a
+      // team member (Intermédiaire "multi-utilisateurs") or an artisan
+      // covered by a paid Cabinet & Groupement account is recognised as
+      // already covered, instead of being sent to pay for a second, redundant
+      // Solo subscription just because their own profile row is never
+      // itself marked "paid" (see /api/account/effective-access).
+      let plan = "free";
+      let trialActive = false;
+      const accessRes = await fetch("/api/account/effective-access");
+      if (accessRes.ok) {
+        const access: { plan: string; trialExpired: boolean } = await accessRes.json();
+        plan = access.plan;
+        trialActive = !access.trialExpired;
+      } else {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("plan, created_at")
+          .eq("id", user.id)
+          .single();
+        plan = profile?.plan ?? "free";
+        const createdAt = profile?.created_at ?? user.created_at;
+        const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
+        trialActive = daysSince <= TRIAL_DAYS;
+      }
 
-      const plan = profile?.plan ?? "free";
-
-      // Already paid → go straight to the app
+      // Already paid (directly or via team/agence coverage) → go straight to the app
       if (plan === "paid") {
         router.push("/devis");
         return;
       }
 
       // Trial still active → go to the app
-      const createdAt = profile?.created_at ?? user.created_at;
-      const daysSince = (Date.now() - new Date(createdAt).getTime()) / 86_400_000;
-      if (daysSince <= TRIAL_DAYS) {
+      if (trialActive) {
         router.push("/devis");
         return;
       }
@@ -61,7 +76,7 @@ export default function CheckoutButton({ className, style, children }: Props) {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ tier }),
       });
 
       if (!res.ok) {

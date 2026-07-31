@@ -218,6 +218,12 @@ export default function DevisPage() {
   const [profession, setProfession] = useState("");
   const [trialExpired, setTrialExpired] = useState(false);
   const [userPlan, setUserPlan] = useState<string | null>(null);
+  // True when this account is eligible for the high (20 / "illimité")
+  // reminder cap — either directly (own tier) or via Intermédiaire
+  // "multi-utilisateurs" coverage. Resolved server-side via
+  // /api/account/effective-access since a team member's own profile.tier is
+  // never "intermediaire" (only the owner's is) — see that route for why.
+  const [highReminderTier, setHighReminderTier] = useState(false);
   const [form, setForm] = useState<FormData>({
     clientName: "", clientAddress: "", clientPhone: "", clientEmail: "",
     workDescription: "", materials: [{ ...EMPTY_MATERIAL }],
@@ -272,21 +278,33 @@ export default function DevisPage() {
       const type = user.user_metadata?.account_type;
       setDashboardHref(type === "agence" ? "/agence" : "/dashboard");
 
-      type ProfileRow = { full_name: string | null; siret: string | null; phone: string | null; address: string | null; email: string | null; plan: string | null };
-      const [{ data: profile }, clientsRes] = await Promise.all([
-        supabase.from("profiles").select("full_name,siret,phone,address,email,plan").eq("id", user.id).single<ProfileRow>(),
+      type ProfileRow = { full_name: string | null; siret: string | null; phone: string | null; address: string | null; email: string | null; plan: string | null; tier: string | null };
+      const [{ data: profile }, clientsRes, accessRes] = await Promise.all([
+        supabase.from("profiles").select("full_name,siret,phone,address,email,plan,tier").eq("id", user.id).single<ProfileRow>(),
         fetch("/api/clients"),
+        fetch("/api/account/effective-access"),
       ]);
 
-      const plan = profile?.plan ?? "free";
-      setUserPlan(plan);
-
-      // Trial enforcement: free users get TRIAL_DAYS days from account creation
-      if (plan !== "paid") {
-        const createdAt = new Date(user.created_at).getTime();
-        const daysSince = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
-        if (daysSince > TRIAL_DAYS) {
-          setTrialExpired(true);
+      // Effective plan/trial/reminder-tier — accounts for Cabinet &
+      // Groupement (agence_id) and Intermédiaire "multi-utilisateurs"
+      // (member_of) coverage, not just this user's own plan/created_at.
+      // Falls back to the raw own-profile check if the endpoint can't be
+      // reached, matching the previous (pre-coverage-aware) behaviour.
+      if (accessRes.ok) {
+        const access: { plan: string; trialExpired: boolean; reminderTierHigh: boolean } = await accessRes.json();
+        setUserPlan(access.plan);
+        setTrialExpired(access.trialExpired);
+        setHighReminderTier(access.reminderTierHigh);
+      } else {
+        const plan = profile?.plan ?? "free";
+        setUserPlan(plan);
+        setHighReminderTier(profile?.tier === "intermediaire" || profile?.tier === "agence");
+        if (plan !== "paid") {
+          const createdAt = new Date(user.created_at).getTime();
+          const daysSince = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+          if (daysSince > TRIAL_DAYS) {
+            setTrialExpired(true);
+          }
         }
       }
 
@@ -516,7 +534,7 @@ export default function DevisPage() {
             Votre essai gratuit est terminé
           </h1>
           <p className="text-gray-500 text-sm mb-6 leading-relaxed">
-            Vous avez profité de {TRIAL_DAYS} jours d'accès gratuit. Passez à l'abonnement Artisan Solo pour continuer à générer des devis sans limite.
+            Vous avez profité de {TRIAL_DAYS} jours d&apos;accès gratuit. Passez à l&apos;abonnement Artisan Solo pour continuer à générer des devis sans limite.
           </p>
           <CheckoutButton
             className="w-full py-4 rounded-xl text-white font-extrabold text-base shadow-md transition-all hover:scale-[1.02] active:scale-95 mb-3"
@@ -925,9 +943,20 @@ export default function DevisPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de relances</label>
                       <select value={reminders.maxCount} onChange={e => setReminders(prev => ({ ...prev, maxCount: e.target.value }))} className={inputClass}>
-                        <option value="1">1 relance</option>
-                        <option value="2">2 relances</option>
-                        <option value="3">3 relances</option>
+                        {highReminderTier ? (
+                          <>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map(n => (
+                              <option key={n} value={n}>{n} relance{n > 1 ? "s" : ""}</option>
+                            ))}
+                            <option value="20">Illimité</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="1">1 relance</option>
+                            <option value="2">2 relances</option>
+                            <option value="3">3 relances</option>
+                          </>
+                        )}
                       </select>
                     </div>
                     <div>

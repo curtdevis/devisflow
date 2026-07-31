@@ -8,6 +8,9 @@ import { useAccountProfile } from "./useAccountProfile";
 const inputClass =
   "w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-shadow text-sm";
 
+const TIER_LABEL: Record<string, string> = { solo: "Artisan Solo", intermediaire: "Intermédiaire" };
+const TIER_PRICE: Record<string, string> = { solo: "29 €/mois", intermediaire: "79 €/mois" };
+
 export default function AccountPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -27,6 +30,7 @@ export default function AccountPage() {
     setAddress,
     avatarUrl,
     plan,
+    tier,
     portalUrl,
     savingProfile,
     profileMsg,
@@ -309,10 +313,10 @@ export default function AccountPage() {
                   className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold text-white"
                   style={{ backgroundColor: plan === "paid" ? "var(--orange)" : "#6b7280" }}
                 >
-                  {plan === "paid" ? "Artisan Solo — Actif" : "Essai gratuit"}
+                  {plan === "paid" ? `${TIER_LABEL[tier] ?? "Artisan Solo"} — Actif` : "Essai gratuit"}
                 </span>
                 {plan === "paid" && (
-                  <span className="text-sm text-gray-500">29 €/mois</span>
+                  <span className="text-sm text-gray-500">{TIER_PRICE[tier] ?? "29 €/mois"}</span>
                 )}
               </div>
               {plan !== "paid" && (

@@ -25,13 +25,13 @@ export default async function AdminPage() {
     admin.from("profiles").select("id", { count: "exact", head: true }),
     admin
       .from("profiles")
-      .select("id, email, full_name, company_name, plan, created_at")
+      .select("id, email, full_name, company_name, plan, tier, created_at")
       .eq("account_type", "agence")
       .order("created_at", { ascending: false }),
     admin.from("admin_stats_reset").select("reset_at").eq("id", 1).maybeSingle(),
     admin
       .from("profiles")
-      .select("id, email, full_name, company_name, account_type, plan, profession, created_at, suspended")
+      .select("id, email, full_name, company_name, account_type, plan, tier, profession, created_at, suspended")
       .order("created_at", { ascending: false }),
     admin
       .from("clients")

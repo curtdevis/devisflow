@@ -2,10 +2,11 @@
  * Lemon Squeezy agent — source of truth for all billing logic.
  *
  * ENV VARS required (add to .env.local + Vercel):
- *   LEMON_SQUEEZY_API_KEY        — API key from LS dashboard > API
- *   LEMON_SQUEEZY_STORE_ID       — numeric store ID (LS dashboard URL: /stores/<id>)
- *   LEMON_SQUEEZY_VARIANT_ID     — numeric variant ID of the "Artisan Solo" product
- *   LEMON_SQUEEZY_WEBHOOK_SECRET — webhook signing secret
+ *   LEMON_SQUEEZY_API_KEY                    — API key from LS dashboard > API
+ *   LEMON_SQUEEZY_STORE_ID                   — numeric store ID (LS dashboard URL: /stores/<id>)
+ *   LEMON_SQUEEZY_VARIANT_ID                 — numeric variant ID of the "Artisan Solo" product (tier: solo)
+ *   LEMON_SQUEEZY_VARIANT_ID_INTERMEDIAIRE   — numeric variant ID of the "Intermédiaire" product (tier: intermediaire)
+ *   LEMON_SQUEEZY_WEBHOOK_SECRET             — webhook signing secret
  *
  * Checkout sessions are always created with test_mode: false so the
  * live store is used regardless of the LS dashboard test-mode toggle.
@@ -14,6 +15,28 @@
 import crypto from "crypto";
 
 const LS_API_BASE = "https://api.lemonsqueezy.com/v1";
+
+export type PlanTier = "solo" | "intermediaire";
+
+// Which self-serve tier a variant ID maps to — the ONLY source of truth for
+// "what did the customer actually pay for" is this map applied to the
+// variant_id Lemon Squeezy sends in the webhook payload. Never trust a
+// client-supplied tier for this purpose (see webhooks/lemon-squeezy/route.ts) —
+// a request could otherwise claim "intermediaire" while paying the solo price.
+function variantIdForTier(tier: PlanTier): string {
+  const envVar = tier === "intermediaire" ? "LEMON_SQUEEZY_VARIANT_ID_INTERMEDIAIRE" : "LEMON_SQUEEZY_VARIANT_ID";
+  const id = process.env[envVar];
+  if (!id) throw new Error(`[ls] ${envVar} not configured`);
+  return id;
+}
+
+/** Maps a Lemon Squeezy variant_id (from a webhook payload) back to our plan tier. Returns null if unrecognized. */
+export function tierFromVariantId(variantId: string | undefined): PlanTier | null {
+  if (!variantId) return null;
+  if (variantId === process.env.LEMON_SQUEEZY_VARIANT_ID) return "solo";
+  if (variantId === process.env.LEMON_SQUEEZY_VARIANT_ID_INTERMEDIAIRE) return "intermediaire";
+  return null;
+}
 
 // ── Internal helpers ────────────────────────────────────────────────────────
 
@@ -87,14 +110,17 @@ export type LSWebhookEvent =
 export async function createCheckoutSession(params: {
   userId: string;
   userEmail: string;
+  tier?: PlanTier;
 }): Promise<LSCheckoutSession> {
+  const tier = params.tier ?? "solo";
   const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
-  const variantId = process.env.LEMON_SQUEEZY_VARIANT_ID;
-  if (!storeId || !variantId) {
-    throw new Error("[ls] LEMON_SQUEEZY_STORE_ID or LEMON_SQUEEZY_VARIANT_ID not configured");
+  if (!storeId) {
+    throw new Error("[ls] LEMON_SQUEEZY_STORE_ID not configured");
   }
+  const variantId = variantIdForTier(tier);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://devis-flow.fr";
+  const planLabel = tier === "intermediaire" ? "Intermédiaire" : "Artisan Solo";
 
   const payload = {
     data: {
@@ -111,7 +137,7 @@ export async function createCheckoutSession(params: {
         product_options: {
           redirect_url: `${siteUrl}/dashboard?upgraded=1`,
           receipt_link_url: `${siteUrl}/dashboard`,
-          receipt_thank_you_note: "Merci ! Votre abonnement DevisFlow Artisan Solo est actif.",
+          receipt_thank_you_note: `Merci ! Votre abonnement DevisFlow ${planLabel} est actif.`,
         },
         checkout_options: {
           embed: false,
@@ -196,6 +222,7 @@ export function parseWebhookPayload(raw: unknown): {
   customerPortal: string | null;
   status: string | undefined;
   testMode: boolean;
+  variantId: string | undefined;
 } | null {
   const payload = raw as LSWebhookPayload;
   const eventName = payload?.meta?.event_name as LSWebhookEvent | undefined;
@@ -209,8 +236,16 @@ export function parseWebhookPayload(raw: unknown): {
     (attrs?.urls as Record<string, string> | undefined)?.customer_portal ?? null;
   const status = attrs?.status as string | undefined;
   const testMode = payload.meta.test_mode === true;
+  // "order_created" nests the purchased variant under first_order_item;
+  // subscription_* events have variant_id directly on the attributes.
+  const firstOrderItem = attrs?.first_order_item as Record<string, unknown> | undefined;
+  const variantId = attrs?.variant_id
+    ? String(attrs.variant_id)
+    : firstOrderItem?.variant_id
+      ? String(firstOrderItem.variant_id)
+      : undefined;
 
-  return { eventName, userId, customerId, subscriptionId, customerPortal, status, testMode };
+  return { eventName, userId, customerId, subscriptionId, customerPortal, status, testMode, variantId };
 }
 
 // ── Plan logic ──────────────────────────────────────────────────────────────

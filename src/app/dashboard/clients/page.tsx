@@ -18,20 +18,31 @@ export default async function ClientsPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
-  const { data: profile } = await supabase.from("profiles").select("full_name").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, plan, tier, member_of")
+    .eq("id", user.id)
+    .single<{ full_name: string | null; plan: string | null; tier: string | null; member_of: string | null }>();
+
+  // Team management ("multi-utilisateurs") nav entry — Intermédiaire only.
+  const isIntermediaire = profile?.plan === "paid" && profile?.tier === "intermediaire";
+
+  // Intermédiaire team members share the owner's workspace — everything they
+  // read/write is attributed to the owner's account, same as generate-devis.
+  const effectiveOwnerId = profile?.member_of ?? user.id;
 
   const admin = createSupabaseAdmin();
   const { data: clients } = await admin
     .from("clients")
     .select("id, name, email, phone, address, created_at")
-    .eq("user_id", user.id)
+    .eq("user_id", effectiveOwnerId)
     .order("name");
 
   // Get devis count per client (by client name match)
   const { data: devisCounts } = await admin
     .from("devis")
     .select("client_name")
-    .eq("user_id", user.id);
+    .eq("user_id", effectiveOwnerId);
 
   const countByName: Record<string, number> = {};
   (devisCounts ?? []).forEach(d => {
@@ -65,6 +76,7 @@ export default async function ClientsPage() {
             { href: "/dashboard", label: "Devis" },
             { href: "/dashboard/factures", label: "Factures" },
             { href: "/dashboard/clients", label: "Clients", active: true },
+            ...(isIntermediaire ? [{ href: "/dashboard/team", label: "Équipe" }] : []),
             { href: "/account", label: "Mon compte" },
           ].map(n => (
             <Link key={n.href} href={n.href}

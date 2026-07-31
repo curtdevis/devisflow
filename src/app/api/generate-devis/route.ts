@@ -252,6 +252,9 @@ export async function POST(req: NextRequest) {
   // Rate limiting
   let userId: string | null = null;
   let userCreatedAt: string | null = null;
+  // Team members (profiles.member_of set) have their devis attributed to the
+  // owner's account — set alongside userId below, defaults to userId itself.
+  let devisOwnerId: string | null = null;
   try {
     const supabaseServer = await createSupabaseServer();
     const { data: { user } } = await supabaseServer.auth.getUser();
@@ -267,17 +270,33 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Server-side cap on reminder_max_count — never trust the client value directly.
+  // Solo (and trial/non-paying) accounts stay at the historical cap of 3; Intermediaire
+  // and Agence tiers are marketed as "illimité" but still get a generous technical
+  // ceiling to prevent abuse (e.g. someone submitting 9999).
+  const SOLO_REMINDER_CAP = 3;
+  const HIGH_TIER_REMINDER_CAP = 20;
+  let reminderCap = SOLO_REMINDER_CAP;
+
   if (userId) {
     const admin = createSupabaseAdmin();
+    devisOwnerId = userId;
 
     const { data: profile } = await admin
       .from("profiles")
-      .select("plan, agence_id, suspended")
+      .select("plan, agence_id, suspended, tier, member_of")
       .eq("id", userId)
       .single();
 
     if (profile?.suspended) {
       return NextResponse.json({ error: "Votre compte a été suspendu." }, { status: 403 });
+    }
+
+    // Team members (Intermédiaire "multi-utilisateurs") work inside the
+    // owner's single shared workspace — devis they create belong to the
+    // owner's account/quota/history, regardless of subscription coverage below.
+    if (profile?.member_of) {
+      devisOwnerId = profile.member_of;
     }
 
     // Artisans linked to a paid Cabinet & Groupement account are covered by
@@ -291,6 +310,32 @@ export async function POST(req: NextRequest) {
         .eq("id", profile.agence_id)
         .single<{ plan: string | null }>();
       coveredByAgence = agenceProfile?.plan === "paid";
+    }
+
+    // Same idea for Intermédiaire team members: covered by the owner's paid
+    // Intermédiaire subscription — their own trial clock doesn't apply either.
+    // A profile should normally only have one of agence_id / member_of set,
+    // but if both were somehow present, either one covering is enough.
+    let coveredByMember = false;
+    if (!coveredByAgence && profile?.member_of) {
+      const { data: ownerProfile } = await admin
+        .from("profiles")
+        .select("plan, tier")
+        .eq("id", profile.member_of)
+        .single<{ plan: string | null; tier: string | null }>();
+      coveredByMember = ownerProfile?.plan === "paid" && ownerProfile?.tier === "intermediaire";
+    }
+
+    // Must be evaluated after coveredByMember above — a team member's own
+    // profile.tier is never "intermediaire" (only member_of is set on their
+    // row; the owner is the one with tier="intermediaire"), so checking
+    // profile.tier alone would silently cap invited teammates at the Solo
+    // limit despite "relances illimitées" being part of what the owner pays
+    // 79€/mois for. coveredByAgence deliberately does NOT grant the high cap
+    // — Cabinet & Groupement only bundles Artisan Solo parity, not Intermédiaire's
+    // unlimited reminders.
+    if (profile?.tier === "intermediaire" || profile?.tier === "agence" || coveredByMember) {
+      reminderCap = HIGH_TIER_REMINDER_CAP;
     }
 
     if (coveredByAgence) {
@@ -312,6 +357,9 @@ export async function POST(req: NextRequest) {
           { status: 403 }
         );
       }
+    } else if (coveredByMember) {
+      // Covered by the Intermédiaire owner's subscription — no trial
+      // enforcement. Intermédiaire has no agence-style shared monthly cap.
     } else if (profile?.plan !== "paid" && userCreatedAt) {
       // Trial enforcement — mirrors the client-side check in devis/page.tsx,
       // but this one can't be bypassed by calling the API directly.
@@ -422,10 +470,15 @@ Retourne UNIQUEMENT ce JSON :
     return NextResponse.json({ ...result, id: null });
   }
 
+  // Validate + clamp the client-supplied reminder count server-side (never trust req.body).
+  const requestedReminderMaxCount =
+    typeof reminderMaxCount === "number" && Number.isFinite(reminderMaxCount) ? reminderMaxCount : 2;
+  const safeReminderMaxCount = Math.min(Math.max(Math.round(requestedReminderMaxCount), 1), reminderCap);
+
   const { data: inserted, error: insertError } = await createSupabaseAdmin()
     .from("devis")
     .insert({
-      user_id: userId,
+      user_id: devisOwnerId ?? userId,
       devis_number: result.devisNumber,
       artisan_name: artisanName,
       artisan_email: artisanEmail || null,
@@ -438,7 +491,7 @@ Retourne UNIQUEMENT ce JSON :
       result_json: result,
       reminder_enabled: reminderEnabled ?? false,
       reminder_frequency_days: reminderFrequencyDays ?? 3,
-      reminder_max_count: reminderMaxCount ?? 2,
+      reminder_max_count: safeReminderMaxCount,
       reminder_tone: reminderTone ?? "professionnel",
       reminder_count: 0,
       reminder_next_date:

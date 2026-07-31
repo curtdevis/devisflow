@@ -24,7 +24,7 @@ const PLANS = [
     features: [
       "Devis IA illimités en 30 secondes",
       "Logo et branding à votre nom",
-      "Relances automatiques personnalisables",
+      "Relances automatiques (jusqu'à 3)",
       "Envoi par email et WhatsApp",
       "Signature électronique client",
       "Historique de vos devis",
@@ -33,6 +33,26 @@ const PLANS = [
     ],
     cta: "Commencer l'essai gratuit 7 jours",
     href: "checkout",
+    tier: "solo" as const,
+    highlighted: false,
+    badge: null,
+    showLsNote: true,
+  },
+  {
+    name: "Intermédiaire",
+    priceLabel: "79€",
+    period: "/mois",
+    description: "Pour les artisans qui veulent passer à l'échelle",
+    features: [
+      "Tout le plan Artisan Solo",
+      "Relances automatiques illimitées",
+      "Multi-utilisateurs (invitez votre équipe)",
+      "Export comptable détaillé (HT / TVA / TTC)",
+      "Support prioritaire",
+    ],
+    cta: "Commencer l'essai gratuit 7 jours",
+    href: "checkout",
+    tier: "intermediaire" as const,
     highlighted: true,
     badge: "Le plus populaire",
     showLsNote: true,
@@ -52,6 +72,7 @@ const PLANS = [
     ],
     cta: "Créer un compte Cabinet",
     href: "/auth/register?type=agence",
+    tier: "solo" as const,
     highlighted: false,
     badge: null,
     showLsNote: false,
@@ -427,7 +448,7 @@ export default function HomePage() {
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">Simple et transparent</h2>
               <p className="text-blue-200 text-sm">Essai gratuit 7 jours — annulation à tout moment</p>
             </div>
-            <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {PLANS.map(plan => (
                 <div key={plan.name} className={`rounded-2xl p-7 ${plan.highlighted ? "bg-white shadow-xl" : "bg-white/8 border border-white/15"}`}>
                   {plan.badge && (
@@ -454,6 +475,7 @@ export default function HomePage() {
                   </ul>
                   {plan.href === "checkout" ? (
                     <CheckoutButton
+                      tier={plan.tier}
                       className={`btn-orange block w-full text-center font-bold py-3 rounded-xl transition-all ${plan.highlighted ? "text-white hover:opacity-90" : "text-white border border-white/25 hover:bg-white/10"}`}
                       style={plan.highlighted ? { backgroundColor: "var(--orange)" } : {}}
                     >

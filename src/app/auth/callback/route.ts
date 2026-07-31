@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServer, createSupabaseAdmin } from "@/lib/supabase-server";
 import { createCheckoutSession } from "@/lib/lemon-squeezy";
+import { MAX_TEAM_MEMBERS } from "@/lib/team-limits";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -135,6 +136,59 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Resolve a team invite (Intermédiaire "multi-utilisateurs") if a token is
+  // present. Distinct table/mechanism from agence_invitations above — the
+  // same `invite` query param is reused for both, but a token only ever
+  // matches one of the two tables. Only resolved (and only ever consumed)
+  // on the very first creation of this profile — never on a repeated
+  // confirmation-link click — so member_of can be written as a standalone,
+  // targeted update below instead of a field in the upsert payload (which
+  // would otherwise get silently reset to null on any later re-run, since
+  // the invite row would already be marked accepted by then).
+  const { data: existingProfileForInvite } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .maybeSingle();
+  const isInitialProfileCreation = !existingProfileForInvite;
+
+  let teamInviteOwnerId: string | null = null;
+  let teamInviteId: string | null = null;
+  if (isInitialProfileCreation && inviteToken) {
+    const { data: teamInvite } = await admin
+      .from("team_invites")
+      .select("id, owner_id")
+      .eq("token", inviteToken)
+      .is("accepted_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle<{ id: string; owner_id: string }>();
+
+    if (teamInvite) {
+      // Defensive re-check of the MAX_TEAM_MEMBERS cap at accept time — the
+      // cap is already enforced when the invite is sent (see
+      // /api/team/invite), but re-checking here closes the window where an
+      // owner could still send another invite while this one is in flight,
+      // or where two pending invites are accepted concurrently.
+      const { count: currentMemberCount } = await admin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("member_of", teamInvite.owner_id);
+
+      if ((currentMemberCount ?? 0) < MAX_TEAM_MEMBERS) {
+        teamInviteOwnerId = teamInvite.owner_id;
+        teamInviteId = teamInvite.id;
+      } else {
+        console.warn(`[auth/callback] team invite ${teamInvite.id} accepted but owner ${teamInvite.owner_id} is already at the ${MAX_TEAM_MEMBERS}-member cap — creating a standard account instead`);
+      }
+    }
+  }
+
+  if (isInitialProfileCreation && inviteToken && !agenceId && !teamInviteOwnerId) {
+    // Never block signup on a bad invite token — just log and create a
+    // standard solo account, same as if no token had been provided at all.
+    console.warn("[auth/callback] invite token present but invalid/expired/already used — creating standard account");
+  }
+
   // Upsert profile (safe to re-run on repeated confirmations)
   // For agence accounts, store the agency name in both full_name and company_name
   const { error: upsertError } = await admin.from("profiles").upsert(
@@ -153,6 +207,23 @@ export async function GET(request: NextRequest) {
   );
   if (upsertError) {
     console.error("[auth/callback] profile upsert failed:", upsertError);
+  }
+
+  // Second, targeted write — see comment above on why this isn't part of
+  // the upsert payload. Only reached on initial profile creation.
+  if (teamInviteOwnerId && teamInviteId) {
+    const { error: memberOfError } = await admin
+      .from("profiles")
+      .update({ member_of: teamInviteOwnerId })
+      .eq("id", user.id);
+    if (memberOfError) {
+      console.error("[auth/callback] failed to set member_of from team invite:", memberOfError);
+    } else {
+      await admin
+        .from("team_invites")
+        .update({ accepted_at: new Date().toISOString() })
+        .eq("id", teamInviteId);
+    }
   }
 
   // Send onboarding email (fire-and-forget — don't block redirect)

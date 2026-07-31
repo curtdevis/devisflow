@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
-import { verifyWebhookSignature, parseWebhookPayload, planFromEvent } from "@/lib/lemon-squeezy";
+import { verifyWebhookSignature, parseWebhookPayload, planFromEvent, tierFromVariantId } from "@/lib/lemon-squeezy";
 import { notifyAdmin, escapeHtml } from "@/lib/admin-notify";
 
 /**
@@ -40,8 +40,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const { eventName, userId, customerId, customerPortal, subscriptionId, testMode } = event;
-  console.log(`[ls-webhook] event=${eventName} user=${userId ?? "unknown"} sub=${subscriptionId ?? "-"} test=${testMode}`);
+  const { eventName, userId, customerId, customerPortal, subscriptionId, testMode, variantId } = event;
+  console.log(`[ls-webhook] event=${eventName} user=${userId ?? "unknown"} sub=${subscriptionId ?? "-"} test=${testMode} variant=${variantId ?? "-"}`);
 
   // Never let a test-store event (e.g. someone testing a checkout with the LS
   // dashboard toggled to test mode) grant a real "paid" plan — createCheckoutSession
@@ -61,10 +61,17 @@ export async function POST(request: NextRequest) {
   const newPlan = planFromEvent(eventName);
 
   if (newPlan === "paid") {
+    // Source of truth for which tier was purchased is LS's own variant_id on
+    // the webhook payload — never a client-supplied value. Unrecognized
+    // variant (or missing) falls back to "solo" rather than blocking the
+    // upgrade, since plan=paid must still take effect.
+    const tier = tierFromVariantId(variantId) ?? "solo";
+
     const { data: updatedProfile, error } = await admin
       .from("profiles")
       .update({
         plan: "paid",
+        tier,
         lemon_squeezy_customer_id: customerId ?? null,
         lemon_squeezy_customer_portal: customerPortal ?? null,
         updated_at: new Date().toISOString(),
@@ -77,12 +84,14 @@ export async function POST(request: NextRequest) {
       console.error("[ls-webhook] Failed to activate plan:", error.message);
       return NextResponse.json({ error: "DB update failed" }, { status: 500 });
     }
-    console.log(`[ls-webhook] Plan → paid for user ${userId}`);
+    console.log(`[ls-webhook] Plan → paid (tier=${tier}) for user ${userId}`);
 
+    const tierLabel = tier === "intermediaire" ? "Intermédiaire" : "Artisan Solo";
     const customerEmail = updatedProfile?.email ?? userId;
     notifyAdmin(
-      `Nouveau client payant — ${customerEmail} — Artisan Solo`,
+      `Nouveau client payant — ${customerEmail} — ${tierLabel}`,
       `<p><strong>Email :</strong> ${escapeHtml(customerEmail)}</p>
+       <p><strong>Plan :</strong> ${escapeHtml(tierLabel)}</p>
        <p><strong>Événement :</strong> ${escapeHtml(eventName)}</p>
        <p><strong>Customer ID Lemon Squeezy :</strong> ${escapeHtml(customerId ?? "-")}</p>
        <p><strong>Subscription ID :</strong> ${escapeHtml(subscriptionId ?? "-")}</p>`

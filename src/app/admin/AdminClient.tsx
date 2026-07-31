@@ -17,6 +17,7 @@ interface AgenceRow {
   full_name: string | null;
   company_name: string | null;
   plan: string | null;
+  tier: string | null;
   created_at: string;
 }
 
@@ -27,10 +28,14 @@ interface AccountRow {
   company_name: string | null;
   account_type: string;
   plan: string | null;
+  tier: string | null;
   profession: string | null;
   created_at: string;
   suspended: boolean | null;
 }
+
+const TIER_LABEL: Record<string, string> = { solo: "Solo", intermediaire: "Intermédiaire", agence: "Agence" };
+const TIER_MRR: Record<string, number> = { solo: 29, intermediaire: 79, agence: 0 };
 
 interface ClientRow {
   id: string;
@@ -305,6 +310,22 @@ export default function AdminClient({
   const uniqueArtisans = new Set(statsDevis.map((d) => d.artisan_email ?? d.artisan_name)).size;
   const totalVolume = statsDevis.reduce((s, d) => s + (d.total_ttc ?? 0), 0);
 
+  // MRR breakdown by tier — solo/intermediaire are fixed self-serve prices,
+  // agence is sold on quote (no fixed number to sum) so it's counted separately.
+  const paidByTier = useMemo(() => {
+    const counts: Record<string, number> = { solo: 0, intermediaire: 0, agence: 0 };
+    for (const a of accountList) {
+      if (a.plan !== "paid") continue;
+      // account_type is always accurate and overrides tier here — the tier
+      // column isn't guaranteed to be backfilled to "agence" for every agence
+      // signup (it's only set for the self-serve LS checkout path).
+      const t = a.account_type === "agence" ? "agence" : a.tier && a.tier in counts ? a.tier : "solo";
+      counts[t]++;
+    }
+    return counts;
+  }, [accountList]);
+  const mrrSelfServe = paidByTier.solo * TIER_MRR.solo + paidByTier.intermediaire * TIER_MRR.intermediaire;
+
   return (
     <div className="min-h-screen bg-[#f8fafc] p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
@@ -344,6 +365,20 @@ export default function AdminClient({
               <p className="text-2xl sm:text-3xl font-bold" style={{ color: s.color }}>{s.value}</p>
             </div>
           ))}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 mb-6 sm:mb-8">
+          <p className="text-xs sm:text-sm text-gray-500 mb-3">MRR (revenu récurrent mensuel) — auto-service</p>
+          <div className="flex flex-wrap items-end gap-6">
+            <p className="text-2xl sm:text-3xl font-bold" style={{ color: "#10b981" }}>
+              {mrrSelfServe.toLocaleString("fr-FR")} €<span className="text-sm font-normal text-gray-400">/mois</span>
+            </p>
+            <div className="flex gap-4 text-xs sm:text-sm text-gray-500">
+              <span><strong className="text-[#1e3a5f]">{paidByTier.solo}</strong> Solo (29€)</span>
+              <span><strong className="text-[#1e3a5f]">{paidByTier.intermediaire}</strong> Intermédiaire (79€)</span>
+              <span><strong className="text-[#1e3a5f]">{paidByTier.agence}</strong> Agence (sur devis, hors total)</span>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-6 sm:mb-8 -mt-3 sm:-mt-5">
@@ -579,7 +614,11 @@ export default function AdminClient({
                           </span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell text-gray-500 text-xs">
-                          {a.plan === "paid" ? "Payant" : "Gratuit"}
+                          {a.plan === "paid"
+                            ? a.account_type === "agence"
+                              ? "Agence"
+                              : (TIER_LABEL[a.tier ?? "solo"] ?? "Payant")
+                            : "Gratuit"}
                         </td>
                         <td className="px-4 py-3">
                           <span

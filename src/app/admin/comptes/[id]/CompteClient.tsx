@@ -10,6 +10,7 @@ interface Profile {
   company_name: string | null;
   account_type: string;
   plan: string | null;
+  tier: string | null;
   siret: string | null;
   phone: string | null;
   address: string | null;
@@ -77,7 +78,8 @@ export default function CompteClient({
   const daysSinceSignup = (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24);
   const trialExpired = profile.plan !== "paid" && daysSinceSignup > TRIAL_DAYS;
 
-  let paymentLabel = "Payant actif";
+  const tierLabel = profile.account_type === "agence" ? "Agence" : profile.tier === "intermediaire" ? "Intermédiaire" : "Solo";
+  let paymentLabel = `Payant actif — ${tierLabel}`;
   let paymentColor = "bg-green-100 text-green-700";
   if (profile.plan !== "paid") {
     if (trialExpired) {

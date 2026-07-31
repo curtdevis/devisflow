@@ -27,16 +27,22 @@ export default async function FacturesPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name")
+    .select("full_name, plan, tier, member_of")
     .eq("id", user.id)
-    .single();
+    .single<{ full_name: string | null; plan: string | null; tier: string | null; member_of: string | null }>();
+
+  // Team management ("multi-utilisateurs") nav entry — Intermédiaire only.
+  const isIntermediaire = profile?.plan === "paid" && profile?.tier === "intermediaire";
+
+  // Intermédiaire team members share the owner's workspace.
+  const effectiveOwnerId = profile?.member_of ?? user.id;
 
   const { data: invoices } = await createSupabaseAdmin()
     .from("invoices")
     .select(
       "id, invoice_number, created_at, status, paid_at, devis_id, result_json, devis!devis_id(client_name, client_email, total_ttc)"
     )
-    .eq("user_id", user.id)
+    .eq("user_id", effectiveOwnerId)
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -66,6 +72,7 @@ export default async function FacturesPage() {
             { href: "/dashboard", label: "Devis" },
             { href: "/dashboard/factures", label: "Factures", active: true },
             { href: "/dashboard/clients", label: "Clients" },
+            ...(isIntermediaire ? [{ href: "/dashboard/team", label: "Équipe" }] : []),
             { href: "/account", label: "Mon compte" },
           ].map(n => (
             <Link key={n.href} href={n.href}

@@ -127,3 +127,36 @@ CREATE TABLE IF NOT EXISTS admin_stats_snapshots (
   created_at     TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE admin_stats_snapshots ENABLE ROW LEVEL SECURITY;
+
+-- 10. Intermédiaire "multi-utilisateurs" (self-service, max 2 membres,
+-- distinct du systeme Cabinet & Groupement/agence_id qui reste inchange).
+-- member_of, si rempli, rattache ce profil au compte proprietaire dont il
+-- herite l'acces (plan/tier) — voir coveredByMember dans generate-devis et
+-- reminders. team_invites n'a aucune policy RLS (comme prospecting_sent
+-- etc. plus haut) : accessible uniquement via le client Supabase admin
+-- server-side (src/app/api/team/*).
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS member_of UUID REFERENCES profiles(id);
+
+CREATE TABLE IF NOT EXISTS team_invites (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id     UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  email        TEXT NOT NULL,
+  token        TEXT NOT NULL UNIQUE,
+  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  expires_at   TIMESTAMPTZ DEFAULT NOW() + INTERVAL '7 days',
+  accepted_at  TIMESTAMPTZ
+);
+ALTER TABLE team_invites ENABLE ROW LEVEL SECURITY;
+CREATE INDEX IF NOT EXISTS idx_profiles_member_of ON profiles(member_of);
+CREATE INDEX IF NOT EXISTS idx_team_invites_owner_id ON team_invites(owner_id);
+
+-- 11. member_of (section 10 above) was added with the implicit default FK
+-- action (NO ACTION), which behaves like RESTRICT: an Intermédiaire owner
+-- who still has linked team members would get a foreign key violation on
+-- DELETE FROM profiles, and /api/account/delete does not check that error
+-- before proceeding to delete the auth user — silently corrupting account
+-- deletion for exactly the owners this feature is meant to serve. Detach
+-- members instead of blocking the delete.
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_member_of_fkey;
+ALTER TABLE profiles ADD CONSTRAINT profiles_member_of_fkey
+  FOREIGN KEY (member_of) REFERENCES profiles(id) ON DELETE SET NULL;

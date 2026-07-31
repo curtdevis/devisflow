@@ -52,8 +52,8 @@ export async function GET(request: NextRequest) {
   // skipping them, so they stop being re-fetched on every future run too.
   const ownerIds = Array.from(new Set(dueCount.map((d) => d.user_id).filter((id): id is string => !!id)));
   const { data: owners } = ownerIds.length
-    ? await admin.from("profiles").select("id, plan, created_at, agence_id").in("id", ownerIds)
-    : { data: [] as { id: string; plan: string | null; created_at: string; agence_id: string | null }[] };
+    ? await admin.from("profiles").select("id, plan, created_at, agence_id, member_of").in("id", ownerIds)
+    : { data: [] as { id: string; plan: string | null; created_at: string; agence_id: string | null; member_of: string | null }[] };
   const ownerById = new Map((owners ?? []).map((o) => [o.id, o]));
 
   // Artisans linked to a paid Cabinet & Groupement account are covered by the
@@ -65,12 +65,23 @@ export async function GET(request: NextRequest) {
     : { data: [] as { id: string; plan: string | null }[] };
   const agencePlanById = new Map((agences ?? []).map((a) => [a.id, a.plan]));
 
+  // Same idea for Intermédiaire team members (profiles.member_of): covered by
+  // the owner's paid Intermédiaire subscription — their own trial clock
+  // doesn't apply either. Distinct, separate mechanism from agence_id.
+  const memberOwnerIds = Array.from(new Set((owners ?? []).map((o) => o.member_of).filter((id): id is string => !!id)));
+  const { data: memberOwners } = memberOwnerIds.length
+    ? await admin.from("profiles").select("id, plan, tier").in("id", memberOwnerIds)
+    : { data: [] as { id: string; plan: string | null; tier: string | null }[] };
+  const memberOwnerById = new Map((memberOwners ?? []).map((o) => [o.id, o]));
+
   const eligible: typeof dueCount = [];
   const disqualifiedIds: string[] = [];
   for (const d of dueCount) {
     const owner = d.user_id ? ownerById.get(d.user_id) : undefined;
     const coveredByAgence = !!owner?.agence_id && agencePlanById.get(owner.agence_id) === "paid";
-    if (owner && !coveredByAgence && owner.plan !== "paid") {
+    const memberOwner = owner?.member_of ? memberOwnerById.get(owner.member_of) : undefined;
+    const coveredByMember = !!owner?.member_of && memberOwner?.plan === "paid" && memberOwner?.tier === "intermediaire";
+    if (owner && !coveredByAgence && !coveredByMember && owner.plan !== "paid") {
       const daysSince = (Date.now() - new Date(owner.created_at).getTime()) / (1000 * 60 * 60 * 24);
       if (daysSince > TRIAL_DAYS) {
         disqualifiedIds.push(d.id);

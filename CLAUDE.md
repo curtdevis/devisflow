@@ -61,6 +61,12 @@ SaaS de génération de devis professionnels par IA, ciblant les artisans et TPE
 - **Tailwind v4** — JIT config syntax changed; don't copy v3 patterns from docs/training data
 - **Claude API streaming** — never use streaming on Vercel Edge functions with a timeout < 30s; use Node.js runtime instead
 
+## Standard de qualité
+Ce projet est un business visé à plusieurs millions de revenus, pas un side-project. Chaque tâche — même une simple demande — exige un travail minutieux : explorer exhaustivement avant de coder (pas d'échantillonnage partiel sur une logique de plan/paiement/gating), vérifier réellement avant d'annoncer "fonctionnel" (typecheck, test live, lecture du code modifié), et ne jamais deviner un état de prod sans le confirmer. Tout agent lancé sur ce projet doit recevoir cette consigne explicitement dans son prompt.
+
+## Initiative revenue-oriented
+Au-delà de l'exécution littérale, chaque agent doit chercher activement des angles qui font du chiffre d'affaire (upsell, rétention, pricing, analytics) en s'inspirant des pratiques des grandes SaaS/multinationales — proposer ces angles plutôt que les taire, sans pour autant construire quoi que ce soit d'ambigu ou de large sans confirmation. Ne pas installer d'outils/dépendances de façon spéculative ; le faire quand un besoin concret et justifié apparaît, en expliquant pourquoi.
+
 ## Agents disponibles
 - `senior-dev` — revue de code + validation avant déploiement
 - `qa-coherence` — détecte les incohérences marketing/code

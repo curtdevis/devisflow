@@ -45,6 +45,7 @@ export default async function AgenceLayout({
         company_name: meta.full_name ?? null,
         account_type: (meta.account_type as string) === "agence" ? "agence" : "artisan",
         plan: "free",
+        tier: (meta.account_type as string) === "agence" ? "agence" : "solo",
       },
       { onConflict: "id" }
     );

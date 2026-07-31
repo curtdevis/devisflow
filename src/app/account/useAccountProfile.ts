@@ -11,6 +11,7 @@ interface Profile {
   address: string | null;
   avatar_url: string | null;
   plan: string | null;
+  tier: string | null;
   lemon_squeezy_customer_portal: string | null;
 }
 
@@ -29,6 +30,7 @@ export function useAccountProfile() {
   const [address, setAddress] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [plan, setPlan] = useState("free");
+  const [tier, setTier] = useState("solo");
   const [portalUrl, setPortalUrl] = useState("");
 
   const [savingProfile, setSavingProfile] = useState(false);
@@ -63,7 +65,7 @@ export function useAccountProfile() {
       const { data: p } = await supabase
         .from("profiles")
         .select(
-          "full_name, display_name, company_name, siret, phone, address, avatar_url, plan, lemon_squeezy_customer_portal"
+          "full_name, display_name, company_name, siret, phone, address, avatar_url, plan, tier, lemon_squeezy_customer_portal"
         )
         .eq("id", user.id)
         .single();
@@ -77,6 +79,7 @@ export function useAccountProfile() {
         setAddress(profile.address ?? "");
         setAvatarUrl(profile.avatar_url ?? "");
         setPlan(profile.plan ?? "free");
+        setTier(profile.tier ?? "solo");
         setPortalUrl(profile.lemon_squeezy_customer_portal ?? "");
       }
 
@@ -210,6 +213,7 @@ export function useAccountProfile() {
     setAddress,
     avatarUrl,
     plan,
+    tier,
     portalUrl,
     savingProfile,
     profileMsg,
