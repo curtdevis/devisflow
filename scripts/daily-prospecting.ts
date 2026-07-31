@@ -181,11 +181,11 @@ async function personalizeStep(place: EnrichedPlace): Promise<string | null> {
 async function sendEmailStep(
   place: EnrichedPlace,
   message: string
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; resendId?: string }> {
   "use step";
   const resend = new Resend(process.env.RESEND_API_KEY);
   try {
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: SEND_FROM,
       to: place.email,
       replyTo: "equipe@devis-flow.fr",
@@ -197,7 +197,7 @@ async function sendEmailStep(
       },
     });
     if (error) return { ok: false, error: error.message };
-    return { ok: true };
+    return { ok: true, resendId: data?.id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "unknown" };
   }
@@ -208,7 +208,8 @@ async function recordResultStep(
   place: EnrichedPlace,
   category: string,
   status: SendStatus,
-  message: string
+  message: string,
+  resendId?: string
 ): Promise<void> {
   "use step";
   const admin = createSupabaseAdmin();
@@ -218,6 +219,7 @@ async function recordResultStep(
       email: place.email,
       category,
       company_name: place.companyName,
+      resend_id: resendId ?? null,
     });
   }
 
@@ -279,7 +281,7 @@ export async function dailyProspectingWorkflow() {
 
       const sendResult = await sendEmailStep(place, message);
       const status: SendStatus = sendResult.ok ? "sent" : "bounced";
-      await recordResultStep(week, place, category, status, message);
+      await recordResultStep(week, place, category, status, message, sendResult.resendId);
       results.push({ category, companyName: place.companyName, email: place.email, status, reason: sendResult.error });
 
       await sleep(DELAY_BETWEEN_EMAILS);

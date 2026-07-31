@@ -160,3 +160,18 @@ CREATE INDEX IF NOT EXISTS idx_team_invites_owner_id ON team_invites(owner_id);
 ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_member_of_fkey;
 ALTER TABLE profiles ADD CONSTRAINT profiles_member_of_fkey
   FOREIGN KEY (member_of) REFERENCES profiles(id) ON DELETE SET NULL;
+
+-- 12. Delivery outcome tracking for prospecting emails. Until now
+-- prospecting_sent.status was implicitly "the Resend API call did not
+-- error", which is NOT the same as "actually delivered" — Resend accepts
+-- the message and only reports bounces/complaints asynchronously via
+-- webhook (see src/app/api/prospecting/delivery-events/route.ts). resend_id
+-- lets that webhook find the right row; delivery_status starts at 'sent'
+-- (API accepted) and moves to 'delivered' | 'bounced' | 'complained' as
+-- events arrive — rows that never move past 'sent' are the ones Resend
+-- accepted but never confirmed, worth investigating separately from hard
+-- bounces.
+ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS resend_id TEXT;
+ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS delivery_status TEXT DEFAULT 'sent';
+ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS delivery_updated_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_prospecting_sent_resend_id ON prospecting_sent(resend_id);
