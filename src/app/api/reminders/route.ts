@@ -202,9 +202,9 @@ INTERDIT : toute ligne "Objet :" ou "Subject :" en tête de message.`;
 
   try {
     const body = await generateWithGemini(prompt);
-    return wrapTemplate(body ?? fallbackBody(devis), linesTable, devis.artisan_name, devis.artisan_email);
+    return wrapTemplate(body ?? fallbackBody(devis), linesTable, devis.artisan_name, devis.artisan_email, devis.id);
   } catch {
-    return wrapTemplate(fallbackBody(devis), linesTable, devis.artisan_name, devis.artisan_email);
+    return wrapTemplate(fallbackBody(devis), linesTable, devis.artisan_name, devis.artisan_email, devis.id);
   }
 }
 
@@ -285,7 +285,21 @@ function fallbackBody(devis: {
 <p>Cordialement,<br>${esc(devis.artisan_name)}</p>`;
 }
 
-function wrapTemplate(body: string, linesTable: string, artisanName: string, artisanEmail: string | null): string {
+function wrapTemplate(body: string, linesTable: string, artisanName: string, artisanEmail: string | null, devisId: string): string {
+  // Same "Signer en ligne" / "Télécharger le devis (PDF)" CTAs as the initial
+  // send-devis email (src/app/api/send-devis/route.ts) — a reminder is
+  // pointless if the client has no way to get back to the actual quote.
+  const signUrl = `${SITE_URL}/sign/${devisId}`;
+  const ctaHtml = `
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 0 4px;">
+    <tr><td style="border-radius:10px;background:#f97316;">
+      <a href="${signUrl}" style="display:inline-block;padding:14px 32px;color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;border-radius:10px;">✍️ Signer le devis en ligne →</a>
+    </td></tr>
+  </table>
+  <div style="margin-top:10px;">
+    <a href="${signUrl}/telecharger" style="display:inline-block;padding:10px 24px;color:#1e3a5f;font-weight:700;font-size:13px;text-decoration:none;border-radius:10px;background:#ffffff;border:1px solid #fed7aa;">📄 Télécharger le devis (PDF)</a>
+  </div>`;
+
   return `
 <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;background:#f9fafb;border-radius:16px;">
   <p style="font-size:20px;font-weight:900;color:#1e3a5f;margin:0 0 24px;">
@@ -294,6 +308,7 @@ function wrapTemplate(body: string, linesTable: string, artisanName: string, art
   <div style="background:#ffffff;border-radius:12px;padding:24px;margin-bottom:16px;line-height:1.7;color:#374151;">
     ${body}
     ${linesTable}
+    ${ctaHtml}
   </div>
   <hr style="border:none;border-top:2px solid #f97316;margin:0 0 16px;" />
   <p style="color:#6b7280;font-size:13px;margin:0;">
