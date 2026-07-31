@@ -246,16 +246,20 @@ async function recordResultStep(
 
 // ── Workflow ───────────────────────────────────────────────────────────────
 
-export async function dailyProspectingWorkflow() {
+export async function dailyProspectingWorkflow(maxSends?: number) {
   "use workflow";
 
   const week = getIsoWeekLabel(new Date());
   const results: ProspectResult[] = [];
 
-  for (const category of CATEGORIES) {
+  outer: for (const category of CATEGORIES) {
     const places = await scrapeCategoryStep(category);
 
     for (const rawPlace of places) {
+      if (maxSends !== undefined && results.filter((r) => r.status === "sent").length >= maxSends) {
+        break outer;
+      }
+
       if (!rawPlace.website) {
         results.push({ category, companyName: rawPlace.companyName, email: null, status: "skipped", reason: "no_website" });
         continue;
