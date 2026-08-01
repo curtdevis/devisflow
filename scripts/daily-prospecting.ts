@@ -2,7 +2,7 @@ import { sleep } from "workflow";
 import { Resend } from "resend";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import { searchBusinessesByCategory, type BusinessPlace } from "@/lib/google-places";
-import { fetchWebsiteData, domainAcceptsMail, personalizeEmail, buildEmailHtml } from "@/lib/prospecting-personalize";
+import { fetchWebsiteData, domainAcceptsMail, personalizeEmail, buildEmailHtml, type PersonalizedEmail } from "@/lib/prospecting-personalize";
 import { appendSheetRow } from "@/lib/google-sheets";
 
 const CATEGORIES = [
@@ -161,7 +161,7 @@ async function checkGateStep(
   return { allowed: true };
 }
 
-async function personalizeStep(place: EnrichedPlace): Promise<string | null> {
+async function personalizeStep(place: EnrichedPlace): Promise<PersonalizedEmail | null> {
   "use step";
   try {
     return await personalizeEmail(place.website, place.siteText);
@@ -180,7 +180,8 @@ async function personalizeStep(place: EnrichedPlace): Promise<string | null> {
 // re-contacting someone in the meantime.
 async function sendEmailStep(
   place: EnrichedPlace,
-  message: string
+  email: PersonalizedEmail,
+  category: string
 ): Promise<{ ok: boolean; error?: string; resendId?: string; trackingRef?: string }> {
   "use step";
   // Every recipient otherwise gets an identical CTA URL (utm_source=
@@ -192,18 +193,46 @@ async function sendEmailStep(
   const trackingRef = crypto.randomUUID().replace(/-/g, "");
   const resend = new Resend(process.env.RESEND_API_KEY);
   try {
+    // Subject line is now generated per-recipient by personalizeEmail
+    // (Gemini) instead of the same "{company}, une question rapide" for
+    // every single send — identical subjects at volume is itself a spam
+    // signal, and a generic subject gives no reason to open over any other
+    // cold email. See buildPrompt in prospecting-personalize.ts.
     const { data, error } = await resend.emails.send({
       from: SEND_FROM,
       to: place.email,
       replyTo: "equipe@devis-flow.fr",
-      subject: `${place.companyName}, une question rapide`,
-      text: message,
-      html: buildEmailHtml(message, trackingRef),
+      subject: email.subject,
+      text: email.body,
+      html: buildEmailHtml(email.body, trackingRef),
       headers: {
         "List-Unsubscribe": "<mailto:equipe@devis-flow.fr?subject=STOP>",
       },
     });
     if (error) return { ok: false, error: error.message };
+
+    // Written here, immediately after Resend accepts the send, rather than
+    // in a later separate step (recordResultStep) — a security scanner
+    // (Microsoft Defender Safe Links etc., common on the Outlook/M365
+    // accounts most French artisans use) can prefetch the open-tracking
+    // pixel within seconds of delivery. The gap between two separate
+    // workflow steps is enough for that prefetch to race ahead of the row
+    // even existing, silently losing the open event forever (the
+    // delivery-events webhook's UPDATE...WHERE resend_id=... simply matches
+    // nothing). Inserting synchronously in the same step as the send call
+    // shrinks that window to local code, not step-scheduling latency.
+    const admin = createSupabaseAdmin();
+    const { error: insertError } = await admin.from("prospecting_sent").insert({
+      email: place.email,
+      category,
+      company_name: place.companyName,
+      resend_id: data?.id ?? null,
+      tracking_ref: trackingRef,
+    });
+    if (insertError) {
+      console.error(`[daily-prospecting] prospecting_sent insert failed for ${place.email}:`, insertError.message);
+    }
+
     return { ok: true, resendId: data?.id, trackingRef };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "unknown" };
@@ -215,23 +244,12 @@ async function recordResultStep(
   place: EnrichedPlace,
   category: string,
   status: SendStatus,
-  message: string,
-  resendId?: string,
-  trackingRef?: string
+  email: PersonalizedEmail
 ): Promise<void> {
   "use step";
-  const admin = createSupabaseAdmin();
-
-  if (status === "sent") {
-    await admin.from("prospecting_sent").insert({
-      email: place.email,
-      category,
-      company_name: place.companyName,
-      resend_id: resendId ?? null,
-      tracking_ref: trackingRef ?? null,
-    });
-  }
-
+  // The prospecting_sent row itself is now inserted inside sendEmailStep,
+  // synchronously right after Resend accepts the send (see comment there) —
+  // this step only handles the Sheets log, which stays best-effort/async.
   try {
     await appendSheetRow([
       week,
@@ -244,11 +262,12 @@ async function recordResultStep(
       place.address ?? "",
       place.googleRating ?? "",
       status === "sent" ? "envoyé" : status === "bounced" ? "bounced" : "ignoré",
-      message,
+      `Objet: ${email.subject}\n\n${email.body}`,
     ]);
   } catch (err) {
-    // Never let a Sheets outage block the campaign — the Supabase row above
-    // is the source of truth for dedup; the sheet is a human-readable log.
+    // Never let a Sheets outage block the campaign — the prospecting_sent
+    // row (written in sendEmailStep) is the source of truth for dedup; the
+    // sheet is a human-readable log.
     console.error("[daily-prospecting] Google Sheets append failed:", err);
   }
 }
@@ -292,9 +311,9 @@ export async function dailyProspectingWorkflow(maxSends?: number) {
         continue;
       }
 
-      const sendResult = await sendEmailStep(place, message);
+      const sendResult = await sendEmailStep(place, message, category);
       const status: SendStatus = sendResult.ok ? "sent" : "bounced";
-      await recordResultStep(week, place, category, status, message, sendResult.resendId, sendResult.trackingRef);
+      await recordResultStep(week, place, category, status, message);
       results.push({ category, companyName: place.companyName, email: place.email, status, reason: sendResult.error });
 
       await sleep(DELAY_BETWEEN_EMAILS);

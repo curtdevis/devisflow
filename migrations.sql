@@ -203,3 +203,15 @@ CREATE INDEX IF NOT EXISTS idx_site_visits_ref ON site_visits(ref) WHERE ref IS 
 -- retargeted_at IS NOT NULL — never trusted from client input directly.
 ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS retargeted_at TIMESTAMPTZ;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS trial_days INTEGER NOT NULL DEFAULT 7;
+
+-- 15. Open-rate visibility. The domain had open_tracking/click_tracking off
+-- entirely (see delivery-events/route.ts comment history) — we could see a
+-- click landed on the site via our own UTM tracking, but had zero signal on
+-- whether an email was even opened, which made the low click rate
+-- impossible to diagnose (bad subject line? never seen at all? seen and
+-- ignored?). open_tracking is now on (click_tracking stays OFF — link
+-- wrapping is itself a spam signal, and we don't need Resend's click data
+-- since tracking_ref already gives per-recipient click attribution).
+-- opened_at is separate from delivery_status (not mutually exclusive — a
+-- delivered email may or may not later be opened).
+ALTER TABLE prospecting_sent ADD COLUMN IF NOT EXISTS opened_at TIMESTAMPTZ;

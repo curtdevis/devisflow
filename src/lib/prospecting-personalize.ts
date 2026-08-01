@@ -159,21 +159,33 @@ export async function domainAcceptsMail(email: string): Promise<boolean> {
 function buildPrompt(url: string, siteText: string): string {
   return `Tu es un expert en prospection B2B. Lis attentivement ce site d'entreprise artisanale : ${url}.
 Repère UN seul détail concret et récent sur cette entreprise (spécialité précise, zone d'intervention, ancienneté, réalisation mentionnée, certification).
-Rédige un email de prospection en 4 phrases maximum pour présenter DevisFlow (logiciel de génération de devis IA en 30 secondes, 29€/mois, devis-flow.fr) :
+
+Rédige :
+1. Un objet d'email court (5-8 mots), qui donne envie d'ouvrir sans être putaclic ni générique — idéalement basé sur le détail concret repéré, PAS une formule qui pourrait s'appliquer à n'importe quelle entreprise (interdits : "une question rapide", "question rapide", tout objet identique à un envoi précédent — chaque objet doit être différent d'une entreprise à l'autre puisqu'il se base sur un détail propre à chacune).
+2. Un email de prospection en 4 phrases maximum pour présenter DevisFlow (logiciel de génération de devis IA en 30 secondes, 29€/mois, devis-flow.fr) :
 - Phrase 1 : ouvre sur le détail concret trouvé sur leur site (pas de formule générique)
 - Phrase 2 : présente DevisFlow en une phrase directe
 - Phrase 3 : mentionne la deadline e-facture septembre 2026 comme raison d'agir maintenant
 - Phrase 4 : termine par une question simple et directe
 Signature : DevisFlow — devis-flow.fr — Se désinscrire : répondez STOP
-INTERDIT : formules génériques, superlatifs, tout ce qui pourrait s'appliquer à n'importe quelle autre entreprise, toute ligne "Objet :" ou "Subject :" en tête de message.
-Réponds uniquement avec le corps de l'email (aucune ligne d'objet, aucune explication), en commençant directement par la première phrase.
+INTERDIT : formules génériques, superlatifs, tout ce qui pourrait s'appliquer à n'importe quelle autre entreprise.
+
+Réponds EXACTEMENT dans ce format, sans rien ajouter avant ou après :
+OBJET: <objet ici>
+---
+<corps de l'email ici>
 
 --- Contenu du site (extrait) ---
 ${siteText}`;
 }
 
+export interface PersonalizedEmail {
+  subject: string;
+  body: string;
+}
+
 /** Returns null if the model can't produce a genuinely personalized email (e.g. thin/empty site content). */
-export async function personalizeEmail(url: string, siteText: string): Promise<string | null> {
+export async function personalizeEmail(url: string, siteText: string): Promise<PersonalizedEmail | null> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY manquant");
 
@@ -197,11 +209,16 @@ export async function personalizeEmail(url: string, siteText: string): Promise<s
     candidates?: { content?: { parts?: { text?: string }[] } }[];
   };
   const raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
-  // Gemini occasionally prepends a "Subject:"/"Objet:" line despite the
-  // prompt forbidding it (seen in production output) — strip it defensively
-  // rather than let it leak into the email body.
-  const email = raw.replace(/^(subject|objet)\s*:.*\n+/i, "").trim();
-  return email.length > 0 ? email : null;
+
+  // Expected shape: "OBJET: ...\n---\n<body>". Falls back to a generic
+  // subject if the model doesn't follow the format exactly (seen
+  // occasionally in production) rather than dropping the whole email.
+  const match = raw.match(/^OBJET:\s*(.+?)\s*\n---\s*\n([\s\S]+)$/i);
+  const subject = match ? match[1].trim() : null;
+  const body = (match ? match[2] : raw.replace(/^(subject|objet)\s*:.*\n+/i, "")).trim();
+
+  if (body.length === 0) return null;
+  return { subject: subject && subject.length > 0 ? subject : "Une question rapide", body };
 }
 
 function escapeHtml(text: string): string {
