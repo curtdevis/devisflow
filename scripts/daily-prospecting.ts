@@ -293,30 +293,48 @@ export async function dailyProspectingWorkflow(maxSends?: number) {
         continue;
       }
 
-      const place = await enrichPlaceStep(rawPlace);
-      if (!place) {
-        results.push({ category, companyName: rawPlace.companyName, email: null, status: "skipped", reason: "no_verifiable_email" });
-        continue;
+      // One candidate's steps failing outright (not just returning
+      // null/false, but throwing — e.g. a step exhausting its retries after
+      // a hung fetch to a broken/oversized/misbehaving site, seen in
+      // production on 2026-08-02: enrichPlaceStep on one specific website
+      // failed 5 attempts over 20 minutes with an opaque "Unknown error"
+      // and took the ENTIRE day's campaign down with it, since nothing
+      // caught the exception once the step's own internal try/catches
+      // couldn't help — the failure was at the workflow-step-execution
+      // level, not inside fetchWebsiteData/domainAcceptsMail themselves,
+      // both of which already catch their own errors) must never be able
+      // to kill the whole run. Treat it as a skip and move to the next
+      // candidate instead.
+      try {
+        const place = await enrichPlaceStep(rawPlace);
+        if (!place) {
+          results.push({ category, companyName: rawPlace.companyName, email: null, status: "skipped", reason: "no_verifiable_email" });
+          continue;
+        }
+
+        const gate = await checkGateStep(place.email, place.companyName);
+        if (!gate.allowed) {
+          results.push({ category, companyName: place.companyName, email: place.email, status: "skipped", reason: gate.reason });
+          continue;
+        }
+
+        const message = await personalizeStep(place);
+        if (!message) {
+          results.push({ category, companyName: place.companyName, email: place.email, status: "skipped", reason: "personalization_failed" });
+          continue;
+        }
+
+        const sendResult = await sendEmailStep(place, message, category);
+        const status: SendStatus = sendResult.ok ? "sent" : "bounced";
+        await recordResultStep(week, place, category, status, message);
+        results.push({ category, companyName: place.companyName, email: place.email, status, reason: sendResult.error });
+
+        await sleep(DELAY_BETWEEN_EMAILS);
+      } catch (err) {
+        const reason = err instanceof Error ? err.message : "unknown_step_error";
+        console.error(`[daily-prospecting] candidate ${rawPlace.companyName} failed after step retries, skipping:`, reason);
+        results.push({ category, companyName: rawPlace.companyName, email: null, status: "skipped", reason });
       }
-
-      const gate = await checkGateStep(place.email, place.companyName);
-      if (!gate.allowed) {
-        results.push({ category, companyName: place.companyName, email: place.email, status: "skipped", reason: gate.reason });
-        continue;
-      }
-
-      const message = await personalizeStep(place);
-      if (!message) {
-        results.push({ category, companyName: place.companyName, email: place.email, status: "skipped", reason: "personalization_failed" });
-        continue;
-      }
-
-      const sendResult = await sendEmailStep(place, message, category);
-      const status: SendStatus = sendResult.ok ? "sent" : "bounced";
-      await recordResultStep(week, place, category, status, message);
-      results.push({ category, companyName: place.companyName, email: place.email, status, reason: sendResult.error });
-
-      await sleep(DELAY_BETWEEN_EMAILS);
     }
   }
 
