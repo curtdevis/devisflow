@@ -156,19 +156,39 @@ export async function domainAcceptsMail(email: string): Promise<boolean> {
   }
 }
 
+// Rotates which real, substantiated feature the pitch leads with, instead
+// of every single email repeating the exact same "IA, 30 secondes, 29€/mois"
+// line — reviewing actual sent copy (Google Sheet log, 2026-08-02) showed
+// this was near-identical across hundreds of sends despite varied openers,
+// which is very recognizable at volume and gives no reason to click. Each
+// entry is a real, checkable capability (never invented) so the pitch stays
+// varied without becoming untrue.
+const FEATURE_ANGLES = [
+  // Verified against generate-devis/route.ts before writing this: the LLM
+  // prompt only ever inserts the generic mandatory legal notices — there is
+  // no assurance/décennale field anywhere in the product, so never imply a
+  // specific insurance number gets auto-inserted (caught in senior-dev
+  // review — an earlier draft of this angle claimed exactly that).
+  "le devis est généré par IA en 30 secondes, mentions légales obligatoires déjà intégrées",
+  "le client peut signer le devis en ligne directement depuis son téléphone",
+  "les relances automatiques (J+3, J+7) évitent d'avoir à recontacter le client soi-même",
+  "les devis sont conformes Factur-X, la norme e-facture qui devient obligatoire",
+];
+
 function buildPrompt(url: string, siteText: string): string {
+  const angle = FEATURE_ANGLES[Math.floor(Math.random() * FEATURE_ANGLES.length)];
   return `Tu es un expert en prospection B2B. Lis attentivement ce site d'entreprise artisanale : ${url}.
 Repère UN seul détail concret et récent sur cette entreprise (spécialité précise, zone d'intervention, ancienneté, réalisation mentionnée, certification).
 
 Rédige :
 1. Un objet d'email court (5-8 mots), qui donne envie d'ouvrir sans être putaclic ni générique — idéalement basé sur le détail concret repéré, PAS une formule qui pourrait s'appliquer à n'importe quelle entreprise (interdits : "une question rapide", "question rapide", tout objet identique à un envoi précédent — chaque objet doit être différent d'une entreprise à l'autre puisqu'il se base sur un détail propre à chacune).
-2. Un email de prospection en 4 phrases maximum pour présenter DevisFlow (logiciel de génération de devis IA en 30 secondes, 29€/mois, devis-flow.fr) :
-- Phrase 1 : ouvre sur le détail concret trouvé sur leur site (pas de formule générique)
-- Phrase 2 : présente DevisFlow en une phrase directe
-- Phrase 3 : mentionne la deadline e-facture septembre 2026 comme raison d'agir maintenant
-- Phrase 4 : termine par une question simple et directe
+2. Un email de prospection en 4 phrases maximum pour présenter DevisFlow (devis-flow.fr, 29€/mois, essai gratuit 7 jours sans carte bancaire) :
+- Phrase 1 : ouvre sur le détail concret trouvé sur leur site — VARIE la formulation d'un email à l'autre, n'utilise pas systématiquement "J'ai noté que" / "En lisant que" / "Nous avons noté" (déjà vu en masse dans les envois précédents, reconnaissable et lassant à volume)
+- Phrase 2 : présente DevisFlow en t'appuyant précisément sur cet angle (ne dis rien d'autre sur le produit, reste concentré sur CE point) : ${angle}
+- Phrase 3 : mentionne la deadline e-facture septembre 2026 comme raison d'agir maintenant (reformule, ne répète pas mot pour mot les emails précédents)
+- Phrase 4 : CTA concret et actionnable, pas une question vague ("seriez-vous ouvert à découvrir..." est interdit, déjà vu en masse) — précise explicitement l'essai gratuit de 7 jours sans carte bancaire, et invite à un geste précis et à faible friction (ex: essayer sur leur prochain devis, voir à quoi ressemble un devis généré pour leur métier)
 Signature : DevisFlow — devis-flow.fr — Se désinscrire : répondez STOP
-INTERDIT : formules génériques, superlatifs, tout ce qui pourrait s'appliquer à n'importe quelle autre entreprise.
+INTERDIT : formules génériques, superlatifs, tout ce qui pourrait s'appliquer à n'importe quelle autre entreprise, statistiques ou chiffres d'usage inventés (nombre d'utilisateurs, avis clients, etc. — le produit est récent, ne jamais fabriquer de preuve sociale).
 
 Réponds EXACTEMENT dans ce format, sans rien ajouter avant ou après :
 OBJET: <objet ici>
