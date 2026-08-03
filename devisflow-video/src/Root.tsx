@@ -8,6 +8,7 @@ import {
   Reel03Demo30sec,
   Reel04Reglementation,
   Reel05Temoignage,
+  Reel06Coulisses,
   CarouselTemoignages,
   ReelComparateur,
   StoryHighlightCover,
@@ -27,6 +28,7 @@ export const RemotionRoot: React.FC = () => {
       <Composition id="InstagramReel03" component={Reel03Demo30sec} durationInFrames={540} fps={30} width={1080} height={1920} />
       <Composition id="InstagramReel04" component={Reel04Reglementation} durationInFrames={450} fps={30} width={1080} height={1920} />
       <Composition id="InstagramReel05" component={Reel05Temoignage} durationInFrames={480} fps={30} width={1080} height={1920} />
+      <Composition id="InstagramReel06" component={Reel06Coulisses} durationInFrames={450} fps={30} width={1080} height={1920} />
       <Composition id="InstagramCarouselTemoignages" component={CarouselTemoignages} durationInFrames={750} fps={30} width={1080} height={608} />
       <Composition id="InstagramReelComparateur" component={ReelComparateur} durationInFrames={360} fps={30} width={1080} height={1920} />
       <Composition id="InstagramHighlightCover" component={StoryHighlightCover} durationInFrames={540} fps={30} width={1080} height={1080} />

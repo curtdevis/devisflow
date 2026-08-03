@@ -1232,6 +1232,159 @@ export function Reel05Temoignage() {
   );
 }
 
+// ── COMP 5bis : Reel06Coulisses (9:16, 1080x1920, 450f=15s) ─────────────────
+
+export function Reel06Coulisses() {
+  const frame = useCurrentFrame();
+
+  return (
+    <AbsoluteFill style={{ fontFamily: "Arial, sans-serif" }}>
+      <Audio src={staticFile("music.mp3")} volume={0.1} />
+
+      {/* Scene 1 : Hook question (0-90f) */}
+      <Sequence from={0} durationInFrames={90}>
+        <AbsoluteFill
+          style={{
+            background: "#1a1a1a",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: 16,
+            padding: 56,
+          }}
+        >
+          <div style={{ opacity: fadeIn(frame, 0, 12), fontSize: 20, color: "rgba(255,255,255,0.5)", fontWeight: 600, letterSpacing: 2, textAlign: "center" }}>
+            ON NOUS LE DEMANDE SOUVENT
+          </div>
+          <div style={{ opacity: fadeIn(frame, 8, 15), fontSize: 34, fontWeight: 900, color: WHITE, textAlign: "center", lineHeight: 1.35 }}>
+            Qui y a-t-il vraiment{" "}
+            <span style={{ color: ORANGE }}>derriere DevisFlow</span> ?
+          </div>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* Scene 2 : Pourquoi le produit existe (90-210f) */}
+      <Sequence from={90} durationInFrames={120}>
+        <AbsoluteFill
+          style={{
+            background: NAVY,
+            padding: 52,
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: 22,
+          }}
+        >
+          <div style={{ opacity: fadeIn(frame - 90, 0, 12), fontSize: 18, color: ORANGE, fontWeight: 900, letterSpacing: 2 }}>
+            POURQUOI DEVISFLOW EXISTE
+          </div>
+          <div style={{ opacity: fadeIn(frame - 90, 12, 15), fontSize: 27, fontWeight: 900, color: WHITE, lineHeight: 1.4 }}>
+            On a vu trop de soirs a refaire des devis sur la table de la cuisine
+          </div>
+          <div
+            style={{
+              opacity: fadeIn(frame - 90, 45, 15),
+              background: "rgba(255,255,255,0.08)",
+              borderRadius: 16,
+              padding: "20px 24px",
+              fontSize: 17,
+              color: "rgba(255,255,255,0.85)",
+              lineHeight: 1.6,
+            }}
+          >
+            Pas pour remplacer l'artisan — pour lui rendre ses soirees.
+          </div>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* Scene 3 : Humain derriere (210-330f) */}
+      <Sequence from={210} durationInFrames={120}>
+        <AbsoluteFill
+          style={{
+            background: "#f0f9ff",
+            padding: 52,
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: 20,
+          }}
+        >
+          <div style={{ opacity: fadeIn(frame - 210, 0, 12), fontSize: 18, color: NAVY, fontWeight: 900, letterSpacing: 2 }}>
+            QUAND VOUS NOUS ECRIVEZ
+          </div>
+          <div style={{ opacity: fadeIn(frame - 210, 12, 15), fontSize: 27, fontWeight: 900, color: NAVY, lineHeight: 1.4 }}>
+            C'est nous qui repondons. Pas un bot.
+          </div>
+          <div
+            style={{
+              opacity: fadeIn(frame - 210, 45, 15),
+              background: WHITE,
+              borderRadius: 16,
+              padding: "20px 24px",
+              border: "2px solid #e5e7eb",
+              display: "flex",
+              alignItems: "center",
+              gap: 16,
+            }}
+          >
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 24,
+                background: ORANGE,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 20,
+                fontWeight: 900,
+                color: WHITE,
+                flexShrink: 0,
+              }}
+            >
+              DF
+            </div>
+            <div>
+              <div style={{ fontSize: 15, color: "#6b7280" }}>Reponse a vos emails</div>
+              <div style={{ fontSize: 20, fontWeight: 900, color: "#16a34a" }}>sous 24h</div>
+            </div>
+          </div>
+        </AbsoluteFill>
+      </Sequence>
+
+      {/* Scene 4 : CTA (330-450f) */}
+      <Sequence from={330} durationInFrames={120}>
+        <AbsoluteFill
+          style={{
+            background: NAVY,
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            gap: 20,
+          }}
+        >
+          <div style={{ opacity: fadeIn(frame - 330, 0, 12), fontSize: 26, fontWeight: 900, color: WHITE, textAlign: "center", padding: "0 24px" }}>
+            Un outil pense par des gens du BTP
+          </div>
+          <div
+            style={{
+              opacity: fadeIn(frame - 330, 15, 15),
+              background: ORANGE,
+              borderRadius: 16,
+              padding: "20px 44px",
+            }}
+          >
+            <span style={{ fontSize: 22, fontWeight: 900, color: WHITE }}>
+              devis-flow.fr
+            </span>
+          </div>
+          <div style={{ opacity: fadeIn(frame - 330, 25, 15), fontSize: 16, color: "rgba(255,255,255,0.6)" }}>
+            7 jours gratuits · Aucune CB requise
+          </div>
+        </AbsoluteFill>
+      </Sequence>
+    </AbsoluteFill>
+  );
+}
+
 // ── COMP 6 : CarouselTemoignages (16:9, 1080x608, 750f) ─────────────────────
 
 const TEMOIGNAGES = [

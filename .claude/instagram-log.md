@@ -147,3 +147,37 @@ Comme le 31/07 et le 01/08, le Reel du jour n'avait de nouveau pas été produit
 
 ## 2026-08-02 — Boucle `instagram-analyst` fermée
 `instagram-analyst` absent de la liste des types d'agents disponibles dans cette session (même limite que les jours précédents). Rafraîchissement de `.claude/instagram-insights.md` fait directement via appels API Graph en session courante (mêmes données réelles, pas de best practice générique) — voir `.claude/instagram-insights.md` pour le détail intégrant Reel 6 + post/story auto jour 6, et la maturation du Reel 5 (0/0 → 18 reach/18 vues, 2582 ms de watch time moyen).
+
+## 2026-08-03 — Analyse de performance à froid, avant publication (demande explicite utilisateur)
+Avant de produire le Reel du jour, insights rafraîchis en direct via l'API Graph (`graph.instagram.com`) sur les 6 Reels existants (le Reel 6 avait eu le temps de mûrir depuis le 02/08, ~21h) :
+
+| Reel | Pilier | Reach | Vues | Watch time moy. |
+|---|---|---|---|---|
+| Reel 6 (18151162084506788) | preuve_produit | **103** | 109 | 1757 ms |
+| Reel 2 (18069279731711265) | urgence_efacture | **88** | 97 | 3111 ms, 1 save (seule interaction du compte) |
+| Reel 1 (18090522386436782) | coulisses | **77** | 80 | 1635 ms |
+| Reel 5 (18110785987795662) | avant_apres | 18 | 18 | 2582 ms |
+| Reel 3 (17895275892564120) | témoignage | 12 | 14 | 6165 ms (meilleur watch time, mais reach faible) |
+| Reel 4 (18109283051092818) | astuce | 3 | 4 | 4353 ms |
+
+Compte : reach global 227 (fenêtre 29/07→03/08, en forte hausse depuis la maturation du Reel 6), profile_views 20, toujours 0 followers. Conclusion actionnable : le format Reel écrase toujours le format image (0 reach constant sur 7 posts image), et les 3 piliers **preuve_produit, urgence_efacture, coulisses** forment un trio de tête net, loin devant avant_apres/témoignage/astuce. "Coulisses" combine donc un bon signal de performance réel (3e meilleur reach, 77) ET le critère de fraîcheur (un seul Reel manuel dessus, le tout premier du 28/07, jamais repris depuis) — les deux logiques convergent, pas de compromis nécessaire ce jour-ci.
+
+## 2026-08-03 — Reel 7 (pilier "coulisses" — humain derrière DevisFlow)
+- **Choix du pilier** : voir analyse de performance ci-dessus. "Coulisses" choisi pour la convergence performance (3e meilleur reach du compte, 77) + fraîcheur (non repris depuis le Reel 1 du 28/07). Table Supabase `instagram_campaign_posts` vérifiée : le cron jour 7 n'avait pas encore tourné au moment de la production (avant 08h15 UTC), pas de conflit possible avec le pilier du jour côté auto.
+- **Type** : Reel vertical 1080x1920, 15s (450 frames à 30fps), **nouvelle composition Remotion** `InstagramReel06` (`devisflow-video/src/Instagram2.tsx`, `Reel06Coulisses`) — aucune composition existante ne couvrait le pilier "coulisses" (contenu humain/origine, différent des démos produit), composition créée en suivant la structure narrative fixe de la stratégie (accroche → contexte → preuve/bénéfice → CTA) et le style visuel standard (navy `#1e3a5f`/orange `#f97316`, mêmes helpers `fadeIn`).
+- **Contenu** : hook "Qui y a-t-il vraiment derrière DevisFlow ?" → origine du produit (soirs perdus sur les devis) → humain derrière le support ("c'est nous qui répondons, pas un bot", réponse sous 24h) → CTA essai gratuit. Contenu illustratif/générique sur la mission produit, aucune fausse statistique ni témoignage attribué à une personne réelle.
+- **Musique** : piste `public/music.mp3` ajoutée manuellement dans la nouvelle composition (`<Audio src={staticFile("music.mp3")} volume={0.1} />`, première ligne de l'`AbsoluteFill`, comme l'exige la consigne pour toute nouvelle composition) — vérifié après rendu via `ffprobe` : flux vidéo H.264 15.00s + flux audio AAC 15.06s présents.
+- **Production** : rendu via `npx remotion render InstagramReel06 out/reel-07-coulisses.mp4` (toujours via `Config.setBrowserExecutable` vers Edge dans `remotion.config.ts`, non modifié) — 824.2 Ko en sortie.
+- **Couverture** : `cover_url` = asset unique réutilisable (`brand/reel-cover-devisflow.jpg`) — vérifié après publication : `thumbnail_url` téléchargé (104 794 octets, taille identique octet pour octet à la référence) et inspecté visuellement, identique à l'asset designé.
+- **Légende** : écrite via l'outil Write dans un fichier UTF-8 propre (scratchpad), référencée via `--data-urlencode caption@chemin` — accents/apostrophes/emoji vérifiés intacts en relisant la légende retournée par l'API, aucune corruption.
+- **Publication** : hébergement temporaire sur Supabase Storage (bucket public `social-assets`, chemin `manual/reel-07-coulisses.mp4`, upload vérifié HTTP 200 + taille exacte 824 156 octets). **Note technique** : la clé `SUPABASE_SERVICE_ROLE_KEY` du projet a été rotée vers le nouveau format Supabase (`sb_secret_...`, non-JWT) — l'upload Storage échouait avec `Invalid Compact JWS` en n'envoyant que `Authorization: Bearer`, résolu en ajoutant aussi le header `apikey` avec la même valeur (les deux headers sont nécessaires avec ce nouveau format de clé). Puis `POST /me/media` avec `media_type=REELS`, `video_url`, `cover_url`, `caption` sur `graph.instagram.com` — conteneur créé puis poll du `status_code` jusqu'à `FINISHED` (6 tentatives, ~24s) avant `media_publish`. 100% automatisé, aucun upload manuel.
+- **Media ID** : 18098243501353917
+- **Permalink** : https://www.instagram.com/reel/DbkU57Ogo8p/
+- **Statut** : publié avec succès, couverture custom confirmée visuellement identique à l'asset designé, légende confirmée intacte.
+
+## 2026-08-03 — Story (écho au Reel 7 "coulisses")
+- **Type** : Story vidéo 1080x1920 (même fichier que le Reel 7, réutilisé tel quel comme écho)
+- **Vérification anti-doublon** : table `instagram_campaign_posts` interrogée avant publication — le cron jour 7 n'avait pas encore posté (avant 08h15 UTC), aucun risque de doublon de pilier avec l'automatique du jour.
+- **Publication** : via l'API Graph Instagram (`media_type=STORIES`), même hébergement Supabase que le Reel 7, conteneur créé puis poll `status_code` (FINISHED après ~16s) avant `media_publish`.
+- **Media ID** : 18034471733828123
+- **Statut** : publié avec succès (non vérifiable via `/media` après coup, disparaît après 24h).
