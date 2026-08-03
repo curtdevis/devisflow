@@ -40,3 +40,110 @@ Depuis le 2026-07-29, un post + une story sont publiés automatiquement CHAQUE J
 - **Type** : Story vidéo 1080x1920, composition Remotion `InstagramStory02`
 - **Publication** : via l'API Graph Instagram (`media_type=STORIES`), même hébergement temporaire Supabase
 - **Statut** : publié avec succès (les stories n'apparaissent pas dans `/media`, non vérifiable via API après coup — disparaît après 24h)
+
+## 2026-07-30 — Reel 3 (pilier "témoignage" — POV essai 7 jours)
+- **Type** : Reel vertical 1080x1920, 16s, composition Remotion `InstagramReel05` (`devisflow-video/src/Instagram2.tsx`, `Reel05Temoignage`) — composition existante réutilisée telle quelle, aucune nouvelle composition créée
+- **Contenu** : narration "POV : tu testes DevisFlow pendant 7 jours" — Jour 1 (premier devis en 28s), Jour 3 (client qui signe en ligne depuis son téléphone), Jour 7 (bilan dashboard), verdict final. Témoignage générique/illustratif, non attribué à un artisan nommé — aucune fausse citation attribuée à une personne réelle.
+- **Musique** : piste de fond `public/music.mp3` intégrée dans la composition (`<Audio src={staticFile("music.mp3")} volume={0.1} />`, déjà présente avant ce run), volume 0.1 — vérifié après rendu via `ffprobe` : le fichier final contient bien un flux audio AAC (pas de piste silencieuse).
+- **Production** : rendu via `npx remotion render InstagramReel05` (nécessite toujours `Config.setBrowserExecutable` vers Edge dans `remotion.config.ts`, non modifié)
+- **Légende** : écrite via l'outil Write dans un fichier UTF-8 propre (scratchpad), référencée via `--data-urlencode caption@chemin` — accents/emoji/apostrophes vérifiés intacts dans la légende publiée (pas de récidive de l'incident d'encodage Post 2)
+- **Publication** : hébergement temporaire sur Supabase Storage (bucket public `social-assets`, chemin `manual/reel-03-temoignage.mp4`) puis publication via l'API Graph Instagram (`graph.instagram.com`, PAS `graph.facebook.com`), `media_type=REELS`, conteneur créé puis poll du `status_code` jusqu'à `FINISHED` avant `media_publish` — publication 100% automatisée, pas d'upload manuel nécessaire cette fois
+- **Media ID** : 17895275892564120
+- **Permalink** : https://www.instagram.com/reel/DbafHHsE848/
+- **Statut** : publié avec succès
+
+## 2026-07-30 — Story (écho au Reel témoignage)
+- **Type** : Story vidéo 1080x1920 (même fichier que le Reel 3, réutilisé tel quel comme écho)
+- **Publication** : via l'API Graph Instagram (`media_type=STORIES`), même hébergement temporaire Supabase que le Reel 3 — ne duplique pas la story automatique du cron du jour (pilier "avant_apres", `ig_story_id` 18381363199206157, postée 09:04 UTC via `instagram_campaign_posts` jour 2), contenu et pilier différents
+- **Media ID** : 18123647830814317
+- **Statut** : publié avec succès (non vérifiable via `/media` après coup, disparaît après 24h)
+
+## ⚠️ 2026-07-31 — Couverture unique des Reels (nouvelle consigne utilisateur, obligatoire à partir d'aujourd'hui)
+**Décision technique** : après vérification de la doc officielle Meta (`developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media/`), le endpoint `POST /{ig-user-id}/media` avec `media_type=REELS` accepte bien un paramètre **`cover_url`** dédié : *"The path to an image to use as the cover image for the Reels tab."* — JPEG, 8 Mo max, sRGB, ratio 9:16 recommandé. Si `cover_url` ET `thumb_offset` sont fournis, `cover_url` est prioritaire et `thumb_offset` est ignoré. C'est donc la méthode correcte à utiliser — **pas besoin** d'insérer la couverture comme premier frame fixe de la composition Remotion (solution de repli envisagée dans la consigne initiale, finalement inutile car l'API supporte nativement une image de couverture séparée).
+- Le SDK `ig-mcp` (`mcp__instagram__publish_media`) ne supporte ni `media_type=REELS` explicite ni `cover_url` (voir `PublishMediaRequest` dans `instagram_client.py` — seulement `image_url`/`video_url`/`caption`/`location_id`) : comme pour les Reels précédents, publication faite en appel direct `curl` sur `graph.instagram.com`, pas via le MCP.
+- **Génération de la couverture** : script Node + `sharp` (rendu d'un SVG vers JPEG 1080x1920, `chromaSubsampling: 4:4:4`, qualité 92) — navy `#1E3A5F`/`#0a2540` en dégradé, cercles décoratifs orange `#f97316` en transparence, bouton "play" stylisé, wordmark "DevisFlow" (Devis blanc + Flow orange), tagline "Vos devis. Générés en 30 secondes.", pastille CTA orange "devis-flow.fr" + "Essai gratuit 7 jours". Fichier : 1080x1920, JPEG, ~117 Ko (largement sous la limite 8 Mo).
+- **Stockage réutilisable** : uploadée UNE FOIS sur Supabase Storage, bucket public `social-assets`, chemin fixe `brand/reel-cover-devisflow.jpg` → URL publique permanente `https://vpkafkilducttjucrzze.supabase.co/storage/v1/object/public/social-assets/brand/reel-cover-devisflow.jpg`. **Tous les prochains Reels doivent réutiliser cette même URL en `cover_url`, sans regénérer l'image** (le script de génération n'a pas été conservé dans le repo — l'asset publié sur Supabase fait foi ; si besoin de le régénérer un jour, refaire le même script sharp/SVG décrit ci-dessus).
+- **Vérification** : après publication du Reel 4 ci-dessous, la miniature réellement affichée par Instagram (`thumbnail_url` retourné par l'API) a été téléchargée et inspectée visuellement — elle correspond exactement à la couverture designée (pas une frame aléatoire de la vidéo). Confirmé.
+
+## 2026-07-31 — Reel 4 (pilier "astuce devis/métier" — hook "3h de devis")
+- **Contexte** : le Reel du jour n'avait pas été produit ce matin (le reel n'est PAS automatisé, contrairement au post+story qui tournent via le cron `instagram_campaign_posts` — cf. avertissement en tête de ce fichier) ; publié en rattrapage l'après-midi.
+- **Choix du pilier** : la table Supabase `instagram_campaign_posts` a été consultée avant de choisir — le cron avait déjà publié aujourd'hui le pilier "preuve_produit" (jour 3, 08:42 UTC, `ig_media_id` 17985050280019932). Les 2-3 derniers Reels manuels étaient "témoignage" (30/07) et "urgence_efacture" (29/07), et le cron avait couvert "avant_apres" la veille (30/07). Pilier "astuce devis/métier" retenu car non touché par aucun canal (manuel ou cron) depuis 2 jours (dernière fois : post 2 manuel + jour 1 cron, 29/07) — meilleure diversité de contenu sur la journée.
+- **Type** : Reel vertical 1080x1920, 15s (450 frames à 30fps), composition Remotion existante `InstagramReel01` (`devisflow-video/src/Instagram.tsx`, `Reel01Hook`) — réutilisée telle quelle, aucune nouvelle composition créée.
+- **Contenu** : hook "Tu passes encore 3h à faire tes devis ?" → comparatif AVANT (3h, tableur Excel, erreurs de calcul) / APRÈS (30 secondes, depuis le chantier, PDF pro immédiat) → démo formulaire (ligne devis chiffrées, total TTC) → CTA DevisFlow / essai gratuit. Contenu produit uniquement, aucune fausse statistique ni témoignage attribué à une personne réelle.
+- **Musique** : piste `public/music.mp3` intégrée dans la composition (`<Audio src={staticFile("music.mp3")} volume={0.1} />`, déjà présente), volume 0.1 — vérifié après rendu via `ffprobe` : flux audio AAC ~15.06s présent aux côtés du flux vidéo H.264 ~15.00s.
+- **Production** : rendu via `npx remotion render InstagramReel01 out/reel-04-astuce.mp4` (toujours via `Config.setBrowserExecutable` vers Edge dans `remotion.config.ts`, non modifié) — 866 Ko en sortie.
+- **Couverture** : `cover_url` = asset unique réutilisable décrit ci-dessus (voir section couverture).
+- **Légende** : écrite via l'outil Write dans un fichier UTF-8 propre (scratchpad), référencée via `--data-urlencode caption@chemin` — accents/emoji vérifiés intacts après publication (relecture de la légende retournée par l'API : "Tu passes encore 3h à faire tes devis ?" etc., aucune corruption).
+- **Publication** : hébergement temporaire sur Supabase Storage (bucket `social-assets`, chemin `manual/reel-04-astuce.mp4`), puis `POST /{account}/media` avec `media_type=REELS`, `video_url`, `cover_url`, `caption` sur `graph.instagram.com` (pas `graph.facebook.com`) — conteneur créé puis poll du `status_code` (FINISHED dès la première tentative) avant `media_publish`. 100% automatisé, aucun upload manuel.
+- **Media ID** : 18109283051092818
+- **Permalink** : https://www.instagram.com/reel/DbdAUkcClur/
+- **Statut** : publié avec succès, couverture custom confirmée visuellement identique à l'asset designé.
+
+## 2026-07-31 — Story (écho au Reel 4 "astuce")
+- **Type** : Story vidéo 1080x1920 (même fichier que le Reel 4, réutilisé tel quel comme écho)
+- **Vérification anti-doublon** : table `instagram_campaign_posts` consultée avant publication — le cron avait déjà publié une story automatique aujourd'hui (pilier "preuve_produit", `ig_story_id` 18014125109877593, jour 3, 08:42 UTC). Cette story manuelle est un contenu et pilier différents ("astuce"), ne duplique pas celle du cron — même logique que les 29/07 et 30/07.
+- **Publication** : via l'API Graph Instagram (`media_type=STORIES`), même hébergement Supabase que le Reel 4, conteneur créé puis poll `status_code` (FINISHED) avant `media_publish`.
+- **Media ID** : 17990653721828354
+- **Statut** : publié avec succès (non vérifiable via `/media` après coup, disparaît après 24h).
+
+## ✅ 2026-07-31 — Boucle `instagram-analyst` fermée (a posteriori)
+Le point ouvert ci-dessous a été traité en session principale le 2026-07-31 : `.claude/instagram-insights.md` a été rafraîchi avec les données réelles (Graph API en appel direct, mêmes outils `mcp__instagram__*` toujours non chargés dans cette session non plus) intégrant Reel 4 + post/story auto jour 3. Changement principal : le clivage reach Reel(>0) vs Post image(=0) se confirme sur 9 publications sans exception ; Reel 3 a mûri (3/4 → 12/14) ; Reel 4 trop frais (13 min) pour être exploitable, à mesurer au prochain pull. Voir `.claude/instagram-insights.md` pour le détail complet.
+
+<details>
+<summary>Note originale (résolue)</summary>
+
+`community-manager.md` impose de réinvoquer `instagram-analyst` après chaque publication pour rafraîchir `.claude/instagram-insights.md`. Cette session n'avait pas accès à l'agent `instagram-analyst` (absent de la liste des types d'agents disponibles dans ce contexte, et les outils `mcp__instagram__*` n'étaient pas non plus chargés — token/API validés en direct via `curl` à la place). À faire au prochain passage en session principale : invoquer `instagram-analyst` pour intégrer le Reel 4 + Story du jour aux insights (`.claude/instagram-insights.md` date encore du 2026-07-30, il a maintenant 2 jours de retard).
+
+</details>
+
+## ⚠️ 2026-08-01 — Reel du jour non produit ce matin (récidive)
+Comme le 31/07, le Reel du jour n'avait de nouveau pas été produit à l'automatique — rappel : contrairement au post+story (cron quotidien 8h15 UTC, table Supabase `instagram_campaign_posts`), le Reel n'a jamais été automatisé et doit être produit manuellement chaque jour. Produit et publié en rattrapage ci-dessous, en une seule session, sans repasser par l'utilisateur.
+
+## 2026-08-01 — Reel 5 (pilier "avant/après" — temps gagné 2h47min → 28sec)
+- **Choix du pilier** : table Supabase `instagram_campaign_posts` consultée avant de choisir — le cron avait déjà publié aujourd'hui (jour 4, 08:33 UTC) le pilier "urgence_efacture" (`ig_media_id` 18093561017161739, `ig_story_id` 18005742836763990). Historique des Reels manuels : coulisses (28/07), urgence_efacture (29/07), témoignage (30/07), astuce (31/07) — jamais "avant_apres". Ce pilier n'avait été touché que par le cron il y a 2 jours (jour 2, 30/07, `avant_apres`), plus stale que "preuve_produit" (touché hier par le cron, jour 3, 31/07). "avant_apres" retenu pour la meilleure diversité de contenu sur la journée, même logique que le choix du Reel 4 le 31/07.
+- **Type** : Reel vertical 1080x1920, 10s (300 frames à 30fps), composition Remotion existante `InstagramReel02` (`devisflow-video/src/Instagram.tsx`, `Reel02AvantApres`) — réutilisée telle quelle, aucune nouvelle composition créée. Composition non listée dans les 4 exemples habituels (Reel01/04/05/Comparateur) mais déjà présente dans le repo et correspondant exactement au pilier "avant/après" (contrairement à `ReelComparateur`, plus orienté "preuve produit").
+- **Contenu** : "Pourquoi perdre du temps au bureau ?" → temps moyen sans DevisFlow (2h47min, barre de progression rouge) → temps avec DevisFlow (28 secondes, barre verte) → CTA devis-flow.fr / essai gratuit. Comparatif de temps générique/illustratif, aucune fausse statistique attribuée à une personne réelle.
+- **Musique** : piste `public/music.mp3` intégrée dans la composition (`<Audio src={staticFile("music.mp3")} volume={0.1} />`, déjà présente), volume 0.1 — vérifié après rendu via `ffprobe` : flux audio AAC 48kHz stéréo ~10.05s présent aux côtés du flux vidéo H.264 ~10.00s (pas de piste silencieuse).
+- **Production** : rendu via `npx remotion render InstagramReel02 out/reel-05-avant-apres.mp4` (toujours via `Config.setBrowserExecutable` vers Edge dans `remotion.config.ts`, non modifié) — 505.7 Ko en sortie.
+- **Couverture** : `cover_url` = asset unique réutilisable (`brand/reel-cover-devisflow.jpg`, décrit dans la section couverture du 31/07) — **vérifié après publication** : `thumbnail_url` retourné par l'API téléchargé et comparé visuellement (lecture d'image) à l'asset de référence — identique en tout point (dégradé navy, bouton play orange, wordmark DevisFlow, tagline, CTA devis-flow.fr).
+- **Légende** : écrite via l'outil Write dans un fichier UTF-8 propre (scratchpad), référencée via `--data-urlencode caption`/paramètre `caption` dans le corps de requête — accents/apostrophes/emoji vérifiés intacts en relisant la légende retournée par l'API (`GET /{media-id}?fields=caption`), aucune corruption.
+- **Publication** : hébergement temporaire sur Supabase Storage (bucket public `social-assets`, chemin `manual/reel-05-avant-apres.mp4`, upload vérifié HTTP 200 + taille exacte), puis `POST /{account}/media` avec `media_type=REELS`, `video_url`, `cover_url`, `caption` sur `graph.instagram.com` (pas `graph.facebook.com`) — conteneur créé puis poll du `status_code` jusqu'à `FINISHED` (5 tentatives, ~20s) avant `media_publish`. 100% automatisé, aucun upload manuel.
+- **Media ID** : 18110785987795662
+- **Permalink** : https://www.instagram.com/reel/DbfbOudgWsV/
+- **Statut** : publié avec succès, couverture custom confirmée visuellement identique à l'asset designé, légende confirmée intacte.
+
+## 2026-08-01 — Story (écho au Reel 5 "avant/après")
+- **Type** : Story vidéo 1080x1920 (même fichier que le Reel 5, réutilisé tel quel comme écho)
+- **Vérification anti-doublon** : table `instagram_campaign_posts` consultée avant publication — le cron avait déjà publié une story automatique aujourd'hui (pilier "urgence_efacture", `ig_story_id` 18005742836763990, jour 4, 08:33 UTC). Cette story manuelle est un contenu et pilier différents ("avant_apres"), ne duplique pas celle du cron — même logique que les 29/07, 30/07 et 31/07.
+- **Publication** : via l'API Graph Instagram (`media_type=STORIES`), même hébergement Supabase que le Reel 5, conteneur créé puis poll `status_code` (FINISHED après ~70s) avant `media_publish`.
+- **Media ID** : 18179874274373629
+- **Statut** : publié avec succès (non vérifiable via `/media` après coup, disparaît après 24h).
+
+## 2026-08-01 — Boucle `instagram-analyst` fermée
+`instagram-analyst` absent de la liste des types d'agents disponibles dans cette session (même limite que le 31/07). Rafraîchissement de `.claude/instagram-insights.md` fait directement via appels `curl`/Graph API en session courante (mêmes données réelles, pas de best practice générique) — voir `.claude/instagram-insights.md` pour le détail intégrant Reel 5 + post/story auto jour 4.
+
+## ⚠️ 2026-08-02 — Reel du jour non produit ce matin (récidive)
+Comme le 31/07 et le 01/08, le Reel du jour n'avait de nouveau pas été produit à l'automatique. Rappel identique : le Reel n'a jamais été automatisé, contrairement au post+story (cron quotidien, table Supabase `instagram_campaign_posts`) qui ont tourné normalement aujourd'hui à 08:55 UTC (jour 6, pilier "coulisses", `ig_media_id` 18117076535314965, `ig_story_id` 18095723684287510). Produit et publié en une seule session, sans repasser par l'utilisateur.
+
+## 2026-08-02 — Reel 6 (pilier "preuve_produit" — démo 30 secondes chrono en direct)
+- **Choix du pilier** : table Supabase `instagram_campaign_posts` consultée avant de choisir (day_number=6, pilier "coulisses", déjà posté ce matin 08:55 UTC). Historique complet des Reels manuels : coulisses (28/07), urgence_efacture (29/07), témoignage (30/07), astuce (31/07), avant_apres (01/08) — **"preuve_produit" n'avait encore jamais été couvert par un Reel manuel**, seulement par le cron (jour 3, 31/07). C'est aussi la recommandation explicite laissée dans `.claude/instagram-insights.md` du 2026-08-01 ("piliers pas encore couverts par un Reel manuel : preuve_produit et coulisses"). Choisi pour maximiser la diversité de la journée (cron=coulisses, reel=preuve_produit, aucun chevauchement).
+- **Type** : Reel vertical 1080x1920, 18s (540 frames à 30fps), composition Remotion existante `InstagramReel03` (`devisflow-video/src/Instagram2.tsx`, `Reel03Demo30sec`) — réutilisée telle quelle, aucune nouvelle composition créée. Seule composition Reel jamais utilisée manuellement jusqu'ici avec `ReelComparateur`; choisie car son contenu (démo produit en direct, chrono, formulaire rempli en temps réel, confettis de succès) correspond exactement au pilier "preuve_produit" — contrairement à `ReelComparateur`, plus orienté tableau comparatif face à la concurrence.
+- **Contenu** : "DÉFI : créer un devis en 30 secondes en direct" → chrono qui tourne pendant que le formulaire se remplit (nom artisan, client, description travaux, matériaux, main d'oeuvre) → barre de progression génération IA → confettis de succès. Démo produit illustrative, aucune fausse statistique ni témoignage attribué à une personne réelle.
+- **Musique** : piste `public/music.mp3` intégrée dans la composition (`<Audio src={staticFile("music.mp3")} volume={0.1} />`, déjà présente), volume 0.1 — vérifié après rendu via `ffprobe` : flux vidéo H.264 18.00s + flux audio AAC 48kHz stéréo ~18.05s présent (pas de piste silencieuse).
+- **Production** : rendu via `npx remotion render InstagramReel03 out/reel-06-preuve-produit.mp4` (toujours via `Config.setBrowserExecutable` vers Edge dans `remotion.config.ts`, non modifié) — 1.4 Mo en sortie.
+- **Couverture** : `cover_url` = asset unique réutilisable (`brand/reel-cover-devisflow.jpg`, décrit dans la section couverture du 31/07) — **vérifié après publication** : `thumbnail_url` retourné par l'API téléchargé (104 794 octets) et comparé visuellement (lecture d'image côte à côte) à l'asset de référence (117 122 octets) — identique en tout point (dégradé navy, bouton play orange cerclé, wordmark DevisFlow, tagline "Vos devis. Générés en 30 secondes.", pastille CTA orange devis-flow.fr / Essai gratuit 7 jours).
+- **Légende** : écrite via l'outil Write dans un fichier UTF-8 propre (scratchpad) — accents/apostrophes/emoji vérifiés intacts en relisant la légende retournée par l'API (`GET /{media-id}?fields=caption`), aucune corruption.
+- **Publication** : hébergement temporaire sur Supabase Storage (bucket public `social-assets`, chemin `manual/reel-06-preuve-produit.mp4`, upload vérifié HTTP 200 + taille exacte 1 417 160 octets, URL publique vérifiée accessible HEAD 200), puis `POST /me/media` avec `media_type=REELS`, `video_url`, `cover_url`, `caption` sur `graph.instagram.com` (pas `graph.facebook.com`, endpoint `/me` utilisé plutôt que l'ID de compte explicite — le token résout systématiquement vers `@devis.flow` quel que soit l'ID passé, confirmé en comparant `/me` et l'ID stocké) — conteneur créé puis poll du `status_code` jusqu'à `FINISHED` (5 tentatives, ~20s) avant `media_publish`. 100% automatisé, aucun upload manuel.
+- **Media ID** : 18151162084506788
+- **Permalink** : https://www.instagram.com/reel/DbiRdWqEYOZ/
+- **Statut** : publié avec succès, couverture custom confirmée visuellement identique à l'asset designé, légende confirmée intacte.
+
+## 2026-08-02 — Story (écho au Reel 6 "preuve_produit")
+- **Type** : Story vidéo 1080x1920 (même fichier que le Reel 6, réutilisé tel quel comme écho)
+- **Vérification anti-doublon** : table `instagram_campaign_posts` consultée avant publication — le cron avait déjà publié une story automatique aujourd'hui (pilier "coulisses", `ig_story_id` 18095723684287510, jour 6, 08:55 UTC). Cette story manuelle est un contenu et pilier différents ("preuve_produit"), ne duplique pas celle du cron — même logique que les jours précédents.
+- **Publication** : via l'API Graph Instagram (`media_type=STORIES`), même hébergement Supabase que le Reel 6, conteneur créé puis poll `status_code` (FINISHED après ~20s) avant `media_publish`.
+- **Media ID** : 17961610338160648
+- **Statut** : publié avec succès (non vérifiable via `/media` après coup, disparaît après 24h).
+
+## 2026-08-02 — Boucle `instagram-analyst` fermée
+`instagram-analyst` absent de la liste des types d'agents disponibles dans cette session (même limite que les jours précédents). Rafraîchissement de `.claude/instagram-insights.md` fait directement via appels API Graph en session courante (mêmes données réelles, pas de best practice générique) — voir `.claude/instagram-insights.md` pour le détail intégrant Reel 6 + post/story auto jour 6, et la maturation du Reel 5 (0/0 → 18 reach/18 vues, 2582 ms de watch time moyen).

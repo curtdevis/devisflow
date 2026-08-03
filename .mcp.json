@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "instagram": {
+      "command": "C:\\Users\\Natha\\ig-mcp\\venv\\Scripts\\python.exe",
+      "args": ["-m", "src.instagram_mcp_server"],
+      "cwd": "C:\\Users\\Natha\\ig-mcp"
+    }
+  }
+}
